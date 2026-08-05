@@ -1,15 +1,21 @@
+/**
+ * [INPUT]: 依赖 Remotion Studio 的工具面板结构
+ * [OUTPUT]: 对外提供与 Recut 主工作台一致的亮色设计 token 与基础控件样式
+ * [POS]: recut-remotion-studio/ui/src 的视觉基础层；只负责 App 内工作面，不改变合成或导出逻辑
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 :root {
-  color-scheme: dark;
-  --bg: #0c0e13;
-  --panel: #151922;
-  --panel-2: #1b212d;
-  --border: #262d3b;
-  --text: #e8ecf4;
-  --muted: #9aa4b5;
-  --accent: #7aa2ff;
-  --accent-2: #55d6be;
-  --danger: #ff6b6b;
-  --radius: 10px;
+  color-scheme: light;
+  --bg: #f8faf8;
+  --panel: #ffffff;
+  --panel-2: #f2f6f3;
+  --border: #dbe3dd;
+  --text: #1c2921;
+  --muted: #647169;
+  --accent: #31b968;
+  --accent-2: #8ce2ac;
+  --danger: #d94343;
+  --radius: 8px;
 }
 
 * { box-sizing: border-box; }
@@ -47,10 +53,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   transition: background 0.15s ease, border-color 0.15s ease;
   text-decoration: none;
 }
-.btn:hover { background: #232b3a; }
+.btn:hover { background: #e8f2eb; border-color: #9ed8b5; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #0b0e16; font-weight: 600; }
-.btn.primary:hover { background: #8fb2ff; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn.primary:hover { background: #269b58; }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
 .btn.ghost:hover { background: var(--panel-2); color: var(--text); }
 .btn.danger { color: var(--danger); border-color: #3a2730; }
@@ -60,7 +66,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
 .field { display: grid; gap: 6px; margin-bottom: 14px; }
 .field label { font-size: 12px; color: var(--muted); font-weight: 500; }
 .input, .textarea, .select {
-  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  width: 100%; background: #fff; border: 1px solid var(--border);
   border-radius: 8px; padding: 8px 10px; color: var(--text);
 }
 .input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--accent); }
@@ -72,7 +78,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 600; }
   border-radius: 999px; padding: 6px 12px; font-size: 12px; cursor: pointer; text-align: left;
 }
 .chip:hover { border-color: var(--accent); }
-.chip.active { background: var(--accent); border-color: var(--accent); color: #0b0e16; font-weight: 600; }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 .chip .sub { display: block; font-size: 11px; opacity: 0.7; font-weight: 400; }
 
 .asset-card {

@@ -25,6 +25,7 @@ render/         服务端渲染工作区
   render.js      程序化 bundle + renderMedia
   node-check.js  依赖自检（供 render.setup 判断是否需 npm install）
 ui/             Vite React 项目页（@remotion/player 实时预览 + 创作台）
+  README.md     UI 模块地图与共享 Recut 设计规范
 ```
 
 ## 设计决策

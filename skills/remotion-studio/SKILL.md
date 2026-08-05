@@ -1,3 +1,8 @@
+---
+name: remotion-studio
+description: 把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频（Brief→Design→预览→迭代→导出）。
+---
+
 # Remotion Studio 创作指南
 
 > 这是创作契约，不是平台或工具说明。项目当前状态、可用能力和保存方式由宿主提供。

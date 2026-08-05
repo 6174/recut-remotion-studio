@@ -9,11 +9,18 @@ function id() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function scope(ctx) {
+  return ctx.project ? ctx.project.id : "";
+}
+
 function ensureSchema(ctx) {
-  ctx.sqlite.execute("create table if not exists briefs (id text primary key, template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
-  ctx.sqlite.execute("create table if not exists designs (id text primary key, brief_id text not null, title text not null, content_json text not null, dependencies_json text not null, created_at text not null, updated_at text not null, retired_at text)");
-  ctx.sqlite.execute("create table if not exists exports (render_id text primary key, design_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
+  ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
+  ctx.sqlite.execute("create table if not exists designs (id text primary key, project_id text not null default '', brief_id text not null, title text not null, content_json text not null, dependencies_json text not null, created_at text not null, updated_at text not null, retired_at text)");
+  ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', design_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
+  for (const [table, column] of [["briefs", "project_id"], ["designs", "project_id"], ["exports", "project_id"]]) {
+    try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
+  }
 }
 
 const STYLE_TEMPLATES = {
@@ -145,13 +152,13 @@ function createBrief(input, ctx) {
     materialAssetIds,
     createdAt: new Date().toISOString(),
   };
-  ctx.sqlite.execute("insert into briefs (id, template, topic, details, expected_duration_sec, material_json, created_at) values (?, ?, ?, ?, ?, ?, ?)", [brief.id, template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), brief.createdAt]);
+  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), brief.createdAt]);
   return ctx.artifacts.publish({ type: "recut.remotion-studio.brief@1", value: brief });
 }
 
 function latestBrief(_, ctx) {
   ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, created_at from briefs order by created_at desc limit 1");
+  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
   if (!rows.length) return null;
   const row = rows[0];
   return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), createdAt: row.created_at };
@@ -203,7 +210,7 @@ function validateDesign(content) {
 }
 
 function designByID(ctx, id) {
-  const rows = ctx.sqlite.query("select id, brief_id, title, content_json, dependencies_json, created_at, updated_at from designs where id = ? and retired_at is null", [id]);
+  const rows = ctx.sqlite.query("select id, brief_id, title, content_json, dependencies_json, created_at, updated_at from designs where id = ? and project_id = ? and retired_at is null", [id, scope(ctx)]);
   if (!rows.length) throw new Error(`design ${id} 不存在`);
   const row = rows[0];
   return { id: row.id, briefId: row.brief_id, title: row.title, content: JSON.parse(row.content_json), dependencies: JSON.parse(row.dependencies_json), createdAt: row.created_at, updatedAt: row.updated_at };
@@ -211,7 +218,7 @@ function designByID(ctx, id) {
 
 function latestDesign(designId, ctx) {
   if (designId) return designByID(ctx, String(designId));
-  const rows = ctx.sqlite.query("select id from designs where retired_at is null order by created_at desc limit 1");
+  const rows = ctx.sqlite.query("select id from designs where project_id = ? and retired_at is null order by created_at desc limit 1", [scope(ctx)]);
   if (!rows.length) return null;
   return designByID(ctx, rows[0].id);
 }
@@ -230,7 +237,7 @@ function saveComposition(input, ctx) {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  ctx.sqlite.execute("insert into designs (id, brief_id, title, content_json, dependencies_json, created_at, updated_at, retired_at) values (?, ?, ?, ?, ?, ?, ?, null)", [design.id, design.briefId, design.title, JSON.stringify(design.content), JSON.stringify(design.dependencies), design.createdAt, design.updatedAt]);
+  ctx.sqlite.execute("insert into designs (id, project_id, brief_id, title, content_json, dependencies_json, created_at, updated_at, retired_at) values (?, ?, ?, ?, ?, ?, ?, ?, null)", [design.id, scope(ctx), design.briefId, design.title, JSON.stringify(design.content), JSON.stringify(design.dependencies), design.createdAt, design.updatedAt]);
   return ctx.artifacts.publish({ type: "recut.remotion-studio.design@1", value: design });
 }
 
@@ -269,7 +276,7 @@ function updateComposition(input, ctx) {
   validateDesign(content);
   const title = String(input.title || "").trim() || resource.title;
   const now = new Date().toISOString();
-  ctx.sqlite.execute("update designs set title = ?, content_json = ?, updated_at = ? where id = ?", [title, JSON.stringify(content), now, id]);
+  ctx.sqlite.execute("update designs set title = ?, content_json = ?, updated_at = ? where id = ? and project_id = ?", [title, JSON.stringify(content), now, id, scope(ctx)]);
   const updated = { ...resource, title, content, updatedAt: now };
   return ctx.artifacts.publish({ type: "recut.remotion-studio.design@1", value: updated });
 }
@@ -282,7 +289,7 @@ function latestComposition(_, ctx) {
 
 function listDesigns(_, ctx) {
   ensureSchema(ctx);
-  return ctx.sqlite.query("select id, brief_id, title, created_at, updated_at from designs order by created_at desc").map((row) => ({ id: row.id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at }));
+  return ctx.sqlite.query("select id, brief_id, title, created_at, updated_at from designs where project_id = ? order by created_at desc", [scope(ctx)]).map((row) => ({ id: row.id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at }));
 }
 
 function workflowContext(_, ctx) {
@@ -369,12 +376,12 @@ function renderExport(input, ctx) {
 
   const job = ctx.shell.start({ command: "node", args: ["render/render.js", "--renderId", renderId], timeoutSeconds: 3600 });
   const settings = { width, height, fps, codec, label };
-  ctx.sqlite.execute("insert into exports (render_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [renderId, design.id, job.id, "queued", label, JSON.stringify(settings), null, null, now, now]);
+  ctx.sqlite.execute("insert into exports (render_id, project_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [renderId, scope(ctx), design.id, job.id, "queued", label, JSON.stringify(settings), null, null, now, now]);
   return { renderId, shellJobId: job.id, status: "queued", designId: design.id };
 }
 
 function exportRow(ctx, renderId) {
-  const rows = ctx.sqlite.query("select render_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports where render_id = ?", [renderId]);
+  const rows = ctx.sqlite.query("select render_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports where render_id = ? and project_id = ?", [renderId, scope(ctx)]);
   if (!rows.length) throw new Error(`渲染任务 ${renderId} 不存在`);
   const row = rows[0];
   return { renderId: row.render_id, designId: row.design_id, shellJobId: row.shell_job_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at, updatedAt: row.updated_at };
@@ -395,7 +402,7 @@ function renderStatus(input, ctx) {
     if (!record.assetId) {
       const asset = ctx.media.importFile({ path: `exports/${renderId}/out.mp4`, name: record.label + ".mp4", mimeType: "video/mp4" });
       const now = new Date().toISOString();
-      ctx.sqlite.execute("update exports set status = 'completed', asset_id = ?, updated_at = ? where render_id = ?", [asset.id, now, renderId]);
+      ctx.sqlite.execute("update exports set status = 'completed', asset_id = ?, updated_at = ? where render_id = ? and project_id = ?", [asset.id, now, renderId, scope(ctx)]);
       return { renderId, status: "completed", assetId: asset.id, progress, label: record.label, settings: record.settings };
     }
     return { renderId, status: "completed", assetId: record.assetId, progress, label: record.label, settings: record.settings };
@@ -403,7 +410,7 @@ function renderStatus(input, ctx) {
   if (job.status === "failed" || job.status === "interrupted" || job.status === "cancelled") {
     const now = new Date().toISOString();
     const error = job.error || (job.status === "cancelled" ? "渲染任务已取消" : "渲染失败，请查看渲染日志");
-    ctx.sqlite.execute("update exports set status = ?, error = ?, updated_at = ? where render_id = ?", [job.status, error, now, renderId]);
+    ctx.sqlite.execute("update exports set status = ?, error = ?, updated_at = ? where render_id = ? and project_id = ?", [job.status, error, now, renderId, scope(ctx)]);
     return { renderId, status: job.status, error, progress, label: record.label, settings: record.settings };
   }
   return { renderId, status: job.status, progress, label: record.label, settings: record.settings };
@@ -418,13 +425,13 @@ function renderCancel(input, ctx) {
     ctx.shell.cancel(record.shellJobId);
   }
   const now = new Date().toISOString();
-  ctx.sqlite.execute("update exports set status = 'cancelled', updated_at = ? where render_id = ?", [now, renderId]);
+  ctx.sqlite.execute("update exports set status = 'cancelled', updated_at = ? where render_id = ? and project_id = ?", [now, renderId, scope(ctx)]);
   return { renderId, status: "cancelled" };
 }
 
 function listExports(_, ctx) {
   ensureSchema(ctx);
-  return ctx.sqlite.query("select render_id, design_id, status, label, settings_json, asset_id, error, created_at from exports order by created_at desc").map((row) => ({ renderId: row.render_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at }));
+  return ctx.sqlite.query("select render_id, design_id, status, label, settings_json, asset_id, error, created_at from exports where project_id = ? order by created_at desc", [scope(ctx)]).map((row) => ({ renderId: row.render_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at }));
 }
 
 recut.operation.register("project.create", createBrief);
