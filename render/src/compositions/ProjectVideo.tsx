@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, interpolate, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
-import { startPreviewEnv, resolveMediaUrl } from "../runtime/media";
+import { resolveMediaUrl } from "../runtime/media";
 import { MediaImage } from "../media";
 import { BackgroundFX, Palette, useImageMotion } from "../effects/registry";
 import { TextFX } from "../effects/text";
@@ -12,7 +12,7 @@ import { Brief, MediaMap, ProjectVideoProps } from "../types";
  * edits directly: rewrite SCENES (content) and/or the renderers below. Media is
  * referenced by Recut assetId through resolveMediaUrl(assetId, media), which
  * resolves to the materialized file during export and to the content URL in
- * Remotion Studio preview. Everything is frame-driven and deterministic.
+ * preview. Everything is frame-driven and deterministic.
  */
 
 export interface Scene {
@@ -40,7 +40,7 @@ export const resolvePalette = (brief?: Brief | null): Palette => {
 export const SCENES: Scene[] = [
   { id: "opening", kind: "title", title: "Remotion Studio", effectId: "cinematic-title", durationSec: 4 },
   { id: "body-1", kind: "content", title: "选题", narration: "把想法写进这份代码，AI 会直接改写它。", durationSec: 5 },
-  { id: "body-2", kind: "content", title: "改写", narration: "保存后 Studio 会即时热更新预览。", imageAssetId: null, durationSec: 5 },
+  { id: "body-2", kind: "content", title: "改写", narration: "保存后 Player 会刷新预览。", imageAssetId: null, durationSec: 5 },
   { id: "closing", kind: "outro", title: "开始创作", durationSec: 4 },
 ];
 
@@ -162,7 +162,6 @@ export const ProjectVideo: React.FC<ProjectVideoProps> = ({ brief, media }) => {
   const palette = resolvePalette(brief);
   const timings = computeTimings(fps);
   const captionsData = buildGlobalCaptions(timings, fps);
-  startPreviewEnv();
 
   return (
     <AbsoluteFill style={{ background: palette.background }}>

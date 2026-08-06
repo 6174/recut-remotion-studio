@@ -8,9 +8,11 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@remotion/player": "4.0.506",
     "lucide-react": "^0.469.0",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "remotion": "4.0.506"
   },
   "devDependencies": {
     "@types/react": "18.3.12",

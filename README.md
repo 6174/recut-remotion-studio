@@ -1,19 +1,20 @@
 # Recut Remotion Studio
 
-> `type: project` App —— 把选题、文案、风格模板和素材编排成 Remotion 程序化视频。**每个项目拥有自己的 Remotion 工程**：AI 直接改写 composition 代码，Remotion Studio 热更新预览，本地渲染导出。
+> `type: project` App —— 把选题、文案、风格模板和素材编排成 Remotion 程序化视频。**每个项目拥有自己的 Remotion 工程**：AI 直接改写 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。
 
 ## 能力
 
 - **Brief 表单**：新建项目时选择风格模板、选题、细节、时长与素材，一键交给 AI 设计。
 - **代码驱动的创作台**：AI 经 `code.read/code.write` 直接改写项目私有 `workspace/` 里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
-- **Remotion Studio 实时预览**：每个项目一个长驻 Remotion Studio dev server，项目页 iframe 嵌入其预览与代码编辑器；AI 改代码即热更新。
+- **内嵌 Player 实时预览**：`preview.build` 用 esbuild 把项目 composition 打成预览 bundle，UI 用 `@remotion/player` 播放（播放/暂停/进度条），AI 改完代码点「重建预览」或自动轮询刷新。
+- **底部日志区**：预览构建、渲染导出的 shell stdout/stderr 实时滚动显示，便于调试与查看背后执行过程。
 - **本地导出**：`render/` 是 Node 渲染工作区，使用 `@remotion/bundler` + `@remotion/renderer` 在本地 headless Chrome 中把项目 workspace 的 composition 渲染为 MP4，并归档为 Recut 媒体素材；每次完成导出自动将该 MP4 设为 Project 封面。
 
 ## 结构
 
 ```text
 manifest.json   唯一运行时配置（operations、permissions、onboarding）
-background.js   Goja 沙箱业务后端：Brief、workspace seed、code.read/write、素材登记、Studio 生命周期、渲染任务编排
+background.js   Goja 沙箱业务后端：Brief、workspace seed、code.read/write、素材登记、预览构建、日志读取、渲染任务编排
 skills/remotion-studio/
   SKILL.md      注入 Agent 的代码驱动工作流
   references/   表达特效目录、字幕主题目录、导演语言速查 + video-shotcraft/（流水线/镜头卡/准则/TEMPLATE 整体拷贝）
@@ -24,19 +25,20 @@ render/         服务端渲染/预览工作区
     templates-vendor/               remotion-templates 全部 81 个单文件组件 + README 目录
     captions/                       字幕主题（remotion-captions-themes 13 套）
     vendor/shotcraft/               video-shotcraft 的 lib 组件（PageCam/Caption/…）
-    runtime/media.ts                 resolveMediaUrl(assetId, media)——导出走 props、Studio 预览走 env.json
+    runtime/media.ts                 resolveMediaUrl(assetId, media)——导出与预览统一走 props
   seed.js       App 模板 → 项目私有 workspace/（含 node_modules 符号链接）
-  studio.js     长驻 Remotion Studio 预览服务器（写 studio/status.json 报端口）
+  preview.js    esbuild 打包项目 composition → workspace/preview/bundle.js（external 由 UI 注入实例）
   render.js     程序化 bundle + renderMedia（入口 = 项目 workspace）
   node-check.js 依赖自检
-ui/             Vite React 项目页（Brief 表单 + Studio iframe 预览 + 导出面板）
+ui/             Vite React 项目页（Brief 表单 + Player 预览 + 导出面板 + 底部日志区）
 ```
 
 ## 设计决策
 
 - **每项目一个 Remotion 工程**：首次 `workspace.ensure` 把 App 模板复制到项目私有目录，AI 直接改写项目代码，项目间互不干扰，模板改动只影响新项目。
-- **预览用 iframe 跑真 Remotion**：`render/studio.js` 以无期限后台任务启动 `remotion studio`，iframe 嵌入其地址；HMR 即时反映 AI 改的代码。平台 `ctx.shell.start` 支持 `timeoutSeconds: 0`（无期限，仅服务型进程）。
-- **媒体按 assetId 解析**：代码用 `resolveMediaUrl(assetId, media)`——导出时 props 携带 materialized 本地文件，Studio 预览时从 `workspace/public/recut-env.json` 拼内容 URL（`studio.env` 由 UI 写入，`<img>/<audio>` 跨源无需 CORS）。
+- **预览用内嵌 Player，不跑独立 Studio dev server**：`preview.js` 用 esbuild 把项目 composition 打成 IIFE（react / react-dom / react/jsx-runtime / remotion external，UI 通过 `window.require` 注入自身实例以保证 hooks 上下文一致），`@remotion/player` 加载并播放；播放/暂停/进度条由 Player 内置。
+- **媒体按 assetId 解析**：代码用 `resolveMediaUrl(assetId, media)`——预览与导出统一从 `media` props 解析（预览为内容 URL，导出为 materialized 本地文件）。
+- **底部日志区**：UI 订阅 `shell.job.log` 项目事件实时滚动；`logs.read` 回填历史；预览构建与渲染导出的 stdout/stderr 都可在这里看到。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node render/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
 
@@ -48,7 +50,7 @@ cd ui && npm install && npm run build   # 产出 ui/dist（提交到仓库，作
 make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 ```
 
-导出与预览需要本机 `node`（18+）；首次会 `npm ci` 安装 Remotion 依赖（含 `@remotion/cli`），并下载 headless Chrome（约 90MB），耗时取决于网络。
+导出与预览需要本机 `node`（18+）；首次会 `npm ci` 安装 Remotion 依赖，并下载 headless Chrome（约 90MB），耗时取决于网络。调试时看项目页底部日志区，或直接 `make dev` 起服务后用 `studio.status`/`logs.read` 检查。
 
 ## 复用来源与授权
 

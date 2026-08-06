@@ -1,7 +1,7 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、Remotion Studio 长驻预览服务的 start/status/stop/env、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
- * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写，Studio 热更新预览），导出委托本地 Node 渲染工作区 + 平台 Asset 归档
+ * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、预览 bundle 构建（preview.build/version）与 shell 日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
+ * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写），预览由 UI 内嵌 @remotion/player 加载 preview.build 打出的 bundle，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 
@@ -21,7 +21,6 @@ function ensureSchema(ctx) {
   ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
   ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists composition_assets (project_id text not null, asset_id text not null, created_at text not null, primary key (project_id, asset_id))");
-  ctx.sqlite.execute("create table if not exists studio (project_id text primary key, job_id text not null, phase text not null, port integer, error text, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
   for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"]]) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
@@ -196,59 +195,36 @@ function renderSetup(_, ctx) {
   return ensureRenderDeps(ctx);
 }
 
-function studioStatus(_, ctx) {
-  ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select job_id, phase, port, error, updated_at from studio where project_id = ?", [scope(ctx)]);
-  if (!rows.length) return { running: false, phase: "stopped", port: null, url: null };
-  const record = rows[0];
-  let jobStatus = "unknown";
-  try { jobStatus = ctx.shell.status(record.job_id).status; } catch (_) { /* job 已不可查 */ }
-  if (["completed", "failed", "cancelled", "interrupted"].includes(jobStatus)) {
-    const error = record.error || `Studio 进程已结束（${jobStatus}），可重新启动预览。`;
-    return { running: false, phase: jobStatus === "interrupted" ? "interrupted" : "stopped", port: record.port, url: record.port ? `http://127.0.0.1:${record.port}` : null, error, jobId: record.job_id };
-  }
-  let phase = record.phase;
-  let port = record.port;
-  let error = record.error || null;
-  try {
-    const status = JSON.parse(ctx.files.readText(`studio/status.json`));
-    if (status && status.port) { port = Number(status.port); phase = status.phase || phase; error = status.error || error; }
-  } catch (_) { /* Studio 尚未写状态文件 */ }
-  const running = jobStatus === "running" || jobStatus === "queued";
-  return { running, phase, port, url: port ? `http://127.0.0.1:${port}` : null, error, jobId: record.job_id };
-}
-
-function studioStart(_, ctx) {
+function previewBuild(_, ctx) {
   ensureSchema(ctx);
   workspaceEnsure({}, ctx);
-  const deps = ensureRenderDeps(ctx);
-  if (!deps.ready) throw new Error(`渲染/预览环境未就绪：${JSON.stringify(deps.checks)}`);
-  const existing = studioStatus({}, ctx);
-  if (existing.running) return { jobId: existing.jobId, phase: existing.phase, port: existing.port, url: existing.url };
-  const job = ctx.shell.start({ command: "node", args: ["render/studio.js"], timeoutSeconds: 0 });
-  const now = new Date().toISOString();
-  ctx.sqlite.execute("insert or replace into studio (project_id, job_id, phase, port, error, updated_at) values (?, ?, ?, ?, ?, ?)", [scope(ctx), job.id, "starting", null, null, now]);
-  return { jobId: job.id, phase: "starting", port: null, url: null };
-}
-
-function studioStop(_, ctx) {
-  ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select job_id from studio where project_id = ?", [scope(ctx)]);
-  if (rows.length) {
-    try { ctx.shell.cancel(rows[0].job_id); } catch (_) { /* job 可能已结束 */ }
-    ctx.sqlite.execute("delete from studio where project_id = ?", [scope(ctx)]);
+  const job = ctx.shell.run({ command: "node", args: ["render/preview.js"], timeoutSeconds: 300 });
+  if (job.exitCode !== 0) {
+    throw new Error(`预览构建失败：${job.error || job.stdout || "preview.js 退出非零"}`);
   }
-  return { stopped: true };
+  let buildId = null;
+  try { buildId = JSON.parse(ctx.files.readText(`${WORKSPACE}/preview/version.json`)).buildId; } catch (_) { /* version 尚未写入 */ }
+  ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [`preview_job:${scope(ctx)}`, job.jobId]);
+  return { ok: true, buildId, jobId: job.jobId };
 }
 
-function studioEnv(input, ctx) {
+function previewVersion(_, ctx) {
   ensureSchema(ctx);
-  workspaceEnsure({}, ctx);
-  const api = String(input.api || "").trim();
-  const media = input.media && typeof input.media === "object" && !Array.isArray(input.media) ? input.media : {};
-  const payload = { projectId: scope(ctx), api, media };
-  ctx.files.writeText(`${WORKSPACE}/public/recut-env.json`, JSON.stringify(payload));
-  return { written: true, path: `${WORKSPACE}/public/recut-env.json` };
+  let version = null;
+  try { version = JSON.parse(ctx.files.readText(`${WORKSPACE}/preview/version.json`)); } catch (_) { return null; }
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`preview_job:${scope(ctx)}`]);
+  return { ...version, jobId: rows.length ? rows[0].value : null };
+}
+
+function readLogs(input, ctx) {
+  ensureSchema(ctx);
+  const jobId = String(input.jobId || "").trim();
+  if (!jobId) throw new Error("jobId 是必填项");
+  const job = ctx.shell.status(jobId);
+  const limit = Math.max(1, Math.min(Number(input.limit || 500), 2000));
+  let logs = [];
+  try { logs = ctx.shell.logs(jobId); } catch (_) { /* 日志暂不可读 */ }
+  return { jobId, status: job.status, logs: logs.slice(-limit).map((line) => ({ stream: line.stream, text: line.text, timestamp: line.timestamp })) };
 }
 
 function workflowContext(_, ctx) {
@@ -256,19 +232,19 @@ function workflowContext(_, ctx) {
   const brief = latestBrief({}, ctx);
   const seeded = workspaceSeeded(ctx);
   const stage = !brief ? "brief" : "studio";
-  const studio = studioStatus({}, ctx);
+  const preview = previewVersion({}, ctx);
   return {
     revision: `${stage}:${brief?.createdAt || "none"}:${seeded ? "workspace-seeded" : "no-workspace"}`,
     stage,
     nextAction: stage === "brief" ? "create_brief" : "edit_composition_code",
     brief,
     workspace: { root: WORKSPACE, seeded },
-    studio,
+    preview,
     registeredAssets: registeredAssets(ctx),
     catalogs: { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES },
-    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "studio.start", "studio.status", "studio.stop", "studio.env", "render.export"],
+    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "preview.build", "preview.version", "logs.read", "render.export"],
     mediaExecution: {
-      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 Root.tsx 与 compositions/ 成片代码；复用 workspace/effects、workspace/captions；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后 Remotion Studio 热更新即时预览；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
+      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 Root.tsx 与 compositions/ 成片代码；复用 workspace/effects、workspace/captions；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后调用 preview.build 重建预览 bundle，UI 内嵌 Player 刷新；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
     },
   };
 }
@@ -370,10 +346,9 @@ recut.operation.register("code.list", codeList);
 recut.operation.register("code.read", codeRead);
 recut.operation.register("code.write", codeWrite);
 recut.operation.register("composition.assets", registerAssets);
-recut.operation.register("studio.start", studioStart);
-recut.operation.register("studio.status", studioStatus);
-recut.operation.register("studio.stop", studioStop);
-recut.operation.register("studio.env", studioEnv);
+recut.operation.register("preview.build", previewBuild);
+recut.operation.register("preview.version", previewVersion);
+recut.operation.register("logs.read", readLogs);
 recut.operation.register("render.setup", renderSetup);
 recut.operation.register("render.export", renderExport);
 recut.operation.register("render.status", renderStatus);

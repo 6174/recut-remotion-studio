@@ -3,7 +3,7 @@
   "id": "recut.remotion-studio",
   "name": "Remotion Studio",
   "author": "6174",
-  "description": "把选题、文案和素材编排成 Remotion 程序化视频：AI 直接改写项目 composition 代码，Remotion Studio 热更新预览，本地渲染导出。",
+  "description": "把选题、文案和素材编排成 Remotion 程序化视频：AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。",
   "repository": "https://github.com/6174/recut-remotion-studio",
   "version": "0.2.0",
   "type": "project",
@@ -14,13 +14,13 @@
       "id": "start-video",
       "title": "从一次设计开始",
       "description": "提交选题、风格与素材，让 AI 把它写进项目的 Remotion 工程代码并实时预览。",
-      "prompt": "我想用 Remotion Studio 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：用 code.list/code.read 读、code.write 改 workspace/compositions/ProjectVideo.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；保存后停下等待预览确认，不要提前渲染或导出。"
+      "prompt": "我想用 Remotion Studio 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：用 code.list/code.read 读、code.write 改 workspace/compositions/ProjectVideo.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完调用 preview.build 让内嵌 Player 刷新预览；保存后停下等待预览确认，不要提前渲染或导出。"
     },
     {
       "id": "design-video",
       "title": "把想法写成代码",
       "description": "把模糊想法收敛成可热更新预览的 Remotion composition 代码。",
-      "prompt": "我有一个还不成熟的视频想法：【请在这里填写想法】。请像视频剪辑师一样帮我收敛：先调用 workflow.context 看阶段，读 remotion-studio skill 的 references/directing.md 定动效与节拍，然后直接改写 workspace 里的 composition 代码（code.read → code.write），复用内置特效与字幕主题，媒体用真实 assetId 引用。改完用 composition.assets 登记素材，保存后等待预览确认，不要渲染导出。"
+      "prompt": "我有一个还不成熟的视频想法：【请在这里填写想法】。请像视频剪辑师一样帮我收敛：先调用 workflow.context 看阶段，读 remotion-studio skill 的 references/directing.md 定动效与节拍，然后直接改写 workspace 里的 composition 代码（code.read → code.write），复用内置特效与字幕主题，媒体用真实 assetId 引用。改完用 composition.assets 登记素材，调用 preview.build 刷新预览，等待预览确认，不要渲染导出。"
     }
   ],
   "permissions": ["sqlite", "files", "media.read", "media.write", "artifacts.publish", "shell"],
@@ -40,7 +40,7 @@
     {
       "name": "workflow.context",
       "surfaces": ["api", "mcp"],
-      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、Remotion Studio 预览状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
+      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、预览 bundle 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -80,28 +80,22 @@
       "inputSchema": { "type": "object", "required": ["assetIds"], "properties": { "assetIds": { "type": "array", "items": { "type": "string" } } } }
     },
     {
-      "name": "studio.start",
+      "name": "preview.build",
       "surfaces": ["api"],
-      "description": "启动本项目的 Remotion Studio 长驻预览服务器（后台任务，无期限）。确保 workspace 与渲染依赖后启动，返回 jobId；端口与就绪状态通过 studio.status 查询。",
+      "description": "把项目 workspace 的 composition 打包成预览 bundle（esbuild，external 由 UI 注入 React/Remotion 实例），写入 workspace/preview/bundle.js 并记录 buildId。每次 code.write 改完代码后调用，UI 内嵌 Player 会自动刷新。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
-      "name": "studio.status",
+      "name": "preview.version",
       "surfaces": ["api"],
-      "description": "查询 Remotion Studio 预览服务器状态：running、phase、port 与可嵌入的 url。",
+      "description": "读取当前预览 bundle 的 buildId 与最近一次构建的 jobId，供界面检测是否需要刷新预览。未构建时返回 null。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
-      "name": "studio.stop",
+      "name": "logs.read",
       "surfaces": ["api"],
-      "description": "停止本项目的 Remotion Studio 预览服务器。",
-      "inputSchema": { "type": "object", "properties": {} }
-    },
-    {
-      "name": "studio.env",
-      "surfaces": ["api"],
-      "description": "把服务端地址与项目素材映射（assetId→内容 URL）写入 workspace/public/recut-env.json，供 Studio 预览里的 composition 解析媒体。UI 在素材变化时调用。",
-      "inputSchema": { "type": "object", "required": ["api"], "properties": { "api": { "type": "string" }, "media": { "type": "object", "additionalProperties": { "type": "object" } } } }
+      "description": "读取一次 shell 任务（预览构建或渲染导出）的 stdout/stderr 日志，供界面底部日志区查看与调试。",
+      "inputSchema": { "type": "object", "required": ["jobId"], "properties": { "jobId": { "type": "string" }, "limit": { "type": "number" } } }
     },
     {
       "name": "render.setup",
