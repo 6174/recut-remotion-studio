@@ -15,6 +15,30 @@ const path = require("path");
 const os = require("os");
 const { bundle } = require("@remotion/bundler");
 const { getCompositions, renderMedia } = require("@remotion/renderer");
+const postcss = require("postcss");
+const tailwindPostcss = require("@tailwindcss/postcss");
+
+// Remotion's Rspack bundler handles CSS natively (built-in CSS), so loader-level
+// PostCSS injection is ignored. We instead pre-compile the workspace's Tailwind
+// CSS here (postcss + @tailwindcss/postcss, same engine as the Vite preview) into
+// a per-render temp file, then bundle a thin entry that imports the compiled CSS
+// and re-exports the composition entry. Exported frames thus carry the exact
+// design tokens/utilities as the live preview.
+async function compileTailwindCSS(workspace, outDir) {
+  const cssPath = path.join(workspace, "src", "index.css");
+  const raw = fs.readFileSync(cssPath, "utf8");
+  const result = await postcss([tailwindPostcss({ base: workspace })]).process(raw, { from: cssPath });
+  const compiledPath = path.join(outDir, "tailwind.generated.css");
+  fs.writeFileSync(compiledPath, result.css);
+  return compiledPath;
+}
+
+function makeEntry(compiledCssPath, realEntry) {
+  const dir = path.dirname(compiledCssPath);
+  const entryPath = path.join(dir, "composition.entry.ts");
+  fs.writeFileSync(entryPath, `import ${JSON.stringify(compiledCssPath)};\nexport * from ${JSON.stringify(realEntry)};\n`);
+  return entryPath;
+}
 
 function readArg(name) {
   const index = process.argv.indexOf(`--${name}`);
@@ -77,10 +101,13 @@ function writeProgress(phase, progress, message) {
   }
 
   writeProgress("bundling", 0.05, "打包 Remotion 项目");
+  const compiledCss = await compileTailwindCSS(__dirname, workDir);
+  const entryPoint = makeEntry(compiledCss, workspaceEntry);
   const serveUrl = await bundle({
-    entryPoint: workspaceEntry,
+    entryPoint,
     publicDir,
     enableCaching: false,
+    ignoreRegisterRootWarning: true,
   });
 
   const inputProps = { brief, media: resolvedMedia, settings };

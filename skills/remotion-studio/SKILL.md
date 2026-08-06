@@ -37,10 +37,13 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 ├── src/
 │   ├── player.tsx         # 预览页组件（fetch props.json + <Player> 进度控制）
 │   ├── index.ts           # registerRoot 入口（服务端渲染用）
+│   ├── index.css          # Tailwind v4 入口 + Recut 设计系统 token（预览/导出同源）
 │   ├── Root.tsx           # 注册 ProjectVideo（时长/尺寸由 getProjectMetadata 推导）
 │   ├── compositions/ProjectVideo.tsx   # 成片模板：改 SCENES 与渲染层（主编辑对象）
 │   ├── effects/           # 表达特效封装：BackgroundFX、TextFX、useImageMotion
 │   ├── captions/          # 字幕主题（remotion-captions-themes 13 套，vendor/ 保原始结构）
+│   ├── lib/utils.ts       # cn（clsx + tailwind-merge 类名合并）
+│   ├── components/ui/     # 本地 shadcn 原子：Button/Card/Badge/Input/Textarea（画面内展示用）
 │   ├── components/remotion-templates/  # remotion-templates 全部 81 个单文件组件（含 README 目录表）
 │   ├── components/shotcraft/           # video-shotcraft 的 lib 组件（PageCam/Caption/DigitRoll/… 与 helpers）
 │   ├── runtime/media.ts   # resolveMediaUrl(assetId, media)——预览与导出统一走 props
@@ -48,6 +51,15 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 ├── preview/               # props.json（preview.props 写入，Vite publicDir 伺服）
 └── node_modules -> App remotion-skeleton/node_modules   # 符号链接，解析 remotion/vite/react
 ```
+
+## 设计系统（tailwind + shadcn，AI 少表达）
+
+成片渲染层直接用现成的设计系统，不要逐条手写样式：
+
+- **语义 token**（`src/index.css` 的 `@theme`）：`bg-primary` / `bg-background` / `text-foreground` / `text-muted-foreground` / `text-accent` / `bg-destructive` / `rounded-xs` / `font-sans` / `font-mono` 等，全片统一用它们；**不要手写十六进制色值**（模板色板例外，见 `palette.*`）。
+- **动态色板**（每套模板不同）仍走 `palette` 内联样式：`palette.background/primary/accent/text/fontFamily/captionTheme`，`ProjectVideo.resolvePalette` 已按 brief.template 解析。
+- **shadcn 原子**（`src/components/ui/`）：画面里要出现 UI（按钮/卡片/标签/输入框等界面感场景）时直接复用 Button/Card/Badge/Input/Textarea + `cn`，不要从零写组件。
+- 布局/间距/字阶用 Tailwind 工具类（`flex`/`absolute`/`px-*`/`text-*`/`tracking-*`…），颜色交给 token 或 palette。
 ## 复用资产：用户先选择，AI 再写进代码
 
 开始设计前，先读以下 reference，并让用户在目录里做出选择：

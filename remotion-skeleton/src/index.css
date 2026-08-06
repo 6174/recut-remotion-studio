@@ -1,19 +1,16 @@
 /**
- * [INPUT]: 依赖 Tailwind 4、Recut 设计系统语义 token 与 @xterm/xterm 终端样式
- * [OUTPUT]: 对外提供与 Recut 主工作台同源的色彩、排版、焦点与拖拽行为基础
- * [POS]: remotion-studio/ui 的唯一全局视觉入口；组件只组合 Tailwind 工具类，不另建 CSS 主题
+ * [INPUT]: 依赖 Tailwind CSS v4 编译器（预览走 @tailwindcss/vite，导出走 @tailwindcss/postcss）
+ * [OUTPUT]: 对外提供与 Recut 设计系统同源的语义 token、基础样式与 shadcn 原子所需的主题变量
+ * [POS]: remotion-skeleton 的全局视觉入口；composition 渲染层只组合 Tailwind 工具类，不手写逐条样式
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 @import "tailwindcss";
-@import "@xterm/xterm/css/xterm.css";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -29,20 +26,20 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-terminal: var(--terminal);
   --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
   --font-sans: Inter, "PingFang SC", "Noto Sans SC", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 :root {
-  /* Recut Design System: quiet canvas, decisive green, low-radius tool surfaces. */
+  /* Recut Design System: quiet canvas, decisive green, low-radius surfaces. */
   --background: oklch(0.99 0.003 150);
   --foreground: oklch(0.18 0.012 150);
   --card: oklch(1 0 0);
   --card-foreground: var(--foreground);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--foreground);
   --primary: oklch(0.66 0.17 151);
   --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.955 0.012 150);
@@ -58,17 +55,13 @@
   --border: oklch(0.9 0.007 150);
   --input: oklch(0.88 0.008 150);
   --ring: oklch(0.69 0.17 151);
-  --terminal: oklch(0.16 0.008 150);
   --radius-xs: 0.375rem;
-  --shadow-overlay: 0 14px 36px oklch(0.19 0.008 150 / 0.1);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.75rem;
 }
 
 @layer base {
-  * { @apply border-border outline-ring/50; }
-  html, body, #root { @apply h-full; }
-  body { @apply m-0 min-h-screen bg-background font-sans text-foreground antialiased; letter-spacing: 0; }
-  button, input, select, textarea { font: inherit; }
-  ::selection { background: color-mix(in oklab, var(--primary) 22%, white); }
+  * { @apply border-border; }
+  html, body { margin: 0; height: 100%; }
 }
-
-body.is-resizing { cursor: ns-resize; user-select: none; }

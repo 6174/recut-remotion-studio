@@ -22,9 +22,29 @@ function ensureSchema(ctx) {
   ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists composition_assets (project_id text not null, asset_id text not null, created_at text not null, primary key (project_id, asset_id))");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
-  for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"]]) {
+  for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"], ["exports", "brief_id"]]) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
   }
+  const exportsCols = ctx.sqlite.query("pragma table_info(exports)").map((row) => String(row.name));
+  if (exportsCols.includes("design_id")) {
+    // 旧版 schema 曾写入 design_id（NOT NULL 无默认），重构后代码不再维护该列；
+    // 重建 exports 去掉 design_id，否则 INSERT 触发 NOT NULL 约束失败。
+    ctx.sqlite.execute("alter table exports rename to exports_legacy");
+    ctx.sqlite.execute("create table exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
+    ctx.sqlite.execute("insert into exports (render_id, project_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) select render_id, project_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports_legacy");
+    ctx.sqlite.execute("drop table exports_legacy");
+  }
+}
+
+// shell/importFile 等返回 camelCase map（status/id/error…），与 Apps 消费契约一致。
+// trackJob 只追加，供 logs.list 回填各任务历史日志；列表保持最近若干条。
+function trackJob(ctx, key, jobId) {
+  if (!jobId) return;
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [key]);
+  const current = rows.length ? String(rows[0].value || "") : "";
+  const list = current ? current.split(",") : [];
+  list.push(String(jobId));
+  ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [key, list.slice(-12).join(",")]);
 }
 
 const STYLE_TEMPLATES = {
@@ -112,12 +132,14 @@ function workspaceEnsure(_, ctx) {
 
 function workspaceReset(_, ctx) {
   ensureSchema(ctx);
-  // 停止预览服务，删除项目 workspace 与 serve 状态，清空素材登记，再从骨架重新 seed。
+  // 停止预览服务，删除项目 workspace 与 serve 状态，清空素材登记与旧工作区任务历史，再从骨架重新 seed。
   const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
   if (rows.length) {
     try { ctx.shell.cancel(rows[0].value); } catch (_) { /* job 可能已结束 */ }
   }
-  ctx.sqlite.execute("delete from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  for (const key of [`serve_job:${scope(ctx)}`, `serve_jobs:${scope(ctx)}`, `terminal_jobs:${scope(ctx)}`]) {
+    ctx.sqlite.execute("delete from app_meta where key = ?", [key]);
+  }
   const removed = ctx.shell.run({ command: "rm", args: ["-rf", WORKSPACE, "serve"], cwd: "files", timeoutSeconds: 120 });
   if (removed.exitCode !== 0) throw new Error(`工作区重置失败：${removed.error || removed.stdout || "rm 退出非零"}`);
   ctx.sqlite.execute("delete from composition_assets where project_id = ?", [scope(ctx)]);
@@ -217,6 +239,7 @@ function previewServeStart(_, ctx) {
   if (existing.running) return { jobId: existing.jobId, phase: existing.phase, port: existing.port, url: existing.url };
   // 项目工程的 Makefile 内部处理依赖与端口冲突；无法解决时把可读错误抛给 AI。
   const job = ctx.shell.start({ command: "make", args: ["-C", "workspace", "start"], cwd: "files", timeoutSeconds: 0 });
+  trackJob(ctx, `serve_jobs:${scope(ctx)}`, job.id);
   ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [`serve_job:${scope(ctx)}`, job.id]);
   return { jobId: job.id, phase: "starting", port: null, url: null };
 }
@@ -275,6 +298,7 @@ function terminalExec(input, ctx) {
   const cwd = String(input.cwd || "").trim();
   if (cwd && (cwd.includes("..") || cwd.startsWith("/"))) throw new Error("cwd 必须是相对项目目录的路径");
   const job = ctx.shell.run({ command: "sh", args: ["-c", cwd ? `cd ${cwd} && ${command}` : command], cwd: "files", timeoutSeconds: Number(input.timeoutSeconds || 60) });
+  trackJob(ctx, `terminal_jobs:${scope(ctx)}`, job.jobId);
   return { jobId: job.jobId, status: job.status, exitCode: job.exitCode, output: job.stdout || "", error: job.error || "" };
 }
 
@@ -286,7 +310,40 @@ function readLogs(input, ctx) {
   const limit = Math.max(1, Math.min(Number(input.limit || 500), 2000));
   let logs = [];
   try { logs = ctx.shell.logs(jobId); } catch (_) { /* 日志暂不可读 */ }
-  return { jobId, status: job.status, logs: logs.slice(-limit).map((line) => ({ stream: line.stream, text: line.text, timestamp: line.timestamp })) };
+  return { jobId, status: job.status, logs: logs.slice(-limit).map((line) => ({ sequence: line.sequence, stream: line.stream, text: line.text, timestamp: line.timestamp })) };
+}
+
+// logs.list 汇总本项目 App 启动过的全部 shell 任务日志（预览服务、终端命令、
+// 渲染导出），按时间线排序后一次返回，供界面在挂载或切换时回填；shell 结果
+// 均为 camelCase map（status/stream/text/timestamp/sequence）。
+function collectJobIds(ctx) {
+  const ids = [];
+  const seen = new Set();
+  const push = (jobId) => {
+    const value = String(jobId || "").trim();
+    if (value && !seen.has(value)) { seen.add(value); ids.push(value); }
+  };
+  for (const key of [`serve_job:${scope(ctx)}`, `serve_jobs:${scope(ctx)}`, `terminal_jobs:${scope(ctx)}`]) {
+    ctx.sqlite.query("select value from app_meta where key = ?", [key]).forEach((row) => { String(row.value || "").split(",").filter(Boolean).forEach(push); });
+  }
+  ctx.sqlite.query("select shell_job_id from exports where project_id = ?", [scope(ctx)]).forEach((row) => push(row.shell_job_id));
+  return ids;
+}
+
+function listLogs(_, ctx) {
+  ensureSchema(ctx);
+  const lines = [];
+  for (const jobId of collectJobIds(ctx)) {
+    let status = "";
+    let logs = [];
+    try {
+      status = ctx.shell.status(jobId).status;
+      logs = ctx.shell.logs(jobId);
+    } catch (_) { continue; }
+    logs.forEach((line) => lines.push({ jobId, status, sequence: line.sequence ?? 0, stream: line.stream, text: line.text, timestamp: line.timestamp }));
+  }
+  lines.sort((a, b) => (a.timestamp < b.timestamp ? -1 : a.timestamp > b.timestamp ? 1 : (a.sequence ?? 0) - (b.sequence ?? 0)));
+  return { lines };
 }
 
 function workflowContext(_, ctx) {
@@ -415,6 +472,7 @@ recut.operation.register("preview.serve.stop", previewServeStop);
 recut.operation.register("preview.props", previewProps);
 recut.operation.register("terminal.exec", terminalExec);
 recut.operation.register("logs.read", readLogs);
+recut.operation.register("logs.list", listLogs);
 recut.operation.register("render.setup", renderSetup);
 recut.operation.register("render.export", renderExport);
 recut.operation.register("render.status", renderStatus);

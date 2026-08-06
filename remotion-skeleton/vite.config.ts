@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -13,7 +14,7 @@ const nodeModulesReal = path.dirname(path.dirname(fs.realpathSync(path.join(work
 
 export default defineConfig({
   root: workspace,
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     host: "127.0.0.1",
     hmr: { host: "127.0.0.1" },

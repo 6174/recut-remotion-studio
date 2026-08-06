@@ -1,8 +1,13 @@
+/**
+ * [INPUT]: 依赖 Remotion 帧时钟、视频尺寸与各类背景效果组件
+ * [OUTPUT]: 对外提供 Palette、BackgroundFX、GrainOverlay、useImageMotion
+ * [POS]: effects 模块的背景与媒体运动注册层，为 ProjectVideo 提供可换肤效果
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import Starfield from "../components/remotion-templates/starfield";
 import BokehCircles from "../components/remotion-templates/bokeh-circles";
-import GeometricPatterns from "../components/remotion-templates/geometric-patterns";
 import LiquidWave from "../components/remotion-templates/liquid-wave";
 import GradientShift from "../components/remotion-templates/gradient-shift";
 import MatrixRain from "../components/remotion-templates/matrix-rain";
@@ -34,8 +39,8 @@ export const BackgroundFX: React.FC<{ effectId?: string; palette: Palette }> = (
         return <Starfield />;
       case "bokeh":
         return <BokehCircles />;
-      case "geometric":
-        return <GeometricPatterns />;
+      case "editorial-lines":
+        return <EditorialLines palette={palette} />;
       case "liquid-wave":
         return <LiquidWave />;
       case "gradient-shift":
@@ -63,6 +68,23 @@ export const BackgroundFX: React.FC<{ effectId?: string; palette: Palette }> = (
         }}
       />
     </div>
+  );
+};
+
+const EditorialLines: React.FC<{ palette: Palette }> = ({ palette }) => {
+  const { width, height } = useVideoConfig();
+  const rings = [
+    { rx: 0.48, ry: 0.7, opacity: 0.1 },
+    { rx: 0.55, ry: 0.78, opacity: 0.075 },
+    { rx: 0.62, ry: 0.86, opacity: 0.055 },
+    { rx: 0.69, ry: 0.94, opacity: 0.04 },
+  ];
+  return (
+    <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+      {rings.map((ring, index) => (
+        <ellipse key={index} cx={width / 2} cy={height / 2} rx={width * ring.rx} ry={height * ring.ry} fill="none" stroke={palette.primary} strokeWidth={2} opacity={ring.opacity} />
+      ))}
+    </svg>
   );
 };
 

@@ -1,6 +1,14 @@
+/**
+ * [INPUT]: 依赖 Recut SDK 的项目状态、素材目录和 Agent compose，以及 Brief/Studio 子面板
+ * [OUTPUT]: 对外提供 Remotion Studio 根视图、项目 Header 与 Brief→工作台状态切换
+ * [POS]: remotion-studio/ui 的应用根；Header 承载工作台次级操作，Studio 承载创作场景和操作实现
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AlertTriangle, Download, RefreshCcw, RotateCcw } from "lucide-react";
+import { Button } from "./components/ui/button";
 import { BriefForm } from "./brief-form";
-import { Studio } from "./studio";
+import { Studio, type WorkspaceActions } from "./studio";
 import { recut, apiBase, projectId, mediaContentURL } from "./recut-sdk";
 
 export interface Brief {
@@ -60,6 +68,7 @@ export default function App() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [status, setStatus] = useState("连接中…");
   const [diagnostic, setDiagnostic] = useState("等待资源连接");
+  const [workspaceActions, setWorkspaceActions] = useState<WorkspaceActions | null>(null);
   const loadingRef = useRef(false);
 
   const mediaMap = useMemo(() => buildMediaMap(assets), [assets]);
@@ -115,7 +124,7 @@ export default function App() {
     setStatus("设计任务已交给 AI。提示词已写入右侧 Agent 面板并复制到剪贴板；发送后 Player 预览会自动刷新。");
   };
 
-  const redesign = async (instruction: string) => {
+  const redesign = async (instruction: string | undefined) => {
     if (!brief) return;
     const prompt = `请继续在 Remotion Studio 中改写这支视频的 composition 代码。\n\n当前 Brief：${brief.topic}（${brief.details || ""}）\n\n用户的改写要求：${instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context 与当前 workspace 代码（code.list/code.read）。\n3. 用 code.write 直接改写 workspace/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。`;
     try {
@@ -126,22 +135,23 @@ export default function App() {
   };
 
   if (!catalog) {
-    return <div className="app"><div className="topbar"><h1>Remotion Studio</h1><span className="status">{diagnostic}</span></div><div className="panel-body muted" style={{ padding: 24 }}>{diagnostic}</div></div>;
+    return <div className="flex h-full flex-col"><header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4"><div className="flex min-w-0 items-center gap-3"><p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION STUDIO</p><h1 className="truncate text-sm font-semibold">Remotion Studio</h1></div><span className="font-mono text-xs text-muted-foreground">{diagnostic}</span></header><div className="grid flex-1 place-items-center p-6"><p className="max-w-md text-center text-sm leading-6 text-muted-foreground">{diagnostic}</p></div></div>;
   }
 
   return (
-    <div className="app">
-      <div className="topbar">
-        <div className="flex grow">
-          <h1>Remotion Studio</h1>
-          {brief ? <span className="meta">{brief.topic} · {catalog.styleTemplates[brief.template]?.label ?? brief.template}</span> : null}
+    <div className="flex h-full flex-col">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION STUDIO</p>
+          <h1 className="truncate text-sm font-semibold">Remotion Studio</h1>
+          {brief ? <span className="truncate rounded-xs bg-muted px-2 py-1 text-[11px] text-muted-foreground">{brief.topic} · {catalog.styleTemplates[brief.template]?.label ?? brief.template}</span> : null}
         </div>
-        <span className="status mono" data-testid="diagnostic">{diagnostic}</span>
-      </div>
+        {brief && workspaceActions ? <div className="flex shrink-0 items-center gap-1"><Button className="px-2 text-[11px]" onClick={workspaceActions.openExport} type="button" variant="ghost"><Download className="size-3.5" />导出</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.buildPreview} type="button" variant="ghost"><RefreshCcw className="size-3.5" />构建</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.restartPreview} type="button" variant="ghost"><RotateCcw className="size-3.5" />重启</Button><Button className="px-2 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={workspaceActions.resetWorkspace} type="button" variant="ghost"><AlertTriangle className="size-3.5" />重置</Button></div> : null}
+      </header>
       {!brief ? (
         <BriefForm catalog={catalog} onStart={startDesign} status={status} />
       ) : (
-        <Studio assets={assets} brief={brief} catalog={catalog} mediaMap={mediaMap} onRedesign={(instruction) => void redesign(instruction)} setStatus={setStatus} />
+        <Studio assets={assets} brief={brief} catalog={catalog} mediaMap={mediaMap} onHeaderActionsChange={setWorkspaceActions} onRedesign={(instruction) => void redesign(instruction)} setStatus={setStatus} />
       )}
     </div>
   );

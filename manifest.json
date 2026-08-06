@@ -122,6 +122,12 @@
       "inputSchema": { "type": "object", "required": ["jobId"], "properties": { "jobId": { "type": "string" }, "limit": { "type": "number" } } }
     },
     {
+      "name": "logs.list",
+      "surfaces": ["api"],
+      "description": "汇总本项目 App 启动过的全部 shell 任务日志（预览服务、终端命令、渲染导出），按时间线排序一次返回，供界面挂载或切换日志时回填。",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
       "name": "render.setup",
       "surfaces": ["api"],
       "description": "检查并准备本地渲染/预览环境：Node 与 render 工作区依赖（@remotion/renderer、@remotion/cli 等）与浏览器。首次会运行 npm install，耗时可能较长；返回每个检查项状态。",

@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖字幕主题注册表与场景旁白文本
+ * [OUTPUT]: 对外提供 CaptionTheme、主题类型与确定性的字幕时间数据构建器
+ * [POS]: captions 模块的时间与分词边界；供 ProjectVideo 的字幕层消费
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
 import { CaptionTheme, CaptionsData } from "./vendor";
 
@@ -19,9 +25,17 @@ export const buildCaptionsData = (
   sceneDuration: number,
   wordsPerLine = 5,
 ): CaptionsData => {
-  const words = String(narration || "")
-    .split(/\s+/)
-    .filter(Boolean);
+  const rawText = String(narration || "").trim();
+  const words = rawText.includes(" ")
+    ? rawText.split(/\s+/).filter(Boolean)
+    : (rawText.match(/[\p{Script=Han}]{1,4}|[A-Za-z0-9]+|[^\s]/gu) || []).reduce<string[]>((tokens, token) => {
+        if (/^[，。！？、；：]$/u.test(token) && tokens.length) {
+          tokens[tokens.length - 1] += token;
+          return tokens;
+        }
+        tokens.push(token);
+        return tokens;
+      }, []);
   if (!words.length) return { lines: [] };
 
   const weight = words.reduce((sum, word) => sum + word.length, 0);
