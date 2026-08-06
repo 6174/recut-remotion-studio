@@ -14,5 +14,5 @@
     "noEmit": true
   },
   "include": ["src"],
-  "exclude": ["src/templates-vendor/**", "src/vendor/**", "src/captions/vendor/**"]
+  "exclude": ["src/components/remotion-templates/**", "src/components/shotcraft/**", "src/captions/vendor/**"]
 }

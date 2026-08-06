@@ -1,11 +1,11 @@
 import React from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import Starfield from "../templates-vendor/starfield";
-import BokehCircles from "../templates-vendor/bokeh-circles";
-import GeometricPatterns from "../templates-vendor/geometric-patterns";
-import LiquidWave from "../templates-vendor/liquid-wave";
-import GradientShift from "../templates-vendor/gradient-shift";
-import MatrixRain from "../templates-vendor/matrix-rain";
+import Starfield from "../components/remotion-templates/starfield";
+import BokehCircles from "../components/remotion-templates/bokeh-circles";
+import GeometricPatterns from "../components/remotion-templates/geometric-patterns";
+import LiquidWave from "../components/remotion-templates/liquid-wave";
+import GradientShift from "../components/remotion-templates/gradient-shift";
+import MatrixRain from "../components/remotion-templates/matrix-rain";
 
 export interface Palette {
   background: string;

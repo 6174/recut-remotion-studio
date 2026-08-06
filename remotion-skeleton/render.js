@@ -34,7 +34,7 @@ if (!filesRoot) {
 const workDir = path.join(filesRoot, "exports", renderId);
 const outFile = path.join(workDir, "out.mp4");
 const progressFile = path.join(workDir, "progress.json");
-const workspaceEntry = path.join(filesRoot, "workspace", "index.ts");
+const workspaceEntry = path.join(__dirname, "src", "index.ts");
 
 function writeProgress(phase, progress, message) {
   try {

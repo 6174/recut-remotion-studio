@@ -1,7 +1,7 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、预览 bundle 构建（preview.build/version）与 shell 日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
- * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写），预览由 UI 内嵌 @remotion/player 加载 preview.build 打出的 bundle，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
+ * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、Vite dev server 预览（preview.serve.start/status/stop）与 props、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
+ * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 
@@ -56,7 +56,7 @@ const CANVAS_SIZES = [
   { id: "square", label: "1080×1080 方形", width: 1080, height: 1080, fps: 30 },
 ];
 
-const WORKSPACE_TREE = ["index.ts", "Root.tsx", "types.ts", "media.tsx", "runtime", "compositions", "effects", "captions", "templates-vendor"];
+const WORKSPACE_TREE = ["src", "src/compositions", "src/effects", "src/captions", "src/components", "src/components/remotion-templates", "src/components/shotcraft"];
 
 function catalog(_, ctx) {
   ensureSchema(ctx);
@@ -104,10 +104,25 @@ function workspaceSeeded(ctx) {
 function workspaceEnsure(_, ctx) {
   ensureSchema(ctx);
   if (!workspaceSeeded(ctx)) {
-    const seeded = ctx.shell.run({ command: "node", args: ["render/seed.js"], timeoutSeconds: 180 });
+    const seeded = ctx.shell.run({ command: "node", args: ["seed.js"], timeoutSeconds: 180 });
     if (seeded.exitCode !== 0) throw new Error(`工作区初始化失败：${seeded.error || seeded.stdout || "seed.js 退出非零"}`);
   }
   return { ready: workspaceSeeded(ctx), root: WORKSPACE };
+}
+
+function workspaceReset(_, ctx) {
+  ensureSchema(ctx);
+  // 停止预览服务，删除项目 workspace 与 serve 状态，清空素材登记，再从骨架重新 seed。
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  if (rows.length) {
+    try { ctx.shell.cancel(rows[0].value); } catch (_) { /* job 可能已结束 */ }
+  }
+  ctx.sqlite.execute("delete from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  const removed = ctx.shell.run({ command: "rm", args: ["-rf", WORKSPACE, "serve"], cwd: "files", timeoutSeconds: 120 });
+  if (removed.exitCode !== 0) throw new Error(`工作区重置失败：${removed.error || removed.stdout || "rm 退出非零"}`);
+  ctx.sqlite.execute("delete from composition_assets where project_id = ?", [scope(ctx)]);
+  workspaceEnsure({}, ctx);
+  return { ok: true, seeded: true, root: WORKSPACE };
 }
 
 function listRecursive(ctx, base) {
@@ -175,13 +190,13 @@ function ensureRenderDeps(ctx) {
   const node = ctx.shell.run({ command: "node", args: ["--version"], timeoutSeconds: 30 });
   const checks = { node: node.exitCode === 0 ? { ok: true, version: String(node.stdout || "").trim() } : { ok: false, error: node.error || "node 不可用，请先安装 Node.js 18+" } };
   if (checks.node.ok) {
-    const deps = ctx.shell.run({ command: "node", args: ["render/node-check.js"], timeoutSeconds: 180 });
+    const deps = ctx.shell.run({ command: "node", args: ["remotion-skeleton/node-check.js"], timeoutSeconds: 180 });
     if (deps.exitCode === 0) {
       checks.renderWorkspace = { ok: true };
     } else {
-      let install = ctx.shell.run({ command: "npm", args: ["ci", "--prefix", "render", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
+      let install = ctx.shell.run({ command: "npm", args: ["ci", "--prefix", "remotion-skeleton", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
       if (install.exitCode !== 0) {
-        install = ctx.shell.run({ command: "npm", args: ["install", "--prefix", "render", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
+        install = ctx.shell.run({ command: "npm", args: ["install", "--prefix", "remotion-skeleton", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
       }
       checks.renderWorkspace = install.exitCode === 0 ? { ok: true } : { ok: false, error: install.error || "npm 依赖安装失败" };
     }
@@ -195,25 +210,72 @@ function renderSetup(_, ctx) {
   return ensureRenderDeps(ctx);
 }
 
-function previewBuild(_, ctx) {
+function previewServeStart(_, ctx) {
   ensureSchema(ctx);
   workspaceEnsure({}, ctx);
-  const job = ctx.shell.run({ command: "node", args: ["render/preview.js"], timeoutSeconds: 300 });
-  if (job.exitCode !== 0) {
-    throw new Error(`预览构建失败：${job.error || job.stdout || "preview.js 退出非零"}`);
-  }
-  let buildId = null;
-  try { buildId = JSON.parse(ctx.files.readText(`${WORKSPACE}/preview/version.json`)).buildId; } catch (_) { /* version 尚未写入 */ }
-  ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [`preview_job:${scope(ctx)}`, job.jobId]);
-  return { ok: true, buildId, jobId: job.jobId };
+  const existing = previewServeStatus({}, ctx);
+  if (existing.running) return { jobId: existing.jobId, phase: existing.phase, port: existing.port, url: existing.url };
+  // 项目工程的 Makefile 内部处理依赖与端口冲突；无法解决时把可读错误抛给 AI。
+  const job = ctx.shell.start({ command: "make", args: ["-C", "workspace", "start"], cwd: "files", timeoutSeconds: 0 });
+  ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [`serve_job:${scope(ctx)}`, job.id]);
+  return { jobId: job.id, phase: "starting", port: null, url: null };
 }
 
-function previewVersion(_, ctx) {
+function previewServeStatus(_, ctx) {
   ensureSchema(ctx);
-  let version = null;
-  try { version = JSON.parse(ctx.files.readText(`${WORKSPACE}/preview/version.json`)); } catch (_) { return null; }
-  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`preview_job:${scope(ctx)}`]);
-  return { ...version, jobId: rows.length ? rows[0].value : null };
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  if (!rows.length) return { running: false, phase: "stopped", port: null, url: null, error: null };
+  const jobId = rows[0].value;
+  let jobStatus = "unknown";
+  let jobError = "";
+  try {
+    const job = ctx.shell.status(jobId);
+    jobStatus = job.status;
+    jobError = job.error || "";
+  } catch (_) { /* job 已不可查 */ }
+  if (["completed", "failed", "cancelled", "interrupted"].includes(jobStatus)) {
+    return { running: false, phase: jobStatus, port: null, url: null, error: jobError || `预览服务已结束（${jobStatus}）`, jobId };
+  }
+  let port = null;
+  let phase = "starting";
+  let error = null;
+  try {
+    const status = JSON.parse(ctx.files.readText(`serve/status.json`));
+    if (status && status.port) { port = Number(status.port); phase = status.phase || phase; error = status.error || null; }
+  } catch (_) { /* 尚未写状态 */ }
+  const running = jobStatus === "running" || jobStatus === "queued";
+  return { running, phase, port, url: port ? `http://127.0.0.1:${port}/player.html` : null, error, jobId };
+}
+
+function previewServeStop(_, ctx) {
+  ensureSchema(ctx);
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  if (rows.length) {
+    try { ctx.shell.cancel(rows[0].value); } catch (_) { /* job 可能已结束 */ }
+  }
+  ctx.sqlite.execute("delete from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
+  return { stopped: true };
+}
+
+function previewProps(input, ctx) {
+  ensureSchema(ctx);
+  workspaceEnsure({}, ctx);
+  const brief = latestBrief({}, ctx);
+  const media = input.media && typeof input.media === "object" && !Array.isArray(input.media) ? input.media : {};
+  const settings = input.settings && typeof input.settings === "object" && !Array.isArray(input.settings) ? input.settings : { width: 1920, height: 1080, fps: 30 };
+  const payload = { brief, media, settings, at: new Date().toISOString() };
+  ctx.files.writeText(`${WORKSPACE}/preview/props.json`, JSON.stringify(payload));
+  return { ok: true, path: `${WORKSPACE}/preview/props.json` };
+}
+
+function terminalExec(input, ctx) {
+  ensureSchema(ctx);
+  const command = String(input.command || "").trim();
+  if (!command) throw new Error("command 是必填项");
+  const cwd = String(input.cwd || "").trim();
+  if (cwd && (cwd.includes("..") || cwd.startsWith("/"))) throw new Error("cwd 必须是相对项目目录的路径");
+  const job = ctx.shell.run({ command: "sh", args: ["-c", cwd ? `cd ${cwd} && ${command}` : command], cwd: "files", timeoutSeconds: Number(input.timeoutSeconds || 60) });
+  return { jobId: job.jobId, status: job.status, exitCode: job.exitCode, output: job.stdout || "", error: job.error || "" };
 }
 
 function readLogs(input, ctx) {
@@ -232,19 +294,19 @@ function workflowContext(_, ctx) {
   const brief = latestBrief({}, ctx);
   const seeded = workspaceSeeded(ctx);
   const stage = !brief ? "brief" : "studio";
-  const preview = previewVersion({}, ctx);
+  const serve = previewServeStatus({}, ctx);
   return {
     revision: `${stage}:${brief?.createdAt || "none"}:${seeded ? "workspace-seeded" : "no-workspace"}`,
     stage,
     nextAction: stage === "brief" ? "create_brief" : "edit_composition_code",
     brief,
     workspace: { root: WORKSPACE, seeded },
-    preview,
+    preview: serve,
     registeredAssets: registeredAssets(ctx),
     catalogs: { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES },
-    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "preview.build", "preview.version", "logs.read", "render.export"],
+    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "preview.serve.start", "preview.serve.status", "preview.serve.stop", "preview.props", "terminal.exec", "logs.read", "render.export"],
     mediaExecution: {
-      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 Root.tsx 与 compositions/ 成片代码；复用 workspace/effects、workspace/captions；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后调用 preview.build 重建预览 bundle，UI 内嵌 Player 刷新；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
+      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 src/Root.tsx 与 src/compositions/ 成片代码；复用 src/effects、src/captions、src/components；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后 Vite dev server 自动热更新预览；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
     },
   };
 }
@@ -276,7 +338,7 @@ function renderExport(input, ctx) {
   ctx.files.writeText(`exports/${renderId}/props.json`, JSON.stringify(payload));
   ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: "任务已排队" }));
 
-  const job = ctx.shell.start({ command: "node", args: ["render/render.js", "--renderId", renderId], timeoutSeconds: 3600 });
+  const job = ctx.shell.start({ command: "node", args: ["workspace/render.js", "--renderId", renderId], cwd: "files", timeoutSeconds: 3600 });
   const settings = { width, height, fps, codec, label };
   ctx.sqlite.execute("insert into exports (render_id, project_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [renderId, scope(ctx), brief.id, job.id, "queued", label, JSON.stringify(settings), null, null, now, now]);
   return { renderId, shellJobId: job.id, status: "queued", briefId: brief.id };
@@ -342,12 +404,16 @@ recut.operation.register("brief.latest", latestBrief);
 recut.operation.register("workflow.context", workflowContext);
 recut.operation.register("catalog.list", catalog);
 recut.operation.register("workspace.ensure", workspaceEnsure);
+recut.operation.register("workspace.reset", workspaceReset);
 recut.operation.register("code.list", codeList);
 recut.operation.register("code.read", codeRead);
 recut.operation.register("code.write", codeWrite);
 recut.operation.register("composition.assets", registerAssets);
-recut.operation.register("preview.build", previewBuild);
-recut.operation.register("preview.version", previewVersion);
+recut.operation.register("preview.serve.start", previewServeStart);
+recut.operation.register("preview.serve.status", previewServeStatus);
+recut.operation.register("preview.serve.stop", previewServeStop);
+recut.operation.register("preview.props", previewProps);
+recut.operation.register("terminal.exec", terminalExec);
 recut.operation.register("logs.read", readLogs);
 recut.operation.register("render.setup", renderSetup);
 recut.operation.register("render.export", renderExport);

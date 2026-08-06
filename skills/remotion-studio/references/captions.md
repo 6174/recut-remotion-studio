@@ -1,6 +1,6 @@
 # 字幕主题目录（复用自 vshukla7/remotion-captions-themes，MIT）
 
-> 用户选择主题后，把它写进 `palette.captionTheme`（`ProjectVideo.resolvePalette` 会传给 `CaptionTheme`）。组件源码已整体 vendored 到 `workspace/captions/`（保持原仓库结构），直接 import 复用。
+> 用户选择主题后，把它写进 `palette.captionTheme`（`ProjectVideo.resolvePalette` 会传给 `CaptionTheme`）。组件源码已整体 vendored 到 `workspace/src/captions/`（保持原仓库结构），直接 import 复用。
 
 ## 用法
 

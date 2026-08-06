@@ -40,7 +40,7 @@
     {
       "name": "workflow.context",
       "surfaces": ["api", "mcp"],
-      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、预览 bundle 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
+      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、预览 dev server 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -52,7 +52,13 @@
     {
       "name": "workspace.ensure",
       "surfaces": ["api", "mcp"],
-      "description": "确保项目的 Remotion 工程就绪：首次把 App 模板复制到项目私有 workspace/，链接 node_modules。幂等，不会覆盖已有代码。",
+      "description": "确保项目的 Remotion 工程就绪：首次把 App 骨架复制到项目私有 workspace/，链接 node_modules。幂等，不会覆盖已有代码。",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "workspace.reset",
+      "surfaces": ["api"],
+      "description": "把项目 workspace 重置回 App 骨架：停止预览服务、删除 workspace 与 serve 状态、清空素材登记，再从骨架重新 seed（丢失 AI 改写，仅用于测试/回退）。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -80,21 +86,39 @@
       "inputSchema": { "type": "object", "required": ["assetIds"], "properties": { "assetIds": { "type": "array", "items": { "type": "string" } } } }
     },
     {
-      "name": "preview.build",
+      "name": "preview.serve.start",
       "surfaces": ["api"],
-      "description": "把项目 workspace 的 composition 打包成预览 bundle（esbuild，external 由 UI 注入 React/Remotion 实例），写入 workspace/preview/bundle.js 并记录 buildId。每次 code.write 改完代码后调用，UI 内嵌 Player 会自动刷新。",
+      "description": "启动本项目的 Vite dev server（后台无期限任务），它监听 workspace 的 composition 代码并热更新预览；返回 jobId，端口与就绪状态通过 preview.serve.status 查询。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
-      "name": "preview.version",
+      "name": "preview.serve.status",
       "surfaces": ["api"],
-      "description": "读取当前预览 bundle 的 buildId 与最近一次构建的 jobId，供界面检测是否需要刷新预览。未构建时返回 null。",
+      "description": "查询预览 dev server 状态：running、phase、port 与可 iframe 的 url。",
       "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "preview.serve.stop",
+      "surfaces": ["api"],
+      "description": "停止本项目的预览 dev server。",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "preview.props",
+      "surfaces": ["api"],
+      "description": "把当前 Brief、素材映射（assetId→内容 URL）与画布设置写入 workspace/preview/props.json，供预览页读取；素材或设置变化时调用。",
+      "inputSchema": { "type": "object", "required": [], "properties": { "media": { "type": "object", "additionalProperties": { "type": "object" } }, "settings": { "type": "object", "additionalProperties": { "type": "object" } } } }
+    },
+    {
+      "name": "terminal.exec",
+      "surfaces": ["api"],
+      "description": "在项目目录（files root）里执行一条命令并返回输出，供底部终端调试（例如 cd workspace && ls）。非交互式，单条命令执行。",
+      "inputSchema": { "type": "object", "required": ["command"], "properties": { "command": { "type": "string" }, "cwd": { "type": "string", "description": "相对项目目录的起始路径。" }, "timeoutSeconds": { "type": "number" } } }
     },
     {
       "name": "logs.read",
       "surfaces": ["api"],
-      "description": "读取一次 shell 任务（预览构建或渲染导出）的 stdout/stderr 日志，供界面底部日志区查看与调试。",
+      "description": "读取一次 shell 任务（预览 dev server、终端命令或渲染导出）的 stdout/stderr 日志，供界面底部日志区查看与调试。",
       "inputSchema": { "type": "object", "required": ["jobId"], "properties": { "jobId": { "type": "string" }, "limit": { "type": "number" } } }
     },
     {

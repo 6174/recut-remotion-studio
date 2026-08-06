@@ -1,146 +1,110 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Player } from "@remotion/player";
-import { AlertTriangle, Loader2, RefreshCcw } from "lucide-react";
-import { recut, apiBase, projectId } from "./recut-sdk";
+import { AlertTriangle, Loader2, Play, RefreshCcw } from "lucide-react";
+import { recut } from "./recut-sdk";
 import type { Brief, MediaMap } from "./app";
 
-const APP_ID = "recut.remotion-studio";
-const previewURL = `${apiBase}/v1/projects/${encodeURIComponent(projectId)}/apps/${APP_ID}/files/workspace/preview/bundle.js`;
-
-interface PreviewModule {
-  component: React.ComponentType<{ brief?: Brief | null; media?: MediaMap; settings?: { width?: number; height?: number; fps?: number } }>;
-  getMetadata: (props: unknown) => { durationInFrames: number; fps: number; width: number; height: number };
-}
-
-declare global {
-  interface Window {
-    RecutStudio?: {
-      ProjectVideo?: React.ComponentType<unknown>;
-      getProjectMetadata?: (props: unknown) => { durationInFrames: number; fps: number; width: number; height: number };
-    };
-  }
-}
-
-function loadScript(url: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    document.querySelector("script[data-recut-preview]")?.remove();
-    const script = document.createElement("script");
-    script.src = url;
-    script.dataset.recutPreview = "1";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(`预览 bundle 加载失败：${url}`));
-    document.head.appendChild(script);
-  });
+interface ServeStatus {
+  running: boolean;
+  phase: string;
+  port: number | null;
+  url: string | null;
+  error?: string | null;
+  jobId?: string;
 }
 
 interface PlayerPanelProps {
   brief: Brief | null;
   mediaMap: MediaMap;
+  settings?: { width: number; height: number; fps: number };
   setStatus: (status: string) => void;
 }
 
-export function PlayerPanel({ brief, mediaMap, setStatus }: PlayerPanelProps) {
-  const [mod, setMod] = useState<PreviewModule | null>(null);
-  const [buildId, setBuildId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [building, setBuilding] = useState(false);
-  const mounted = useRef(true);
+const PREVIEW_SETTINGS = { width: 1920, height: 1080, fps: 30 };
 
-  const loadPreview = useCallback(async () => {
+export function PlayerPanel({ brief, mediaMap, settings = PREVIEW_SETTINGS, setStatus }: PlayerPanelProps) {
+  const [serve, setServe] = useState<ServeStatus | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [src, setSrc] = useState<string | null>(null);
+  const propsKey = useRef(0);
+  const startedOnce = useRef(false);
+
+  const writeProps = useCallback(async () => {
+    if (!brief) return;
+    propsKey.current += 1;
     try {
-      setError(null);
-      await loadScript(previewURL);
-      if (!mounted.current) return;
-      const studio = window.RecutStudio;
-      if (!studio?.ProjectVideo || !studio.getProjectMetadata) throw new Error("预览 bundle 未导出 ProjectVideo");
-      setMod({ component: studio.ProjectVideo, getMetadata: studio.getProjectMetadata });
+      await recut.background.call("preview.props", { media: mediaMap, settings });
     } catch (cause) {
-      if (mounted.current) setError(cause instanceof Error ? cause.message : "预览加载失败");
-    } finally {
-      if (mounted.current) setLoading(false);
+      setStatus(cause instanceof Error ? cause.message : "写入预览配置失败");
     }
-  }, []);
+    return propsKey.current;
+  }, [brief, mediaMap, settings, setStatus]);
 
-  const pollVersion = useCallback(async () => {
+  const refreshServe = useCallback(async () => {
     try {
-      const version = await recut.state.query("preview.version");
-      const nextBuildId = version?.buildId ?? null;
-      setBuildId((current) => {
-        if (current !== null && nextBuildId !== null && nextBuildId !== current) void loadPreview();
-        return nextBuildId;
-      });
-    } catch { /* 未构建时忽略 */ }
-  }, [loadPreview]);
+      const next = await recut.background.call("preview.serve.status", {});
+      setServe(next);
+      return next as ServeStatus;
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "预览状态读取失败");
+      return null;
+    }
+  }, [setStatus]);
+
+  const startServe = useCallback(async () => {
+    setStarting(true);
+    try {
+      await writeProps();
+      await recut.background.call("preview.serve.start", {});
+    } catch (cause) {
+      setStatus(cause instanceof Error ? cause.message : "启动预览失败");
+    } finally {
+      setStarting(false);
+      await refreshServe();
+    }
+  }, [refreshServe, setStatus, writeProps]);
 
   useEffect(() => {
-    mounted.current = true;
-    void loadPreview();
-    const timer = window.setInterval(() => void pollVersion(), 3000);
-    return () => { mounted.current = false; window.clearInterval(timer); };
-  }, [loadPreview, pollVersion]);
+    if (startedOnce.current) return;
+    startedOnce.current = true;
+    void refreshServe().then((status) => {
+      if (status?.running) return;
+      void startServe();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const rebuild = async () => {
-    setBuilding(true);
-    setError(null);
-    try {
-      await recut.background.call("preview.build", {});
-      setStatus("预览已重建。");
-      await loadPreview();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "预览构建失败");
-      setStatus(cause instanceof Error ? cause.message : "预览构建失败");
-    } finally {
-      setBuilding(false);
-    }
-  };
+  useEffect(() => {
+    if (brief) void writeProps();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaMap, brief]);
 
-  const settings = { width: 1920, height: 1080, fps: 30 };
-  const meta = mod ? (() => { try { return mod.getMetadata({ brief, media: mediaMap, settings }); } catch { return null; } })() : null;
+  useEffect(() => {
+    if (!serve?.running) return;
+    const url = serve.url;
+    if (url) setSrc(`${url}?props=${propsKey.current}`);
+  }, [serve?.running, serve?.url, propsKey.current]);
 
-  if (loading) {
-    return (
-      <div className="player-state">
-        <Loader2 className="size-6 spin" />
-        <p className="muted">正在加载预览 bundle…</p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const timer = window.setInterval(() => void refreshServe(), 5000);
+    return () => window.clearInterval(timer);
+  }, [refreshServe]);
 
-  if (error || !mod || !meta) {
-    return (
-      <div className="player-state">
-        <AlertTriangle className="size-6" style={{ color: "var(--danger)" }} />
-        <h3>预览不可用</h3>
-        <pre className="studio-error">{error ?? "预览 bundle 无效"}</pre>
-        <button className="btn primary" disabled={building} onClick={() => void rebuild()} type="button">
-          {building ? <Loader2 className="size-4 spin" /> : <RefreshCcw className="size-4" />}重建预览
-        </button>
-      </div>
-    );
+  if (serve?.running && src) {
+    return <iframe className="preview-frame" src={src} title="Remotion 预览" />;
   }
 
   return (
-    <div className="stage-box" key={buildId ?? "initial"}>
-      <Player
-        acknowledgeRemotionLicense
-        component={mod.component}
-        compositionHeight={meta.height}
-        compositionWidth={meta.width}
-        controls
-        durationInFrames={meta.durationInFrames}
-        fps={meta.fps}
-        initiallyMuted
-        inputProps={{ brief, media: mediaMap, settings }}
-        loop
-        style={{ width: "100%", aspectRatio: `${meta.width} / ${meta.height}` }}
-      />
-      <div className="flex between" style={{ marginTop: 14 }}>
-        <span className="muted mono">{meta.width}×{meta.height} @ {meta.fps}fps · {Math.round(meta.durationInFrames / meta.fps)}s{buildId ? ` · build ${buildId}` : ""}</span>
-        <button className="btn" disabled={building} onClick={() => void rebuild()} type="button">
-          {building ? <Loader2 className="size-4 spin" /> : <RefreshCcw className="size-4" />}重建预览
-        </button>
-      </div>
+    <div className="player-state">
+      <div className="player-state-icon"><Loader2 className="size-6 spin" /></div>
+      <h3>{starting ? "正在启动预览服务…" : "预览未启动"}</h3>
+      <p className="muted">Vite dev server 会在 AI 改代码时自动热更新预览。</p>
+      {serve?.error ? <pre className="studio-error">{serve.error}</pre> : null}
+      <button className="btn primary" disabled={starting} onClick={() => void startServe()} type="button">
+        {starting ? <Loader2 className="size-4 spin" /> : <Play className="size-4" />}启动预览
+      </button>
+      {serve?.phase === "interrupted" && <button className="btn ghost" onClick={() => void startServe()} type="button"><RefreshCcw className="size-4" />重启预览</button>}
     </div>
   );
 }
+
+export type { ServeStatus };
