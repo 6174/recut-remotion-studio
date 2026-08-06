@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { recut } from "./recut-sdk";
-import type { Brief, Catalog, MediaAsset } from "./app";
+import type { Catalog, MediaAsset } from "./app";
 
 interface BriefFormProps {
-  brief: Brief | null;
   catalog: Catalog;
   status: string;
   onStart: (input: { template: string; topic: string; details: string; expectedDurationSec: number; materialAssetIds: string[] }) => Promise<void>;
 }
 
-export function BriefForm({ brief, catalog, status, onStart }: BriefFormProps) {
-  const [template, setTemplate] = useState(brief?.template ?? "clean-editorial");
-  const [topic, setTopic] = useState(brief?.topic ?? "");
-  const [details, setDetails] = useState(brief?.details ?? "");
-  const [duration, setDuration] = useState(brief?.expectedDurationSec ?? 60);
+export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
+  const [template, setTemplate] = useState("clean-editorial");
+  const [topic, setTopic] = useState("");
+  const [details, setDetails] = useState("");
+  const [duration, setDuration] = useState(60);
   const [materials, setMaterials] = useState<MediaAsset[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -42,10 +41,10 @@ export function BriefForm({ brief, catalog, status, onStart }: BriefFormProps) {
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", padding: "28px 20px" }}>
       <h2 style={{ fontSize: 22, marginBottom: 4 }}>新建一支程序化视频</h2>
-      <p className="muted" style={{ marginTop: 4, marginBottom: 24 }}>选择风格模板、写下选题与细节，把素材一并交给 AI 设计成可实时预览的 Remotion 合成。</p>
+      <p className="muted" style={{ marginTop: 4, marginBottom: 24 }}>选择风格模板、写下选题与素材。AI 会把它们写进这个项目的 Remotion 工程代码，你在 Remotion Studio 里实时预览并导出。</p>
 
       <div className="panel" style={{ marginBottom: 20 }}>
-        <div className="panel-head"><h2>风格模板</h2><span className="muted mono">驱动色板、字体、字幕与动效气质</span></div>
+        <div className="panel-head"><h2>风格模板</h2><span className="muted mono">驱动色板、字体、字幕主题与动效气质</span></div>
         <div className="panel-body">
           <div className="chips" role="radiogroup" aria-label="风格模板">
             {Object.entries(catalog.styleTemplates).map(([id, templateInfo]) => (
@@ -67,7 +66,7 @@ export function BriefForm({ brief, catalog, status, onStart }: BriefFormProps) {
           </div>
           <div className="field">
             <label htmlFor="brief-details">详细描述（可选）</label>
-            <textarea className="textarea" id="brief-details" onChange={(event) => setDetails(event.target.value)} placeholder="目标观众、核心观点、风格偏好、镜头想法或任何约束…" value={details} />
+            <textarea className="textarea" id="brief-details" onChange={(event) => setDetails(event.target.value)} placeholder="目标观众、核心观点、风格偏好、想要的效果或任何约束…" value={details} />
           </div>
           <div className="field" style={{ maxWidth: 240 }}>
             <label htmlFor="brief-duration">预期时长（秒）</label>
@@ -99,7 +98,7 @@ export function BriefForm({ brief, catalog, status, onStart }: BriefFormProps) {
       </div>
 
       <div className="flex between" style={{ marginTop: 24 }}>
-        <span className="muted">{status || (brief ? "已有 Brief，重新提交会覆盖方向。" : "")}</span>
+        <span className="muted">{status}</span>
         <button className="btn primary" disabled={busy || !topic.trim()} onClick={() => void submit()} type="button">提交给 AI 开始设计</button>
       </div>
     </div>

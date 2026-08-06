@@ -3,7 +3,8 @@
  *
  * Reads ${RECUT_APP_FILES_DIR}/exports/{renderId}/props.json, materializes the
  * referenced media into a temporary bundle public directory, bundles the
- * Remotion project, and renders the StoryVideo composition to
+ * project's composition workspace (${RECUT_APP_FILES_DIR}/workspace), and
+ * renders the ProjectVideo composition to
  * ${RECUT_APP_FILES_DIR}/exports/{renderId}/out.mp4 while streaming progress to
  * ${RECUT_APP_FILES_DIR}/exports/{renderId}/progress.json.
  *
@@ -33,6 +34,7 @@ if (!filesRoot) {
 const workDir = path.join(filesRoot, "exports", renderId);
 const outFile = path.join(workDir, "out.mp4");
 const progressFile = path.join(workDir, "progress.json");
+const workspaceEntry = path.join(filesRoot, "workspace", "index.ts");
 
 function writeProgress(phase, progress, message) {
   try {
@@ -48,15 +50,15 @@ function writeProgress(phase, progress, message) {
   writeProgress("reading", 0.01, "读取渲染配置");
   const propsPath = path.join(workDir, "props.json");
   const rawProps = JSON.parse(fs.readFileSync(propsPath, "utf8"));
-  const design = rawProps.design;
+  const brief = rawProps.brief || null;
   const settings = rawProps.settings || { width: 1920, height: 1080, fps: 30, codec: "h264" };
   const media = rawProps.media || {};
-  if (!design || !Array.isArray(design.scenes)) {
-    throw new Error("props.json 缺少 design 或 scenes");
+  if (!fs.existsSync(workspaceEntry)) {
+    throw new Error(`workspace 入口不存在：${workspaceEntry}（请先调用 workspace.ensure）`);
   }
 
   // Materialize media into a per-render public directory so the bundle can
-  // serve them at /media/{assetId}{ext} during rendering.
+  // serve them at /public/media/{assetId}{ext} during rendering.
   writeProgress("media", 0.03, "准备画面素材");
   const publicDir = fs.mkdtempSync(path.join(os.tmpdir(), "remotion-studio-public-"));
   const mediaDir = path.join(publicDir, "media");
@@ -75,24 +77,22 @@ function writeProgress(phase, progress, message) {
   }
 
   writeProgress("bundling", 0.05, "打包 Remotion 项目");
-  const entryPoint = path.join(__dirname, "src", "index.ts");
   const serveUrl = await bundle({
-    entryPoint,
+    entryPoint: workspaceEntry,
     publicDir,
     enableCaching: false,
   });
 
-  const inputProps = { design, media: resolvedMedia, settings };
+  const inputProps = { brief, media: resolvedMedia, settings };
 
   writeProgress("compositions", 0.08, "读取合成配置");
   const compositions = await getCompositions({
     serveUrl,
     inputProps,
-    
   });
-  const composition = compositions.find((candidate) => candidate.id === "StoryVideo");
+  const composition = compositions.find((candidate) => candidate.id === "ProjectVideo");
   if (!composition) {
-    throw new Error("未找到 StoryVideo 合成");
+    throw new Error(`未找到 ProjectVideo 合成，可注册的合成：${compositions.map((item) => item.id).join(", ") || "无"}`);
   }
 
   writeProgress("render", 0.1, `开始渲染 ${composition.width}x${composition.height}@${composition.fps}fps，共 ${composition.durationInFrames} 帧`);

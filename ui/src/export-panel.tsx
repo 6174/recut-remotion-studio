@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Download, Loader2, Play, XCircle } from "lucide-react";
 import { recut, mediaContentURL } from "./recut-sdk";
-import type { Catalog } from "./app";
+import type { Brief, Catalog } from "./app";
 
 interface ExportPanelProps {
   catalog: Catalog;
-  designId: string;
-  flushSave: () => Promise<void>;
+  brief: Brief;
   onRenderStarted: (renderId: string) => void;
 }
 
@@ -37,7 +36,7 @@ const statusLabel: Record<string, string> = {
   interrupted: "被中断",
 };
 
-export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: ExportPanelProps) {
+export function ExportPanel({ catalog, brief, onRenderStarted }: ExportPanelProps) {
   const [size, setSize] = useState("1080p");
   const [fps, setFps] = useState(30);
   const [codec, setCodec] = useState("h264");
@@ -98,10 +97,9 @@ export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: E
   const startRender = async () => {
     setBusy(true);
     try {
-      await flushSave();
       const setupResult = await checkSetup();
       if (!setupResult.ready) throw new Error("渲染环境未就绪，请先修复下方检查项");
-      const started = await recut.background.call("render.export", { designId, width: selectedSize.width, height: selectedSize.height, fps, codec, label });
+      const started = await recut.background.call("render.export", { width: selectedSize.width, height: selectedSize.height, fps, codec, label });
       setRender({ renderId: started.renderId, status: "queued" });
       onRenderStarted(started.renderId);
       poll(started.renderId);
@@ -128,7 +126,7 @@ export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: E
   return (
     <div className="row-gap">
       <div className="panel">
-        <div className="panel-head"><h2>导出设置</h2></div>
+        <div className="panel-head"><h2>导出</h2><span className="muted mono">{brief.topic}</span></div>
         <div className="panel-body">
           <div className="field">
             <label htmlFor="export-size">画布</label>
@@ -154,7 +152,7 @@ export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: E
             </div>
           </div>
           <button className="btn primary" disabled={busy || render?.status === "running" || render?.status === "queued"} onClick={() => void startRender()} style={{ width: "100%", marginTop: 14 }} type="button">
-            {busy ? <Loader2 className="size-4 spin" /> : <Download className="size-4" />}开始渲染导出
+            {busy ? <Loader2 className="size-4 spin" /> : <Download className="size-4" />}渲染导出 MP4
           </button>
           {busy && <p className="muted" style={{ marginTop: 10 }}>正在检查渲染环境并启动任务…首次运行会安装 Remotion 依赖并下载浏览器，可能耗时几分钟。</p>}
         </div>
@@ -167,7 +165,7 @@ export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: E
             {Object.entries(setup.checks).map(([key, check]) => (
               <div className="flex between" key={key} style={{ padding: "4px 0" }}>
                 <span className="mono">{key}</span>
-                <span className={check.ok ? "" : "danger"} style={{ color: check.ok ? "var(--accent-2)" : "var(--danger)" }}>{check.ok ? `就绪${check.version ? ` · ${check.version}` : ""}` : (check.error ?? "不可用")}</span>
+                <span style={{ color: check.ok ? "var(--accent-2)" : "var(--danger)" }}>{check.ok ? `就绪${check.version ? ` · ${check.version}` : ""}` : (check.error ?? "不可用")}</span>
               </div>
             ))}
             {!setup.ready && <p className="muted" style={{ marginTop: 10 }}>渲染需要本机 Node.js 18+；依赖与浏览器会自动安装到 App 工作区。</p>}
@@ -200,7 +198,7 @@ export function ExportPanel({ catalog, designId, flushSave, onRenderStarted }: E
                 </div>
               </div>
             )}
-            {render.status === "failed" && <p className="muted" style={{ marginTop: 10 }}>失败：{render.error ?? "未知错误"}。可在素材库查看详情，或检查渲染环境后重试。</p>}
+            {render.status === "failed" && <p className="muted" style={{ marginTop: 10 }}>失败：{render.error ?? "未知错误"}。可检查渲染环境后重试。</p>}
           </div>
         </div>
       )}

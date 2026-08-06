@@ -1,7 +1,7 @@
 /*
- * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、设计（composition）保存/查询/原位更新、静态目录、本地 Remotion 渲染环境准备与后台导出任务、任务状态与取消的 App API 与 MCP 工具处理器
- * [POS]: remotion-studio 的唯一业务后端；数据表与导出记录由本 App 自己定义，浏览器实时预览由 UI 内嵌 Remotion Player 完成，最终渲染委托本地 Node 渲染工作区 + 平台 Asset 归档
+ * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
+ * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、Remotion Studio 长驻预览服务的 start/status/stop/env、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
+ * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写，Studio 热更新预览），导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 
@@ -9,85 +9,30 @@ function id() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+// 平台自 v0.1.15 起每个 App 只有一个 storage.sqlite，App 自身按 ctx.project.id
+// 分区所有行；ctx.project 在项目目标下才存在。
 function scope(ctx) {
   return ctx.project ? ctx.project.id : "";
 }
 
+const WORKSPACE = "workspace";
+
 function ensureSchema(ctx) {
   ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
-  ctx.sqlite.execute("create table if not exists designs (id text primary key, project_id text not null default '', brief_id text not null, title text not null, content_json text not null, dependencies_json text not null, created_at text not null, updated_at text not null, retired_at text)");
-  ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', design_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
+  ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
+  ctx.sqlite.execute("create table if not exists composition_assets (project_id text not null, asset_id text not null, created_at text not null, primary key (project_id, asset_id))");
+  ctx.sqlite.execute("create table if not exists studio (project_id text primary key, job_id text not null, phase text not null, port integer, error text, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
-  for (const [table, column] of [["briefs", "project_id"], ["designs", "project_id"], ["exports", "project_id"]]) {
+  for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"]]) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
   }
 }
 
 const STYLE_TEMPLATES = {
-  "paper-collage": {
-    label: "纸拼贴编辑风",
-    description: "纸质拼贴、编辑杂志感；适合解说、知识与观点内容",
-    style: {
-      background: "#f4efe7",
-      primary: "#14120f",
-      accent: "#c46a2b",
-      text: "#14120f",
-      fontFamily: "Georgia, 'Times New Roman', serif",
-      captionTheme: "simple-one-word",
-      captionPrimary: "#14120f",
-      captionSecondary: "#c46a2b",
-      effectId: "noise-grain",
-    },
-    motion: "低能量、缓慢推进、落定后呼吸；像一篇会动的杂志文章",
-  },
-  "cinematic-dark": {
-    label: "电影感深色",
-    description: "深色背景、星空与粒子光效；适合产品、故事与情绪化内容",
-    style: {
-      background: "#0b0b12",
-      primary: "#f5f2ea",
-      accent: "#e8b341",
-      text: "#f5f2ea",
-      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-      captionTheme: "kinetic-01",
-      captionPrimary: "#f5f2ea",
-      captionSecondary: "#e8b341",
-      effectId: "starfield",
-    },
-    motion: "聚光→推进→悬浮；单一主角完整动作弧",
-  },
-  "clean-editorial": {
-    label: "简洁杂志排版",
-    description: "几何背景、大字排版；适合新闻、教育、报告类内容",
-    style: {
-      background: "#f7f7f4",
-      primary: "#111314",
-      accent: "#1d5bd6",
-      text: "#111314",
-      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-      captionTheme: "pop",
-      captionPrimary: "#111314",
-      captionSecondary: "#1d5bd6",
-      effectId: "geometric",
-    },
-    motion: "直线滑动、克制的过冲；信息先于装饰",
-  },
-  "vibrant-tech": {
-    label: "科技活力风",
-    description: "渐变色块、高能量运动；适合产品发布、演示与社交媒体",
-    style: {
-      background: "#12002a",
-      primary: "#ffffff",
-      accent: "#22d3ee",
-      text: "#ffffff",
-      fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-      captionTheme: "hustle",
-      captionPrimary: "#ffffff",
-      captionSecondary: "#22d3ee",
-      effectId: "gradient-shift",
-    },
-    motion: "高能量入场、轻微过冲；批量元素靠运动本身表达",
-  },
+  "paper-collage": { label: "纸拼贴编辑风", description: "纸质拼贴、编辑杂志感；适合解说、知识与观点内容", motion: "低能量、缓慢推进、落定后呼吸；像一篇会动的杂志文章" },
+  "cinematic-dark": { label: "电影感深色", description: "深色背景、星空与粒子光效；适合产品、故事与情绪化内容", motion: "聚光→推进→悬浮；单一主角完整动作弧" },
+  "clean-editorial": { label: "简洁杂志排版", description: "几何背景、大字排版；适合新闻、教育、报告类内容", motion: "直线滑动、克制的过冲；信息先于装饰" },
+  "vibrant-tech": { label: "科技活力风", description: "渐变色块、高能量运动；适合产品发布、演示与社交媒体", motion: "高能量入场、轻微过冲；批量元素靠运动本身表达" },
 };
 
 const CAPTION_THEMES = [
@@ -106,31 +51,17 @@ const CAPTION_THEMES = [
   { id: "podcast", label: "Podcast 播客", description: "播客风格的段落字幕" },
 ];
 
-const EFFECTS = [
-  { id: "starfield", label: "星空粒子", kind: "background", description: "粒子从中心向外扩散" },
-  { id: "geometric", label: "几何图案", kind: "background", description: "旋转缩放的几何形" },
-  { id: "bokeh", label: "光斑", kind: "background", description: "漂浮柔和的圆形光斑" },
-  { id: "liquid-wave", label: "液态波浪", kind: "background", description: "流动的液态波浪背景" },
-  { id: "noise-grain", label: "胶片颗粒", kind: "background", description: "细微颗粒质感，配纸拼贴" },
-  { id: "gradient-shift", label: "渐变流动", kind: "background", description: "流动的渐变色彩" },
-  { id: "matrix-rain", label: "数字雨", kind: "background", description: "矩阵字符下落" },
-  { id: "bounce-text", label: "弹跳文字", kind: "text", description: "逐字弹跳入场的标题" },
-  { id: "typewriter", label: "打字机", kind: "text", description: "逐字打出的标题与光标" },
-  { id: "glitch", label: "故障文字", kind: "text", description: "RGB 分离的故障标题" },
-  { id: "cinematic-title", label: "电影开场字", kind: "text", description: "大写字距拉开的高级开场字" },
-  { id: "slide-text", label: "滑入文字", kind: "text", description: "方向性滑入标题" },
-  { id: "ken-burns", label: "慢推镜头", kind: "image", description: "画面缓慢推近，默认图片运镜" },
-];
-
 const CANVAS_SIZES = [
   { id: "1080p", label: "1080p 横屏", width: 1920, height: 1080, fps: 30 },
   { id: "vertical", label: "1080×1920 竖屏", width: 1080, height: 1920, fps: 30 },
   { id: "square", label: "1080×1080 方形", width: 1080, height: 1080, fps: 30 },
 ];
 
+const WORKSPACE_TREE = ["index.ts", "Root.tsx", "types.ts", "media.tsx", "runtime", "compositions", "effects", "captions", "templates-vendor"];
+
 function catalog(_, ctx) {
   ensureSchema(ctx);
-  return { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, effects: EFFECTS, canvasSizes: CANVAS_SIZES };
+  return { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES };
 }
 
 function createBrief(input, ctx) {
@@ -164,175 +95,84 @@ function latestBrief(_, ctx) {
   return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), createdAt: row.created_at };
 }
 
-const designContract = {
-  output: { title: "string", durationSec: "number", template: "string", style: "object", scenes: "array" },
-  optional: { width: "number", height: "number", fps: "number" },
-  styleFields: { background: "string", primary: "string", accent: "string", text: "string", fontFamily: "string", captionTheme: "string", captionPrimary: "string", captionSecondary: "string", effectId: "string", bgmAssetId: "string" },
-  sceneRequired: ["id", "kind", "title", "durationSec"],
-  sceneOptional: ["narration", "caption", "imageAssetId", "effectId"],
-};
-
-function hasValue(value) {
-  return value !== undefined && value !== null && value !== "" && (!Array.isArray(value) || value.length > 0);
+function workspaceSeeded(ctx) {
+  try {
+    const marker = ctx.files.readText(`${WORKSPACE}/.recut-workspace`);
+    return Boolean(marker && marker.trim());
+  } catch (_) { return false; }
 }
 
-function hasExpectedType(value, type) {
-  if (type === "string") return typeof value === "string";
-  if (type === "number") return typeof value === "number" && Number.isFinite(value);
-  if (type === "object") return typeof value === "object" && value !== null && !Array.isArray(value);
-  if (type === "array") return Array.isArray(value);
-  return true;
-}
-
-function validateDesign(content) {
-  if (!content || typeof content !== "object" || Array.isArray(content)) throw new Error("design 必须是对象");
-  const missing = Object.keys(designContract.output).filter((field) => !hasValue(content[field]));
-  if (missing.length) throw new Error(`design 缺少必填字段：${missing.join(", ")}`);
-  const invalid = Object.entries(designContract.output).filter(([field, type]) => !hasExpectedType(content[field], type)).map(([field]) => field);
-  if (invalid.length) throw new Error(`design 字段类型错误：${invalid.join(", ")}`);
-  if (!Number.isFinite(content.durationSec) || content.durationSec <= 0 || content.durationSec > 3600) throw new Error("design.durationSec 必须是 1–3600 秒");
-  const sceneTotal = (Array.isArray(content.scenes) ? content.scenes : []).reduce((sum, scene) => sum + Number(scene?.durationSec || 0), 0);
-  if (Math.abs(sceneTotal - content.durationSec) > 2) throw new Error(`design.scenes 时长之和(${sceneTotal.toFixed(1)})与 durationSec(${content.durationSec})不一致`);
-  if (!content.style || typeof content.style !== "object") throw new Error("design.style 必须是对象");
-  if (content.template && !STYLE_TEMPLATES[content.template]) throw new Error(`未知风格模板：${content.template}`);
-  const styleInvalid = Object.entries(content.style).filter(([field]) => designContract.styleFields[field] !== undefined && !hasExpectedType(content.style[field], designContract.styleFields[field])).map(([field]) => field);
-  if (styleInvalid.length) throw new Error(`design.style 字段类型错误：${styleInvalid.join(", ")}`);
-  if (content.style.captionTheme && !CAPTION_THEMES.some((theme) => theme.id === content.style.captionTheme)) throw new Error(`未知字幕主题：${content.style.captionTheme}`);
-  (Array.isArray(content.scenes) ? content.scenes : []).forEach((scene, index) => {
-    if (!scene || typeof scene !== "object" || Array.isArray(scene)) throw new Error(`design.scenes[${index}] 必须是对象`);
-    const sceneMissing = designContract.sceneRequired.filter((field) => !hasValue(scene[field]));
-    if (sceneMissing.length) throw new Error(`design.scenes[${index}] 缺少必填字段：${sceneMissing.join(", ")}`);
-    if (!["title", "content", "outro"].includes(scene.kind)) throw new Error(`design.scenes[${index}].kind 必须是 title/content/outro`);
-    if (scene.caption && (typeof scene.caption !== "object" || !hasValue(scene.caption.text))) throw new Error(`design.scenes[${index}].caption 必须是 {text,...}`);
-    if (!Number.isFinite(scene.durationSec) || scene.durationSec <= 0) throw new Error(`design.scenes[${index}].durationSec 必须是正数`);
-  });
-  return true;
-}
-
-function designByID(ctx, id) {
-  const rows = ctx.sqlite.query("select id, brief_id, title, content_json, dependencies_json, created_at, updated_at from designs where id = ? and project_id = ? and retired_at is null", [id, scope(ctx)]);
-  if (!rows.length) throw new Error(`design ${id} 不存在`);
-  const row = rows[0];
-  return { id: row.id, briefId: row.brief_id, title: row.title, content: JSON.parse(row.content_json), dependencies: JSON.parse(row.dependencies_json), createdAt: row.created_at, updatedAt: row.updated_at };
-}
-
-function latestDesign(designId, ctx) {
-  if (designId) return designByID(ctx, String(designId));
-  const rows = ctx.sqlite.query("select id from designs where project_id = ? and retired_at is null order by created_at desc limit 1", [scope(ctx)]);
-  if (!rows.length) return null;
-  return designByID(ctx, rows[0].id);
-}
-
-function saveComposition(input, ctx) {
+function workspaceEnsure(_, ctx) {
   ensureSchema(ctx);
-  if (!input.content || typeof input.content !== "object") throw new Error("content 必须是结构化设计正文");
-  validateDesign(input.content);
-  const brief = latestBrief({}, ctx);
-  const design = {
-    id: id(),
-    briefId: brief ? brief.id : "",
-    title: String(input.title || input.content.title || "未命名设计"),
-    content: input.content,
-    dependencies: Array.isArray(input.dependencies) ? input.dependencies : [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  ctx.sqlite.execute("insert into designs (id, project_id, brief_id, title, content_json, dependencies_json, created_at, updated_at, retired_at) values (?, ?, ?, ?, ?, ?, ?, ?, null)", [design.id, scope(ctx), design.briefId, design.title, JSON.stringify(design.content), JSON.stringify(design.dependencies), design.createdAt, design.updatedAt]);
-  return ctx.artifacts.publish({ type: "recut.remotion-studio.design@1", value: design });
-}
-
-function readComposition(input, ctx) {
-  ensureSchema(ctx);
-  const id = String(input.id || "").trim();
-  if (!id) throw new Error("design id 是必填项");
-  return designByID(ctx, id);
-}
-
-function findItemIndex(items, match) {
-  if (!Array.isArray(items)) return -1;
-  const id = String(match?.id || "").trim();
-  if (!id) throw new Error("itemPatch.match 需要 id");
-  return items.findIndex((item) => item && typeof item === "object" && item.id === id);
-}
-
-function updateComposition(input, ctx) {
-  ensureSchema(ctx);
-  const id = String(input.id || "").trim();
-  if (!id) throw new Error("design id 是必填项");
-  const resource = designByID(ctx, id);
-  const contentPatch = input.contentPatch && typeof input.contentPatch === "object" && !Array.isArray(input.contentPatch) ? input.contentPatch : null;
-  const itemPatch = input.itemPatch && typeof input.itemPatch === "object" && !Array.isArray(input.itemPatch) ? input.itemPatch : null;
-  if (!contentPatch && !itemPatch && !String(input.title || "").trim()) throw new Error("composition.update 需要 title、contentPatch 或 itemPatch");
-  const content = JSON.parse(JSON.stringify(resource.content));
-  if (contentPatch) Object.assign(content, contentPatch);
-  if (itemPatch) {
-    const collection = String(itemPatch.collection || "").trim();
-    const patch = itemPatch.patch;
-    if (collection !== "scenes" || !patch || typeof patch !== "object" || Array.isArray(patch)) throw new Error("itemPatch.collection 必须为 scenes 且带对象 patch");
-    const index = findItemIndex(content.scenes, itemPatch.match);
-    if (index < 0) throw new Error(`scenes 中没有匹配 id 的 scene`);
-    content.scenes[index] = { ...content.scenes[index], ...patch };
+  if (!workspaceSeeded(ctx)) {
+    const seeded = ctx.shell.run({ command: "node", args: ["render/seed.js"], timeoutSeconds: 180 });
+    if (seeded.exitCode !== 0) throw new Error(`工作区初始化失败：${seeded.error || seeded.stdout || "seed.js 退出非零"}`);
   }
-  validateDesign(content);
-  const title = String(input.title || "").trim() || resource.title;
-  const now = new Date().toISOString();
-  ctx.sqlite.execute("update designs set title = ?, content_json = ?, updated_at = ? where id = ? and project_id = ?", [title, JSON.stringify(content), now, id, scope(ctx)]);
-  const updated = { ...resource, title, content, updatedAt: now };
-  return ctx.artifacts.publish({ type: "recut.remotion-studio.design@1", value: updated });
+  return { ready: workspaceSeeded(ctx), root: WORKSPACE };
 }
 
-function latestComposition(_, ctx) {
-  ensureSchema(ctx);
-  const design = latestDesign(null, ctx);
-  return design ? { design, brief: latestBrief({}, ctx) } : null;
-}
-
-function listDesigns(_, ctx) {
-  ensureSchema(ctx);
-  return ctx.sqlite.query("select id, brief_id, title, created_at, updated_at from designs where project_id = ? order by created_at desc", [scope(ctx)]).map((row) => ({ id: row.id, title: row.title, createdAt: row.created_at, updatedAt: row.updated_at }));
-}
-
-function workflowContext(_, ctx) {
-  ensureSchema(ctx);
-  const brief = latestBrief({}, ctx);
-  const design = latestDesign(null, ctx);
-  const stage = !brief ? "brief" : !design ? "design" : "preview";
-  const allowedActions = stage === "brief" ? ["create_brief"] : stage === "design" ? ["create_design"] : ["preview_design", "update_design", "export"];
-  return {
-    revision: `${stage}:${brief?.createdAt || "none"}:${design?.updatedAt || "none"}`,
-    stage,
-    nextAction: stage === "preview" ? "preview_design" : stage === "brief" ? "create_brief" : "create_design",
-    brief,
-    design: design ? design.content : null,
-    designResource: design ? { id: design.id, title: design.title, updatedAt: design.updatedAt } : null,
-    resourceContracts: {
-      design: {
-        inputs: ["brief", "material assets", "style template"],
-        output: { title: "string", durationSec: "number", template: "string", style: "object", scenes: "Scene[]" },
-        optional: { width: "number", height: "number", fps: "number" },
-        style: { background: "string", primary: "string", accent: "string", text: "string", fontFamily: "string", captionTheme: "string", captionPrimary: "string", captionSecondary: "string", effectId: "string", bgmAssetId: "string" },
-        scene: { required: ["id", "kind", "title", "durationSec"], optional: ["narration", "caption", "imageAssetId", "effectId"], kinds: ["title", "content", "outro"] },
-      },
-    },
-    catalogs: { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, effects: EFFECTS, canvasSizes: CANVAS_SIZES },
-    allowedActions,
-    mediaExecution: {
-      design: { kind: "structured-composition", generate: "把 Brief、风格模板与素材资产编排为可实时预览的 Remotion 合成：场景脚本、字幕主题、背景特效与媒体引用", complete: "composition.save 保存通过校验的 design，UI 即开始实时预览" },
-    },
+function listRecursive(ctx, base) {
+  const result = [];
+  const walk = (prefix) => {
+    let entries = [];
+    try { entries = ctx.files.list(prefix); } catch (_) { result.push(prefix); return; }
+    entries.forEach((name) => {
+      if (name === "node_modules" || name === ".git") return;
+      const child = prefix ? `${prefix}/${name}` : name;
+      let sub = [];
+      try { sub = ctx.files.list(child); } catch (_) { result.push(child); return; }
+      walk(child);
+    });
   };
+  walk(base);
+  return result;
 }
 
-function collectAssetIds(design) {
-  const assetIds = [];
-  const push = (assetId) => { if (typeof assetId === "string" && assetId.trim() && !assetIds.includes(assetId)) assetIds.push(assetId); };
-  const style = design?.style || {};
-  push(style.bgmAssetId);
-  (Array.isArray(design?.scenes) ? design.scenes : []).forEach((scene) => push(scene.imageAssetId));
-  return assetIds;
-}
-
-function renderSetup(_, ctx) {
+function codeList(_, ctx) {
   ensureSchema(ctx);
+  if (!workspaceSeeded(ctx)) return { root: WORKSPACE, files: [] };
+  return { root: WORKSPACE, files: listRecursive(ctx, WORKSPACE) };
+}
+
+function codeRead(input, ctx) {
+  ensureSchema(ctx);
+  const path = String(input.path || "").trim();
+  assertWorkspacePath(path);
+  return { path, content: ctx.files.readText(path) };
+}
+
+function codeWrite(input, ctx) {
+  ensureSchema(ctx);
+  const path = String(input.path || "").trim();
+  assertWorkspacePath(path);
+  const content = String(input.content ?? "");
+  ctx.files.writeText(path, content);
+  return { path, bytes: content.length };
+}
+
+function assertWorkspacePath(path) {
+  if (!path || !/^workspace\//.test(path) || path.includes("..") || path.startsWith(`${WORKSPACE}/node_modules`)) {
+    throw new Error("code 路径必须位于 workspace/ 内且不允许越界");
+  }
+}
+
+function registeredAssets(ctx) {
+  ensureSchema(ctx);
+  return ctx.sqlite.query("select asset_id from composition_assets where project_id = ? order by created_at asc", [scope(ctx)]).map((row) => row.asset_id);
+}
+
+function registerAssets(input, ctx) {
+  ensureSchema(ctx);
+  const assetIds = Array.isArray(input.assetIds) ? input.assetIds.filter((value) => typeof value === "string" && Boolean(value.trim())) : [];
+  ctx.sqlite.execute("delete from composition_assets where project_id = ?", [scope(ctx)]);
+  const now = new Date().toISOString();
+  assetIds.forEach((assetId) => {
+    ctx.sqlite.execute("insert or ignore into composition_assets (project_id, asset_id, created_at) values (?, ?, ?)", [scope(ctx), assetId, now]);
+  });
+  return { assetIds };
+}
+
+function ensureRenderDeps(ctx) {
   const node = ctx.shell.run({ command: "node", args: ["--version"], timeoutSeconds: 30 });
   const checks = { node: node.exitCode === 0 ? { ok: true, version: String(node.stdout || "").trim() } : { ok: false, error: node.error || "node 不可用，请先安装 Node.js 18+" } };
   if (checks.node.ok) {
@@ -351,40 +191,126 @@ function renderSetup(_, ctx) {
   return { ready, checks };
 }
 
+function renderSetup(_, ctx) {
+  ensureSchema(ctx);
+  return ensureRenderDeps(ctx);
+}
+
+function studioStatus(_, ctx) {
+  ensureSchema(ctx);
+  const rows = ctx.sqlite.query("select job_id, phase, port, error, updated_at from studio where project_id = ?", [scope(ctx)]);
+  if (!rows.length) return { running: false, phase: "stopped", port: null, url: null };
+  const record = rows[0];
+  let jobStatus = "unknown";
+  try { jobStatus = ctx.shell.status(record.job_id).status; } catch (_) { /* job 已不可查 */ }
+  if (["completed", "failed", "cancelled", "interrupted"].includes(jobStatus)) {
+    const error = record.error || `Studio 进程已结束（${jobStatus}），可重新启动预览。`;
+    return { running: false, phase: jobStatus === "interrupted" ? "interrupted" : "stopped", port: record.port, url: record.port ? `http://127.0.0.1:${record.port}` : null, error, jobId: record.job_id };
+  }
+  let phase = record.phase;
+  let port = record.port;
+  let error = record.error || null;
+  try {
+    const status = JSON.parse(ctx.files.readText(`studio/status.json`));
+    if (status && status.port) { port = Number(status.port); phase = status.phase || phase; error = status.error || error; }
+  } catch (_) { /* Studio 尚未写状态文件 */ }
+  const running = jobStatus === "running" || jobStatus === "queued";
+  return { running, phase, port, url: port ? `http://127.0.0.1:${port}` : null, error, jobId: record.job_id };
+}
+
+function studioStart(_, ctx) {
+  ensureSchema(ctx);
+  workspaceEnsure({}, ctx);
+  const deps = ensureRenderDeps(ctx);
+  if (!deps.ready) throw new Error(`渲染/预览环境未就绪：${JSON.stringify(deps.checks)}`);
+  const existing = studioStatus({}, ctx);
+  if (existing.running) return { jobId: existing.jobId, phase: existing.phase, port: existing.port, url: existing.url };
+  const job = ctx.shell.start({ command: "node", args: ["render/studio.js"], timeoutSeconds: 0 });
+  const now = new Date().toISOString();
+  ctx.sqlite.execute("insert or replace into studio (project_id, job_id, phase, port, error, updated_at) values (?, ?, ?, ?, ?, ?)", [scope(ctx), job.id, "starting", null, null, now]);
+  return { jobId: job.id, phase: "starting", port: null, url: null };
+}
+
+function studioStop(_, ctx) {
+  ensureSchema(ctx);
+  const rows = ctx.sqlite.query("select job_id from studio where project_id = ?", [scope(ctx)]);
+  if (rows.length) {
+    try { ctx.shell.cancel(rows[0].job_id); } catch (_) { /* job 可能已结束 */ }
+    ctx.sqlite.execute("delete from studio where project_id = ?", [scope(ctx)]);
+  }
+  return { stopped: true };
+}
+
+function studioEnv(input, ctx) {
+  ensureSchema(ctx);
+  workspaceEnsure({}, ctx);
+  const api = String(input.api || "").trim();
+  const media = input.media && typeof input.media === "object" && !Array.isArray(input.media) ? input.media : {};
+  const payload = { projectId: scope(ctx), api, media };
+  ctx.files.writeText(`${WORKSPACE}/public/recut-env.json`, JSON.stringify(payload));
+  return { written: true, path: `${WORKSPACE}/public/recut-env.json` };
+}
+
+function workflowContext(_, ctx) {
+  ensureSchema(ctx);
+  const brief = latestBrief({}, ctx);
+  const seeded = workspaceSeeded(ctx);
+  const stage = !brief ? "brief" : "studio";
+  const studio = studioStatus({}, ctx);
+  return {
+    revision: `${stage}:${brief?.createdAt || "none"}:${seeded ? "workspace-seeded" : "no-workspace"}`,
+    stage,
+    nextAction: stage === "brief" ? "create_brief" : "edit_composition_code",
+    brief,
+    workspace: { root: WORKSPACE, seeded },
+    studio,
+    registeredAssets: registeredAssets(ctx),
+    catalogs: { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES },
+    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "studio.start", "studio.status", "studio.stop", "studio.env", "render.export"],
+    mediaExecution: {
+      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 Root.tsx 与 compositions/ 成片代码；复用 workspace/effects、workspace/captions；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后 Remotion Studio 热更新即时预览；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
+    },
+  };
+}
+
 function renderExport(input, ctx) {
   ensureSchema(ctx);
-  const design = latestDesign(input.designId, ctx);
-  if (!design) throw new Error("没有可导出的设计，请先让 AI 完成设计");
+  const brief = latestBrief({}, ctx);
+  if (!brief) throw new Error("还没有 Brief，请先让用户提交选题");
+  workspaceEnsure({}, ctx);
   const renderId = id();
   const now = new Date().toISOString();
-  const width = Number(input.width || design.content.width || 1920);
-  const height = Number(input.height || design.content.height || 1080);
-  const fps = Number(input.fps || design.content.fps || 30);
+  const width = Number(input.width || 1920);
+  const height = Number(input.height || 1080);
+  const fps = Number(input.fps || 30);
   if (![24, 30].includes(fps)) throw new Error("fps 必须是 24 或 30");
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 320 || height < 320 || width > 3840 || height > 3840) throw new Error("width/height 必须在 320–3840 之间");
   const codec = String(input.codec || "h264");
   const label = String(input.label || "remotion 渲染导出");
 
+  const assetIds = Array.from(new Set([...(brief.materialAssetIds || []), ...registeredAssets(ctx)]));
   const media = {};
-  collectAssetIds(design.content).forEach((assetId) => {
+  assetIds.forEach((assetId) => {
+    if (media[assetId]) return;
     const materialized = ctx.media.materialize(assetId);
     media[assetId] = { kind: materialized.kind, mimeType: materialized.mimeType, path: materialized.path };
   });
 
-  const payload = { design: design.content, media, settings: { width, height, fps, codec } };
+  const payload = { brief, media, settings: { width, height, fps, codec } };
   ctx.files.writeText(`exports/${renderId}/props.json`, JSON.stringify(payload));
   ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: "任务已排队" }));
 
   const job = ctx.shell.start({ command: "node", args: ["render/render.js", "--renderId", renderId], timeoutSeconds: 3600 });
   const settings = { width, height, fps, codec, label };
-  ctx.sqlite.execute("insert into exports (render_id, project_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [renderId, scope(ctx), design.id, job.id, "queued", label, JSON.stringify(settings), null, null, now, now]);
-  return { renderId, shellJobId: job.id, status: "queued", designId: design.id };
+  ctx.sqlite.execute("insert into exports (render_id, project_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [renderId, scope(ctx), brief.id, job.id, "queued", label, JSON.stringify(settings), null, null, now, now]);
+  return { renderId, shellJobId: job.id, status: "queued", briefId: brief.id };
 }
 
 function exportRow(ctx, renderId) {
-  const rows = ctx.sqlite.query("select render_id, design_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports where render_id = ? and project_id = ?", [renderId, scope(ctx)]);
+  const rows = ctx.sqlite.query("select render_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports where render_id = ? and project_id = ?", [renderId, scope(ctx)]);
   if (!rows.length) throw new Error(`渲染任务 ${renderId} 不存在`);
   const row = rows[0];
-  return { renderId: row.render_id, designId: row.design_id, shellJobId: row.shell_job_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at, updatedAt: row.updated_at };
+  return { renderId: row.render_id, briefId: row.brief_id, shellJobId: row.shell_job_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at, updatedAt: row.updated_at };
 }
 
 function renderStatus(input, ctx) {
@@ -401,6 +327,7 @@ function renderStatus(input, ctx) {
   if (job.status === "completed") {
     if (!record.assetId) {
       const asset = ctx.media.importFile({ path: `exports/${renderId}/out.mp4`, name: record.label + ".mp4", mimeType: "video/mp4" });
+      if (ctx.project && typeof ctx.project.setCover === "function") ctx.project.setCover({ assetId: asset.id });
       const now = new Date().toISOString();
       ctx.sqlite.execute("update exports set status = 'completed', asset_id = ?, updated_at = ? where render_id = ? and project_id = ?", [asset.id, now, renderId, scope(ctx)]);
       return { renderId, status: "completed", assetId: asset.id, progress, label: record.label, settings: record.settings };
@@ -431,18 +358,22 @@ function renderCancel(input, ctx) {
 
 function listExports(_, ctx) {
   ensureSchema(ctx);
-  return ctx.sqlite.query("select render_id, design_id, status, label, settings_json, asset_id, error, created_at from exports where project_id = ? order by created_at desc", [scope(ctx)]).map((row) => ({ renderId: row.render_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at }));
+  return ctx.sqlite.query("select render_id, brief_id, status, label, settings_json, asset_id, error, created_at from exports where project_id = ? order by created_at desc", [scope(ctx)]).map((row) => ({ renderId: row.render_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at }));
 }
 
 recut.operation.register("project.create", createBrief);
 recut.operation.register("brief.latest", latestBrief);
 recut.operation.register("workflow.context", workflowContext);
 recut.operation.register("catalog.list", catalog);
-recut.operation.register("composition.save", saveComposition);
-recut.operation.register("composition.read", readComposition);
-recut.operation.register("composition.update", updateComposition);
-recut.operation.register("composition.latest", latestComposition);
-recut.operation.register("design.list", listDesigns);
+recut.operation.register("workspace.ensure", workspaceEnsure);
+recut.operation.register("code.list", codeList);
+recut.operation.register("code.read", codeRead);
+recut.operation.register("code.write", codeWrite);
+recut.operation.register("composition.assets", registerAssets);
+recut.operation.register("studio.start", studioStart);
+recut.operation.register("studio.status", studioStatus);
+recut.operation.register("studio.stop", studioStop);
+recut.operation.register("studio.env", studioEnv);
 recut.operation.register("render.setup", renderSetup);
 recut.operation.register("render.export", renderExport);
 recut.operation.register("render.status", renderStatus);

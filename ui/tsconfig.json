@@ -11,12 +11,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
-    "paths": {
-      "@compositions/*": ["../render/src/*"]
-    }
+    "noEmit": true
   },
-  "include": ["src", "../render/src"]
+  "include": ["src"]
 }

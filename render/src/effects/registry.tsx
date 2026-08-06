@@ -16,6 +16,7 @@ export interface Palette {
   captionTheme?: string;
   captionPrimary?: string;
   captionSecondary?: string;
+  effectId?: string;
 }
 
 /**
