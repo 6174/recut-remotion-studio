@@ -1,3 +1,11 @@
+# remotion-templates/
+
+> L2 | 父级: /apps/remotion-studio/packages/remotion-kit/src/components/README.md
+
+Recut 集成约束：所有模板由 `index.ts` 导出，运行时动画必须从 Remotion frame 推导。`ken-burns.tsx`、`parallax-pan.tsx` 与 `zoom-pulse.tsx` 已移除 Next/CSS 时间依赖，以保证预览、拖动时间轴与导出一致。
+
+[PROTOCOL]: 变更时更新此头部，然后检查 README.md
+
 # Remotion Templates by RVE
 
 A collection of 81 free, ready-to-use Remotion templates for creating programmatic videos with React. Each template is a self-contained React component that uses Remotion hooks (`useCurrentFrame`, `interpolate`, `spring`, `useVideoConfig`) — no CSS keyframes or external animation libraries.

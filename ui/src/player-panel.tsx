@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖后台 preview.serve/preview.props 操作、项目 brief 与素材映射
- * [OUTPUT]: 对外提供仅在 Vite ready 后挂载的 iframe 预览、启动 Loading、服务重启与可复制的完整错误诊断
+ * [OUTPUT]: 对外提供仅在应用层确认 Vite HTTP 服务可达后显示的 iframe 预览、启动/重启轮询 Loading、服务重启与可复制的完整错误诊断
  * [POS]: remotion-studio/ui 的左侧 Player；只显示预览状态，核心命令由右侧工作区调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -32,11 +32,25 @@ interface PlayerPanelProps {
 
 const PREVIEW_SETTINGS = { width: 1920, height: 1080, fps: 30 };
 
+function PreviewLoading({ starting }: { starting: boolean }) {
+  return (
+    <div className="grid h-full w-full place-items-center bg-terminal p-6 text-center text-muted-foreground">
+      <div>
+        <Loader2 className="mx-auto size-5 animate-spin text-primary" />
+        <p className="mt-3 text-sm text-foreground">{starting ? "正在启动 Remotion 预览…" : "正在准备预览…"}</p>
+        <p className="mt-1 text-xs">预览服务就绪后会自动显示画面。</p>
+      </div>
+    </div>
+  );
+}
+
 export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(function PlayerPanel({ brief, mediaMap, onAskAI, setStatus }, ref) {
   const [serve, setServe] = useState<ServeStatus | null>(null);
   const [starting, setStarting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [frameKey, setFrameKey] = useState(0);
+  const [reachablePreviewUrl, setReachablePreviewUrl] = useState<string | null>(null);
+  const [probeAttempt, setProbeAttempt] = useState(0);
   const startedOnce = useRef(false);
 
   const writeProps = useCallback(async () => {
@@ -56,35 +70,49 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     }
   }, [setStatus]);
 
+  const waitForPreview = useCallback(async () => {
+    const deadline = Date.now() + 15_000;
+    while (Date.now() < deadline) {
+      const status = await refreshServe();
+      if (status?.running && status.phase === "ready" && status.url) return true;
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 300));
+    }
+    return false;
+  }, [refreshServe]);
+
   const start = useCallback(async () => {
     setStarting(true);
+    setReachablePreviewUrl(null);
     try {
       await writeProps();
       await recut.background.call("preview.serve.start", {});
       setStatus("预览服务正在启动。");
+      if (!await waitForPreview()) setStatus("预览服务未能在 15 秒内就绪。");
     } catch (cause) {
       setStatus(cause instanceof Error ? cause.message : "启动预览失败");
     } finally {
       setStarting(false);
       await refreshServe();
     }
-  }, [refreshServe, setStatus, writeProps]);
+  }, [refreshServe, setStatus, waitForPreview, writeProps]);
 
   const restart = useCallback(async () => {
     setStarting(true);
+    setReachablePreviewUrl(null);
     try {
       await recut.background.call("preview.serve.stop", {});
       await writeProps();
       await recut.background.call("preview.serve.start", {});
       setFrameKey((value) => value + 1);
       setStatus("预览服务已重启。");
+      if (!await waitForPreview()) setStatus("预览服务未能在 15 秒内就绪。");
     } catch (cause) {
       setStatus(cause instanceof Error ? cause.message : "重启预览失败");
     } finally {
       setStarting(false);
       await refreshServe();
     }
-  }, [refreshServe, setStatus, writeProps]);
+  }, [refreshServe, setStatus, waitForPreview, writeProps]);
 
   useImperativeHandle(ref, () => ({ restart, start }), [restart, start]);
 
@@ -104,6 +132,27 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     return () => window.clearInterval(timer);
   }, [refreshServe]);
 
+  useEffect(() => {
+    const url = serve?.running && serve.phase === "ready" ? serve.url : null;
+    setReachablePreviewUrl(null);
+    if (!url) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 1500);
+    const retry = () => window.setTimeout(() => setProbeAttempt((value) => value + 1), 500);
+
+    void fetch(`${url}?probe=${probeAttempt}`, { cache: "no-store", mode: "no-cors", signal: controller.signal })
+      .then(() => { if (!cancelled) setReachablePreviewUrl(url); })
+      .catch(() => { if (!cancelled) retry(); })
+      .finally(() => window.clearTimeout(timeout));
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [probeAttempt, serve?.phase, serve?.running, serve?.url]);
+
   const copyDiagnostic = async () => {
     const diagnostic = serve?.error;
     if (!diagnostic) return;
@@ -117,11 +166,11 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     }
   };
 
-  if (serve?.running && serve.phase === "ready" && serve.url) {
+  if (serve?.running && serve.phase === "ready" && serve.url === reachablePreviewUrl) {
     return <iframe className="h-full w-full border-0 bg-terminal" key={frameKey} src={`${serve.url}?refresh=${frameKey}`} title="Remotion 预览" />;
   }
 
-  if (serve?.error) {
+  if (serve?.error && !starting) {
     return (
       <div className="grid h-full w-full place-items-center p-6">
         <section className="w-full max-w-2xl rounded-sm border border-destructive/35 bg-card p-5 shadow-sm">
@@ -140,13 +189,5 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     );
   }
 
-  return (
-    <div className="grid h-full w-full place-items-center bg-terminal p-6 text-center text-muted-foreground">
-      <div>
-        <Loader2 className="mx-auto size-5 animate-spin text-primary" />
-        <p className="mt-3 text-sm text-foreground">{starting || serve?.phase === "starting" ? "正在启动 Remotion 预览…" : "正在准备预览…"}</p>
-        <p className="mt-1 text-xs">预览服务就绪后会自动显示画面。</p>
-      </div>
-    </div>
-  );
+  return <PreviewLoading starting={starting || serve?.phase === "starting"} />;
 });

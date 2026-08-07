@@ -45,6 +45,19 @@ function readArg(name) {
   return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : null;
 }
 
+// 与 vite.config.ts 一致的 kit 别名：把 @recut/remotion-kit 指向 workspace 的
+// 冻结副本（workspace/remotion-kit/），渲染与预览、项目版本三者一致。
+function kitWebpackAlias(workspace) {
+  const kit = (rel) => require("path").join(workspace, "remotion-kit", rel);
+  return [
+    { name: "@recut/remotion-kit/templates", alias: kit("src/components/remotion-templates") },
+    { name: "@recut/remotion-kit/shotcraft", alias: kit("src/components/shotcraft") },
+    { name: "@recut/remotion-kit/captions", alias: kit("src/captions/index.ts") },
+    { name: "@recut/remotion-kit/effects", alias: kit("src/effects/index.ts") },
+    { name: "@recut/remotion-kit", alias: kit("src/index.ts") },
+  ];
+}
+
 const renderId = readArg("renderId");
 if (!renderId) {
   console.error("remotion-render: missing --renderId");
@@ -108,6 +121,7 @@ function writeProgress(phase, progress, message) {
     publicDir,
     enableCaching: false,
     ignoreRegisterRootWarning: true,
+    webpackOverride: (config) => ({ ...config, resolve: { ...config.resolve, alias: kitWebpackAlias(__dirname) } }),
   });
 
   const inputProps = { brief, media: resolvedMedia, settings };

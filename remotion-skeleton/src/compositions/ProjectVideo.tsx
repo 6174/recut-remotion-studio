@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Remotion 时间轴、Brief/MediaMap 数据、效果注册表与字幕主题
- * [OUTPUT]: 对外提供 ProjectVideo、SCENES、resolvePalette、getProjectMetadata
+ * [INPUT]: 依赖 Remotion 时间轴、Brief/MediaMap 数据与 @recut/remotion-kit 的效果、调色板和字幕主题
+ * [OUTPUT]: 对外提供 ProjectVideo、SCENES、getProjectMetadata
  * [POS]: remotion-skeleton 的主成片编排器，连接场景内容、背景、字幕与品牌层
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -8,9 +8,7 @@ import React from "react";
 import { AbsoluteFill, Audio, interpolate, Sequence, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { resolveMediaUrl } from "../runtime/media";
 import { MediaImage } from "../media";
-import { BackgroundFX, Palette, useImageMotion } from "../effects/registry";
-import { TextFX } from "../effects/text";
-import { CaptionTheme, buildCaptionsData, CaptionsData } from "../captions";
+import { BackgroundFX, buildCaptionsData, CaptionTheme, CaptionsData, Palette, resolvePalette, TextFX, useImageMotion } from "@recut/remotion-kit";
 import { Brief, MediaMap, ProjectVideoProps } from "../types";
 
 /**
@@ -21,8 +19,8 @@ import { Brief, MediaMap, ProjectVideoProps } from "../types";
  *   - background / primary / accent / text / fontFamily / captionTheme
  *   - Tailwind utilities from src/index.css are available for layout/typography;
  *     palette-driven colors stay inline (they vary per template).
- *   - Reuse the built-in effects (effects/registry.tsx + effects/text.tsx), the
- *     81 vendored remotion-templates, and the 13 caption themes instead of
+ *   - Reuse the shared @recut/remotion-kit (13 caption themes, 81 vendored
+ *     remotion-templates, shotcraft components and effects) instead of
  *     hand-writing new animation — see skills/remotion-studio references.
  * Media is referenced by Recut assetId through resolveMediaUrl(assetId, media).
  * Everything is frame-driven and deterministic.
@@ -40,18 +38,6 @@ export interface Scene {
 }
 
 const TEXT_EFFECT_IDS = ["bounce-text", "typewriter", "glitch", "cinematic-title", "slide-text", "lower-third"];
-
-const TEMPLATE_PALETTES: Record<string, Palette> = {
-  "paper-collage": { background: "#f4efe7", primary: "#14120f", accent: "#c46a2b", text: "#14120f", fontFamily: "Georgia, 'Songti SC', 'Noto Serif SC', 'Times New Roman', serif", captionTheme: "simple-one-word", captionPrimary: "#14120f", captionSecondary: "#c46a2b", effectId: "noise-grain" },
-  "cinematic-dark": { background: "#0b0b12", primary: "#f5f2ea", accent: "#e8b341", text: "#f5f2ea", fontFamily: "'Helvetica Neue', Helvetica, 'PingFang SC', 'Noto Sans SC', Arial, sans-serif", captionTheme: "kinetic-01", captionPrimary: "#f5f2ea", captionSecondary: "#e8b341", effectId: "starfield" },
-  "clean-editorial": { background: "#ffffff", primary: "#0f172a", accent: "#2563eb", text: "#0f172a", fontFamily: "'Helvetica Neue', Helvetica, 'PingFang SC', 'Noto Sans SC', Arial, sans-serif", captionTheme: "pop", captionPrimary: "#f8fafc", captionSecondary: "#93c5fd", effectId: "editorial-lines" },
-  "vibrant-tech": { background: "#12002a", primary: "#ffffff", accent: "#22d3ee", text: "#ffffff", fontFamily: "'Helvetica Neue', Helvetica, 'PingFang SC', 'Noto Sans SC', Arial, sans-serif", captionTheme: "hustle", captionPrimary: "#ffffff", captionSecondary: "#22d3ee", effectId: "gradient-shift" },
-};
-
-export const resolvePalette = (brief?: Brief | null): Palette => {
-  const fallback = TEMPLATE_PALETTES[brief?.template || ""] ?? TEMPLATE_PALETTES["clean-editorial"];
-  return { ...fallback };
-};
 
 /**
  * 默认 SCENES 是一段演示成片：开场字 → 三个步骤（分别展示 slide-text、
@@ -250,7 +236,7 @@ const CaptionLayer: React.FC<{ data: CaptionsData; palette: Palette; width: numb
 
 export const ProjectVideo: React.FC<ProjectVideoProps> = ({ brief, media }) => {
   const { fps, width } = useVideoConfig();
-  const palette = resolvePalette(brief);
+  const palette = resolvePalette(brief?.template);
   const timings = computeTimings(fps);
   const captionsData = buildGlobalCaptions(timings, fps);
 

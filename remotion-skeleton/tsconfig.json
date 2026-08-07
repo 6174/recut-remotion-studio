@@ -11,8 +11,8 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "preserveSymlinks": true
   },
-  "include": ["src"],
-  "exclude": ["src/components/remotion-templates/**", "src/components/shotcraft/**", "src/captions/vendor/**"]
+  "include": ["src"]
 }

@@ -11,7 +11,7 @@ export function Modal({ open, title, eyebrow, onClose, children, wide }: { open:
   if (!open) return null;
   return (
     <div aria-label={title} aria-modal="true" className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-6 backdrop-blur-[1px]" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} role="dialog">
-      <section className={wide ? "w-full max-w-2xl overflow-hidden rounded-sm border bg-card shadow-[var(--shadow-overlay)]" : "w-full max-w-md overflow-hidden rounded-sm border bg-card shadow-[var(--shadow-overlay)]"} onMouseDown={(event) => event.stopPropagation()}>
+      <section className={wide ? "w-full max-w-5xl overflow-hidden rounded-sm border bg-card shadow-[var(--shadow-overlay)]" : "w-full max-w-md overflow-hidden rounded-sm border bg-card shadow-[var(--shadow-overlay)]"} onMouseDown={(event) => event.stopPropagation()}>
         <header className="flex items-start justify-between gap-4 border-b px-5 py-4">
           <div className="min-w-0">
             {eyebrow ? <p className="font-mono text-[10px] font-semibold tracking-[0.16em] text-primary">{eyebrow}</p> : null}

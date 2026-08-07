@@ -1,0 +1,990 @@
+{
+  "styleTemplates": {
+    "paper-collage": {
+      "label": "纸拼贴编辑风",
+      "description": "纸质拼贴、编辑杂志感；适合解说、知识与观点内容",
+      "motion": "低能量、缓慢推进、落定后呼吸；像一篇会动的杂志文章"
+    },
+    "cinematic-dark": {
+      "label": "电影感深色",
+      "description": "深色背景、星空与粒子光效；适合产品、故事与情绪化内容",
+      "motion": "聚光→推进→悬浮；单一主角完整动作弧"
+    },
+    "clean-editorial": {
+      "label": "简洁杂志排版",
+      "description": "几何背景、大字排版；适合新闻、教育、报告类内容",
+      "motion": "直线滑动、克制的过冲；信息先于装饰"
+    },
+    "vibrant-tech": {
+      "label": "科技活力风",
+      "description": "渐变色块、高能量运动；适合产品发布、演示与社交媒体",
+      "motion": "高能量入场、轻微过冲；批量元素靠运动本身表达"
+    },
+    "motion-explainer": {
+      "label": "Remotion 知识讲解",
+      "description": "代码窗口转为播放器的深色讲解模板；适合技术原理、产品机制与教程",
+      "motion": "提问钩子 → 代码逐行显现 → 播放器完成收束；用代码卡、进度条和光晕组成完整叙事"
+    },
+    "product-launch": {
+      "label": "产品发布片",
+      "description": "霓虹渐变、浮层功能卡与大字卖点；适合新功能、SaaS 与品牌发布",
+      "motion": "主张先落版，再由三张功能卡依次推进，底部标签收束；高能但每个动作只服务一个卖点"
+    },
+    "data-briefing": {
+      "label": "数据叙事报告",
+      "description": "编辑数据页、数字翻牌和增长条；适合复盘、研究结论与业务汇报",
+      "motion": "结论标题 → 关键数字翻牌 → 三层数据条推进；克制留白，让数据本身成为动画"
+    },
+    "creator-collage": {
+      "label": "创作者拼贴板",
+      "description": "纸张纹理、便利贴与杂志式中文字排版；适合观点视频、创作过程与文化内容",
+      "motion": "标题先定调，四张拼贴卡错峰贴入，最后以一句旁白收束；像一面正在完成的灵感墙"
+    },
+    "biennale-yellow": {
+      "label": "太阳黄双年展",
+      "description": "暖羊皮纸、太阳黄光晕、衬线大标题和细线规则；适合文化、教育与有温度的讲解",
+      "motion": "黄光缓慢呼吸，标题落版，细线与短文完成收束；留白优先，让一个观点获得充足停留"
+    },
+    "blockframe": {
+      "label": "粗框新粗野主义",
+      "description": "粗黑边、硬阴影和糖果撞色的信息卡；适合高能教程、功能清单与年轻品牌",
+      "motion": "大字先砸入，三张厚边卡横向撞进；使用硬切和明确位移，不使用含糊的柔和过渡"
+    },
+    "cobalt-grid": {
+      "label": "钴蓝编辑网格",
+      "description": "纸张底、钴蓝网格、衬线标题与编号资料条；适合研究、报告和知识分解",
+      "motion": "主结论先显现，编号资料条按层级向右生长；网格固定不动，信息运动必须可追踪"
+    },
+    "bold-poster": {
+      "label": "红色大胆海报",
+      "description": "奶油纸、倾斜红色版块与极大号标题；适合单一强观点、活动预告和社交封面",
+      "motion": "斜切色块先定画面，大标题带旋转缩放打入，最后以三行短句压轴；一屏只讲一个主张"
+    },
+    "capsule-editorial": {
+      "label": "糖果胶囊编辑风",
+      "description": "圆角胶囊、珊瑚底和糖果色步骤标签；适合流程、方法论和轻量产品介绍",
+      "motion": "主题先落在大胶囊上，步骤胶囊错峰弹起并排成路径；圆润但节奏清楚，避免元素同时出现"
+    },
+    "editorial-forest": {
+      "label": "森林编辑风",
+      "description": "森林绿、粉色强调与米纸三色编辑系统；适合深度观点、品牌故事与创作随笔",
+      "motion": "标题由上向下生长，三个主题标签分层出现，暗绿圆形形成结尾空间；让层级像树冠一样展开"
+    }
+  },
+  "captionThemes": [
+    {
+      "id": "pop",
+      "label": "Pop 弹入",
+      "description": "缩放弹入，清爽通用"
+    },
+    {
+      "id": "karaoke",
+      "label": "Karaoke 扫光",
+      "description": "逐词高亮扫过，适合歌词式字幕"
+    },
+    {
+      "id": "kinetic-01",
+      "label": "Kinetic 动能排版",
+      "description": "主词放大、侧词对齐的动能排版"
+    },
+    {
+      "id": "kinetic-02",
+      "label": "Kinetic 变体",
+      "description": "动能排版第二套"
+    },
+    {
+      "id": "hustle",
+      "label": "Hustle 快节奏",
+      "description": "快速进入，活力十足"
+    },
+    {
+      "id": "grape",
+      "label": "Grape 倾斜强调",
+      "description": "无底框的倾斜强调字幕"
+    },
+    {
+      "id": "beast",
+      "label": "Beast 粗体高对比",
+      "description": "粗体加高对比阴影"
+    },
+    {
+      "id": "poppin",
+      "label": "Poppin 大写字幕",
+      "description": "全大写 Poppins 字体"
+    },
+    {
+      "id": "aarit",
+      "label": "Aarit 逐字缩放",
+      "description": "电影感逐字缩放与渐变扫光"
+    },
+    {
+      "id": "soft-ai",
+      "label": "Soft AI 柔焦",
+      "description": "无底框的柔焦浮现"
+    },
+    {
+      "id": "gaming-stream",
+      "label": "Gaming 霓虹",
+      "description": "霓虹发光游戏风格"
+    },
+    {
+      "id": "simple-one-word",
+      "label": "单字聚焦",
+      "description": "每次只高亮一个词"
+    },
+    {
+      "id": "podcast",
+      "label": "Podcast 播客",
+      "description": "播客风格的段落字幕"
+    }
+  ],
+  "canvasSizes": [
+    {
+      "id": "1080p",
+      "label": "1080p 横屏",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30
+    },
+    {
+      "id": "vertical",
+      "label": "1080×1920 竖屏",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30
+    },
+    {
+      "id": "square",
+      "label": "1080×1080 方形",
+      "width": 1080,
+      "height": 1080,
+      "fps": 30
+    }
+  ],
+  "components": [
+    {
+      "id": "chart-animation",
+      "label": "Bar Chart",
+      "description": "Animated SVG bar chart with staggered bar growth",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/chart-animation.tsx",
+      "workspacePath": "src/components/remotion-templates/chart-animation.tsx"
+    },
+    {
+      "id": "line-chart",
+      "label": "Line Chart",
+      "description": "SVG polyline drawing left-to-right with data points",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/line-chart.tsx",
+      "workspacePath": "src/components/remotion-templates/line-chart.tsx"
+    },
+    {
+      "id": "pie-chart",
+      "label": "Pie Chart",
+      "description": "Segmented circle with sequential segment reveals",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/pie-chart.tsx",
+      "workspacePath": "src/components/remotion-templates/pie-chart.tsx"
+    },
+    {
+      "id": "donut-chart",
+      "label": "Donut Chart",
+      "description": "Ring chart with animated segments and centre metric",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/donut-chart.tsx",
+      "workspacePath": "src/components/remotion-templates/donut-chart.tsx"
+    },
+    {
+      "id": "area-chart",
+      "label": "Area Chart",
+      "description": "Gradient-filled area under a line, revealing left to right",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/area-chart.tsx",
+      "workspacePath": "src/components/remotion-templates/area-chart.tsx"
+    },
+    {
+      "id": "progress-bars",
+      "label": "Progress Bars",
+      "description": "Horizontal bars filling to different widths",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/progress-bars.tsx",
+      "workspacePath": "src/components/remotion-templates/progress-bars.tsx"
+    },
+    {
+      "id": "stat-counter",
+      "label": "Stat Counter",
+      "description": "Large number counting up with comma formatting",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/stat-counter.tsx",
+      "workspacePath": "src/components/remotion-templates/stat-counter.tsx"
+    },
+    {
+      "id": "comparison-chart",
+      "label": "Comparison Chart",
+      "description": "Side-by-side before/after metric comparison",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/comparison-chart.tsx",
+      "workspacePath": "src/components/remotion-templates/comparison-chart.tsx"
+    },
+    {
+      "id": "circular-progress",
+      "label": "Circular Progress",
+      "description": "Animated progress ring with percentage",
+      "kind": "template",
+      "category": "图表数据",
+      "path": "packages/remotion-kit/src/components/remotion-templates/circular-progress.tsx",
+      "workspacePath": "src/components/remotion-templates/circular-progress.tsx"
+    },
+    {
+      "id": "animated-text",
+      "label": "Animated Text",
+      "description": "Character-by-character text reveal",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/animated-text.tsx",
+      "workspacePath": "src/components/remotion-templates/animated-text.tsx"
+    },
+    {
+      "id": "bounce-text",
+      "label": "Bounce Text",
+      "description": "Spring bounce entrance for titles",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/bounce-text.tsx",
+      "workspacePath": "src/components/remotion-templates/bounce-text.tsx"
+    },
+    {
+      "id": "bubble-pop-text",
+      "label": "Bubble Pop Text",
+      "description": "Characters pop in inside bubbles",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/bubble-pop-text.tsx",
+      "workspacePath": "src/components/remotion-templates/bubble-pop-text.tsx"
+    },
+    {
+      "id": "floating-bubble-text",
+      "label": "Floating Text Chip",
+      "description": "Floating label with sine-wave wobble",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/floating-bubble-text.tsx",
+      "workspacePath": "src/components/remotion-templates/floating-bubble-text.tsx"
+    },
+    {
+      "id": "glitch-text",
+      "label": "Glitch Text",
+      "description": "RGB split glitch with decay",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/glitch-text.tsx",
+      "workspacePath": "src/components/remotion-templates/glitch-text.tsx"
+    },
+    {
+      "id": "popping-text",
+      "label": "Popping Scale Text",
+      "description": "Spring-based scale pop entrance",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/popping-text.tsx",
+      "workspacePath": "src/components/remotion-templates/popping-text.tsx"
+    },
+    {
+      "id": "pulsing-text",
+      "label": "Pulsing Text",
+      "description": "Continuous scale pulse for emphasis",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/pulsing-text.tsx",
+      "workspacePath": "src/components/remotion-templates/pulsing-text.tsx"
+    },
+    {
+      "id": "slide-text",
+      "label": "Slide Text",
+      "description": "Directional slide-in text",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/slide-text.tsx",
+      "workspacePath": "src/components/remotion-templates/slide-text.tsx"
+    },
+    {
+      "id": "typewriter-subtitle",
+      "label": "Typewriter Subtitle",
+      "description": "Character-by-character typing with cursor",
+      "kind": "template",
+      "category": "文字动效",
+      "path": "packages/remotion-kit/src/components/remotion-templates/typewriter-subtitle.tsx",
+      "workspacePath": "src/components/remotion-templates/typewriter-subtitle.tsx"
+    },
+    {
+      "id": "animated-list",
+      "label": "Animated List",
+      "description": "Staggered list item entrance",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/animated-list.tsx",
+      "workspacePath": "src/components/remotion-templates/animated-list.tsx"
+    },
+    {
+      "id": "card-flip",
+      "label": "Card Flip",
+      "description": "3D card flip with front/back content",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/card-flip.tsx",
+      "workspacePath": "src/components/remotion-templates/card-flip.tsx"
+    },
+    {
+      "id": "countdown-timer",
+      "label": "Countdown Timer",
+      "description": "5-4-3-2-1-GO with spring scale",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/countdown-timer.tsx",
+      "workspacePath": "src/components/remotion-templates/countdown-timer.tsx"
+    },
+    {
+      "id": "notification-pop",
+      "label": "Notification Pop",
+      "description": "Stacking notification toasts",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/notification-pop.tsx",
+      "workspacePath": "src/components/remotion-templates/notification-pop.tsx"
+    },
+    {
+      "id": "particle-explosion",
+      "label": "Particle Explosion",
+      "description": "Burst particles from centre",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/particle-explosion.tsx",
+      "workspacePath": "src/components/remotion-templates/particle-explosion.tsx"
+    },
+    {
+      "id": "progress-steps",
+      "label": "Progress Steps",
+      "description": "Step indicator filling in sequence",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/progress-steps.tsx",
+      "workspacePath": "src/components/remotion-templates/progress-steps.tsx"
+    },
+    {
+      "id": "rotating-carousel",
+      "label": "Rotating Carousel",
+      "description": "3D rotating card carousel",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/rotating-carousel.tsx",
+      "workspacePath": "src/components/remotion-templates/rotating-carousel.tsx"
+    },
+    {
+      "id": "sound-wave",
+      "label": "Sound Wave",
+      "description": "Audio waveform bar visualiser",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/sound-wave.tsx",
+      "workspacePath": "src/components/remotion-templates/sound-wave.tsx"
+    },
+    {
+      "id": "text-highlight",
+      "label": "Text Highlight",
+      "description": "Sequential word highlighting",
+      "kind": "template",
+      "category": "内容动画",
+      "path": "packages/remotion-kit/src/components/remotion-templates/text-highlight.tsx",
+      "workspacePath": "src/components/remotion-templates/text-highlight.tsx"
+    },
+    {
+      "id": "bokeh-circles",
+      "label": "Bokeh Circles",
+      "description": "Floating soft circles with drift",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/bokeh-circles.tsx",
+      "workspacePath": "src/components/remotion-templates/bokeh-circles.tsx"
+    },
+    {
+      "id": "geometric-patterns",
+      "label": "Geometric Patterns",
+      "description": "Rotating/scaling geometric shapes",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/geometric-patterns.tsx",
+      "workspacePath": "src/components/remotion-templates/geometric-patterns.tsx"
+    },
+    {
+      "id": "gradient-shift",
+      "label": "Gradient Shift",
+      "description": "Slowly shifting ambient gradient",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/gradient-shift.tsx",
+      "workspacePath": "src/components/remotion-templates/gradient-shift.tsx"
+    },
+    {
+      "id": "grid-pulse",
+      "label": "Grid Pulse",
+      "description": "Dot grid with ripple wave pulse",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/grid-pulse.tsx",
+      "workspacePath": "src/components/remotion-templates/grid-pulse.tsx"
+    },
+    {
+      "id": "liquid-wave",
+      "label": "Liquid Wave",
+      "description": "Flowing SVG wave shapes",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/liquid-wave.tsx",
+      "workspacePath": "src/components/remotion-templates/liquid-wave.tsx"
+    },
+    {
+      "id": "matrix-rain",
+      "label": "Matrix Rain",
+      "description": "Falling code rain columns",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/matrix-rain.tsx",
+      "workspacePath": "src/components/remotion-templates/matrix-rain.tsx"
+    },
+    {
+      "id": "noise-grain",
+      "label": "Noise Grain",
+      "description": "Subtle film grain overlay",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/noise-grain.tsx",
+      "workspacePath": "src/components/remotion-templates/noise-grain.tsx"
+    },
+    {
+      "id": "pixel-transition",
+      "label": "Pixel Transition",
+      "description": "Pixelated grid reveal",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/pixel-transition.tsx",
+      "workspacePath": "src/components/remotion-templates/pixel-transition.tsx"
+    },
+    {
+      "id": "starfield",
+      "label": "Starfield",
+      "description": "Flying-through-space star effect",
+      "kind": "template",
+      "category": "背景效果",
+      "path": "packages/remotion-kit/src/components/remotion-templates/starfield.tsx",
+      "workspacePath": "src/components/remotion-templates/starfield.tsx"
+    },
+    {
+      "id": "camera-shake",
+      "label": "Camera Shake",
+      "description": "Decaying shake for impact moments",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/camera-shake.tsx",
+      "workspacePath": "src/components/remotion-templates/camera-shake.tsx"
+    },
+    {
+      "id": "film-burn",
+      "label": "Film Burn",
+      "description": "Warm light leak overlay",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/film-burn.tsx",
+      "workspacePath": "src/components/remotion-templates/film-burn.tsx"
+    },
+    {
+      "id": "ken-burns",
+      "label": "Ken Burns",
+      "description": "Pan and zoom for images",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/ken-burns.tsx",
+      "workspacePath": "src/components/remotion-templates/ken-burns.tsx"
+    },
+    {
+      "id": "letterbox-reveal",
+      "label": "Letterbox Reveal",
+      "description": "Black bars retracting to reveal",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/letterbox-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/letterbox-reveal.tsx"
+    },
+    {
+      "id": "parallax-pan",
+      "label": "Parallax Pan",
+      "description": "Multi-layer parallax scrolling",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/parallax-pan.tsx",
+      "workspacePath": "src/components/remotion-templates/parallax-pan.tsx"
+    },
+    {
+      "id": "spotlight-reveal",
+      "label": "Spotlight Reveal",
+      "description": "Expanding circle clip-path reveal",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/spotlight-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/spotlight-reveal.tsx"
+    },
+    {
+      "id": "vignette-pulse",
+      "label": "Vignette Pulse",
+      "description": "Pulsing darkened edges overlay",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/vignette-pulse.tsx",
+      "workspacePath": "src/components/remotion-templates/vignette-pulse.tsx"
+    },
+    {
+      "id": "whip-pan",
+      "label": "Whip Pan",
+      "description": "Fast horizontal pan with motion blur",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/whip-pan.tsx",
+      "workspacePath": "src/components/remotion-templates/whip-pan.tsx"
+    },
+    {
+      "id": "zoom-pulse",
+      "label": "Zoom Pulse",
+      "description": "Rhythmic zoom in/out pulse",
+      "kind": "template",
+      "category": "电影感",
+      "path": "packages/remotion-kit/src/components/remotion-templates/zoom-pulse.tsx",
+      "workspacePath": "src/components/remotion-templates/zoom-pulse.tsx"
+    },
+    {
+      "id": "blinds-transition",
+      "label": "Blinds Transition",
+      "description": "Horizontal blinds opening",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/blinds-transition.tsx",
+      "workspacePath": "src/components/remotion-templates/blinds-transition.tsx"
+    },
+    {
+      "id": "clock-wipe",
+      "label": "Clock Wipe",
+      "description": "Radial clock-hand sweep",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/clock-wipe.tsx",
+      "workspacePath": "src/components/remotion-templates/clock-wipe.tsx"
+    },
+    {
+      "id": "cross-dissolve",
+      "label": "Cross Dissolve",
+      "description": "Classic cross-fade between scenes",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/cross-dissolve.tsx",
+      "workspacePath": "src/components/remotion-templates/cross-dissolve.tsx"
+    },
+    {
+      "id": "fade-through-black",
+      "label": "Fade Through Black",
+      "description": "Dip to black between scenes",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/fade-through-black.tsx",
+      "workspacePath": "src/components/remotion-templates/fade-through-black.tsx"
+    },
+    {
+      "id": "iris-transition",
+      "label": "Iris Transition",
+      "description": "Circular iris close/open",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/iris-transition.tsx",
+      "workspacePath": "src/components/remotion-templates/iris-transition.tsx"
+    },
+    {
+      "id": "morph-transition",
+      "label": "Morph Transition",
+      "description": "Scale-and-fade morph",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/morph-transition.tsx",
+      "workspacePath": "src/components/remotion-templates/morph-transition.tsx"
+    },
+    {
+      "id": "push-transition",
+      "label": "Push Transition",
+      "description": "New scene pushes old off-screen",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/push-transition.tsx",
+      "workspacePath": "src/components/remotion-templates/push-transition.tsx"
+    },
+    {
+      "id": "slide-wipe",
+      "label": "Slide Wipe",
+      "description": "Spring-driven panel slide",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/slide-wipe.tsx",
+      "workspacePath": "src/components/remotion-templates/slide-wipe.tsx"
+    },
+    {
+      "id": "zoom-through",
+      "label": "Zoom Through",
+      "description": "Zoom in then zoom out reveal",
+      "kind": "template",
+      "category": "转场",
+      "path": "packages/remotion-kit/src/components/remotion-templates/zoom-through.tsx",
+      "workspacePath": "src/components/remotion-templates/zoom-through.tsx"
+    },
+    {
+      "id": "logo-blur-reveal",
+      "label": "Logo Blur Reveal",
+      "description": "Focus-pull blur to sharp",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-blur-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-blur-reveal.tsx"
+    },
+    {
+      "id": "logo-bounce-drop",
+      "label": "Logo Bounce Drop",
+      "description": "Drop from above with bounce",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-bounce-drop.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-bounce-drop.tsx"
+    },
+    {
+      "id": "logo-fade-reveal",
+      "label": "Logo Fade Reveal",
+      "description": "Fade in with subtle scale-up",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-fade-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-fade-reveal.tsx"
+    },
+    {
+      "id": "logo-glitch-reveal",
+      "label": "Logo Glitch Reveal",
+      "description": "RGB split glitch decaying to clean",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-glitch-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-glitch-reveal.tsx"
+    },
+    {
+      "id": "logo-scale-rotate",
+      "label": "Logo Scale Rotate",
+      "description": "Spinning scale entrance",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-scale-rotate.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-scale-rotate.tsx"
+    },
+    {
+      "id": "logo-spin-reveal",
+      "label": "Logo Spin Reveal",
+      "description": "3D Y-axis spin reveal",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-spin-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-spin-reveal.tsx"
+    },
+    {
+      "id": "logo-split-reveal",
+      "label": "Logo Split Reveal",
+      "description": "Left/right halves expanding",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-split-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-split-reveal.tsx"
+    },
+    {
+      "id": "logo-stroke-draw",
+      "label": "Logo Stroke Draw",
+      "description": "SVG stroke drawing animation",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-stroke-draw.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-stroke-draw.tsx"
+    },
+    {
+      "id": "logo-typewriter",
+      "label": "Logo Typewriter",
+      "description": "Icon + typed company name",
+      "kind": "template",
+      "category": "标志品牌",
+      "path": "packages/remotion-kit/src/components/remotion-templates/logo-typewriter.tsx",
+      "workspacePath": "src/components/remotion-templates/logo-typewriter.tsx"
+    },
+    {
+      "id": "chapter-title",
+      "label": "Chapter Title",
+      "description": "Chapter number with extending lines",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/chapter-title.tsx",
+      "workspacePath": "src/components/remotion-templates/chapter-title.tsx"
+    },
+    {
+      "id": "cinematic-title-intro",
+      "label": "Cinematic Title Intro",
+      "description": "Title spring-in with growing underline",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/cinematic-title-intro.tsx",
+      "workspacePath": "src/components/remotion-templates/cinematic-title-intro.tsx"
+    },
+    {
+      "id": "countdown-intro",
+      "label": "Countdown Intro",
+      "description": "Ring countdown 3-2-1-GO",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/countdown-intro.tsx",
+      "workspacePath": "src/components/remotion-templates/countdown-intro.tsx"
+    },
+    {
+      "id": "credits-roll",
+      "label": "Credits Roll",
+      "description": "Scrolling movie-style credits",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/credits-roll.tsx",
+      "workspacePath": "src/components/remotion-templates/credits-roll.tsx"
+    },
+    {
+      "id": "end-card",
+      "label": "End Card",
+      "description": "Outro with subscribe CTA",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/end-card.tsx",
+      "workspacePath": "src/components/remotion-templates/end-card.tsx"
+    },
+    {
+      "id": "lower-third",
+      "label": "Lower Third",
+      "description": "News-style name/title bar",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/lower-third.tsx",
+      "workspacePath": "src/components/remotion-templates/lower-third.tsx"
+    },
+    {
+      "id": "quote-card",
+      "label": "Quote Card",
+      "description": "Animated quotation with attribution",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/quote-card.tsx",
+      "workspacePath": "src/components/remotion-templates/quote-card.tsx"
+    },
+    {
+      "id": "subscribe-reminder",
+      "label": "Subscribe Reminder",
+      "description": "Floating subscribe overlay",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/subscribe-reminder.tsx",
+      "workspacePath": "src/components/remotion-templates/subscribe-reminder.tsx"
+    },
+    {
+      "id": "title-split",
+      "label": "Title Split",
+      "description": "Split text meeting in centre",
+      "kind": "template",
+      "category": "片头片尾",
+      "path": "packages/remotion-kit/src/components/remotion-templates/title-split.tsx",
+      "workspacePath": "src/components/remotion-templates/title-split.tsx"
+    },
+    {
+      "id": "gallery-grid",
+      "label": "Gallery Grid",
+      "description": "Staggered 2x3 grid reveal",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/gallery-grid.tsx",
+      "workspacePath": "src/components/remotion-templates/gallery-grid.tsx"
+    },
+    {
+      "id": "image-carousel",
+      "label": "Image Carousel",
+      "description": "Horizontal sliding with centre focus",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/image-carousel.tsx",
+      "workspacePath": "src/components/remotion-templates/image-carousel.tsx"
+    },
+    {
+      "id": "image-comparison-slider",
+      "label": "Image Comparison Slider",
+      "description": "Before/after sliding divider",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/image-comparison-slider.tsx",
+      "workspacePath": "src/components/remotion-templates/image-comparison-slider.tsx"
+    },
+    {
+      "id": "image-zoom-reveal",
+      "label": "Image Zoom Reveal",
+      "description": "Zoom-out focus-pull reveal",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/image-zoom-reveal.tsx",
+      "workspacePath": "src/components/remotion-templates/image-zoom-reveal.tsx"
+    },
+    {
+      "id": "masonry-gallery",
+      "label": "Masonry Gallery",
+      "description": "Pinterest-style staggered grid",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/masonry-gallery.tsx",
+      "workspacePath": "src/components/remotion-templates/masonry-gallery.tsx"
+    },
+    {
+      "id": "photo-stack",
+      "label": "Photo Stack",
+      "description": "Overlapping frames with rotation",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/photo-stack.tsx",
+      "workspacePath": "src/components/remotion-templates/photo-stack.tsx"
+    },
+    {
+      "id": "picture-in-picture",
+      "label": "Picture in Picture",
+      "description": "PiP overlay layout",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/picture-in-picture.tsx",
+      "workspacePath": "src/components/remotion-templates/picture-in-picture.tsx"
+    },
+    {
+      "id": "polaroid-frame",
+      "label": "Polaroid Frame",
+      "description": "Polaroid-style photo with drop-in",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/polaroid-frame.tsx",
+      "workspacePath": "src/components/remotion-templates/polaroid-frame.tsx"
+    },
+    {
+      "id": "split-screen",
+      "label": "Split Screen",
+      "description": "Two panels sliding to meet",
+      "kind": "template",
+      "category": "图片媒体",
+      "path": "packages/remotion-kit/src/components/remotion-templates/split-screen.tsx",
+      "workspacePath": "src/components/remotion-templates/split-screen.tsx"
+    },
+    {
+      "id": "PageCam",
+      "label": "PageCam",
+      "description": "页面镜头与相机运动",
+      "kind": "shotcraft",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/shotcraft/PageCam.tsx",
+      "workspacePath": "src/components/shotcraft/PageCam.tsx"
+    },
+    {
+      "id": "DigitRoll",
+      "label": "DigitRoll",
+      "description": "数字滚动强调",
+      "kind": "shotcraft",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/shotcraft/DigitRoll.tsx",
+      "workspacePath": "src/components/shotcraft/DigitRoll.tsx"
+    },
+    {
+      "id": "VerticalTicker",
+      "label": "VerticalTicker",
+      "description": "纵向信息流",
+      "kind": "shotcraft",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/shotcraft/VerticalTicker.tsx",
+      "workspacePath": "src/components/shotcraft/VerticalTicker.tsx"
+    },
+    {
+      "id": "FlashCut",
+      "label": "FlashCut",
+      "description": "闪切与节奏转场",
+      "kind": "shotcraft",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/shotcraft/FlashCut.tsx",
+      "workspacePath": "src/components/shotcraft/FlashCut.tsx"
+    },
+    {
+      "id": "FlatPanel",
+      "label": "FlatPanel",
+      "description": "扁平信息面板（需 3D 渲染环境）",
+      "kind": "shotcraft",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/shotcraft/FlatPanel.tsx",
+      "workspacePath": "src/components/shotcraft/FlatPanel.tsx"
+    }
+  ],
+  "directives": [
+    {
+      "id": "hook-opening",
+      "label": "钩子开场",
+      "description": "开场三秒抓住注意力",
+      "prompt": "开场三秒内建立明确钩子：用有张力的画面、悬念或反常识结论抓住注意力，不要让观众在开场就流失。"
+    },
+    {
+      "id": "info-ladder",
+      "label": "信息层级推进",
+      "description": "先结论后展开，逐层加深",
+      "prompt": "中段按信息层级推进：先给结论/观点，再逐层展开论据，每个 content 场景只说一个新信息，避免堆砌。"
+    },
+    {
+      "id": "strong-close",
+      "label": "强收束结尾",
+      "description": "呼应开头，明确落点",
+      "prompt": "结尾形成清晰收束：呼应开场的钩子，把全片信息收敛到一个明确结论或行动号召，不拖泥带水。"
+    },
+    {
+      "id": "suspense-reveal",
+      "label": "悬念-揭示",
+      "description": "先埋问题，后给答案",
+      "prompt": "用悬念-揭示结构组织镜头：先埋设一个待解答的问题，中段逐步给出线索，结尾揭示答案，制造追看感。"
+    },
+    {
+      "id": "emotional-arc",
+      "label": "情绪弧线",
+      "description": "起承转合，张弛有度",
+      "prompt": "设计完整的情绪弧线：开场轻快引入，中段升高张力，关键处回落，结尾释放情绪；节奏张弛有度。"
+    },
+    {
+      "id": "contrast-pairing",
+      "label": "对比对仗",
+      "description": "两组画面互相映照",
+      "prompt": "用对比/对仗结构组织镜头：两个场景（如现状 vs 愿景、问题 vs 解法）互相映照，形成记忆点。"
+    },
+    {
+      "id": "rapid-fire",
+      "label": "快节奏推进",
+      "description": "高密度信息，快速切换",
+      "prompt": "采用快节奏推进：短镜头、快速转场、高密度信息，适合社交媒体的强节奏；注意信息可读性。"
+    },
+    {
+      "id": "breathing-room",
+      "label": "留白呼吸",
+      "description": "关键信息后停顿",
+      "prompt": "关键信息落定后留出呼吸：在重点镜头后放慢节奏、加停留，让观众消化，而不是全程匀速。"
+    }
+  ]
+}

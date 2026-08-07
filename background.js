@@ -1,7 +1,7 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与 code.read/write、素材引用登记、Vite dev server 预览（preview.serve.start/status/stop）与 props、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器
- * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（AI 经 code.read/write 直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
+ * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed 与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
+ * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（Agent 用原生文件工具直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 
@@ -47,47 +47,55 @@ function trackJob(ctx, key, jobId) {
   ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [key, list.slice(-12).join(",")]);
 }
 
-const STYLE_TEMPLATES = {
-  "paper-collage": { label: "纸拼贴编辑风", description: "纸质拼贴、编辑杂志感；适合解说、知识与观点内容", motion: "低能量、缓慢推进、落定后呼吸；像一篇会动的杂志文章" },
-  "cinematic-dark": { label: "电影感深色", description: "深色背景、星空与粒子光效；适合产品、故事与情绪化内容", motion: "聚光→推进→悬浮；单一主角完整动作弧" },
-  "clean-editorial": { label: "简洁杂志排版", description: "几何背景、大字排版；适合新闻、教育、报告类内容", motion: "直线滑动、克制的过冲；信息先于装饰" },
-  "vibrant-tech": { label: "科技活力风", description: "渐变色块、高能量运动；适合产品发布、演示与社交媒体", motion: "高能量入场、轻微过冲；批量元素靠运动本身表达" },
-};
+// kit 数据（catalog/manifest/最新源码）位于 app 包 packages/remotion-kit，ctx.files
+// 只到项目 files 目录，必须经 shell（默认 cwd = app.Root）跑 scripts/kit-bridge.js 读取。
+function kitBridge(ctx, ...args) {
+  const result = ctx.shell.run({ command: "node", args: ["scripts/kit-bridge.js", ...args], timeoutSeconds: 30 });
+  if (result.exitCode !== 0) throw new Error(result.error || result.stdout || "kit bridge 调用失败");
+  try {
+    return JSON.parse(result.stdout || "{}");
+  } catch (_) {
+    throw new Error("kit bridge 返回了非法 JSON");
+  }
+}
 
-const CAPTION_THEMES = [
-  { id: "pop", label: "Pop 弹入", description: "缩放弹入，清爽通用" },
-  { id: "karaoke", label: "Karaoke 扫光", description: "逐词高亮扫过，适合歌词式字幕" },
-  { id: "kinetic-01", label: "Kinetic 动能排版", description: "主词放大、侧词对齐的动能排版" },
-  { id: "kinetic-02", label: "Kinetic 变体", description: "动能排版第二套" },
-  { id: "hustle", label: "Hustle 快节奏", description: "快速进入，活力十足" },
-  { id: "grape", label: "Grape 圆角盒", description: "圆角色块背景字幕" },
-  { id: "beast", label: "Beast 粗体高对比", description: "粗体加高对比阴影" },
-  { id: "poppin", label: "Poppin 大写字幕", description: "全大写 Poppins 字体" },
-  { id: "aarit", label: "Aarit 逐字缩放", description: "电影感逐字缩放与渐变扫光" },
-  { id: "soft-ai", label: "Soft AI 毛玻璃", description: "磨砂玻璃模糊进入" },
-  { id: "gaming-stream", label: "Gaming 霓虹", description: "霓虹发光游戏风格" },
-  { id: "simple-one-word", label: "单字聚焦", description: "每次只高亮一个词" },
-  { id: "podcast", label: "Podcast 播客", description: "播客风格的段落字幕" },
-];
+// 组件目录（风格模板/字幕主题/画幅/内置组件）以数据文件 catalog.json 维护，
+// 不再在后台代码里硬编码——加组件只改数据文件，Agent 经 catalog.list 读取理解。
+// Agent 读组件最新源码直接用原生文件工具读 app 包，不需要专门的 read op。
+function readCatalog(ctx) {
+  ensureSchema(ctx);
+  // 优先读 app 包最新目录（bridge）；失败时回退到项目 workspace 的冻结副本，保证已 seed 项目也能用。
+  try {
+    return kitBridge(ctx, "catalog");
+  } catch (_) { /* bridge 失败，走 workspace 副本 */ }
+  try {
+    return JSON.parse(ctx.files.readText("workspace/remotion-kit/catalog.json"));
+  } catch (_) { /* 尚未 seed */ }
+  return { styleTemplates: {}, captionThemes: [], canvasSizes: [], components: [], kitVersion: "0.0.0" };
+}
 
-const CANVAS_SIZES = [
-  { id: "1080p", label: "1080p 横屏", width: 1920, height: 1080, fps: 30 },
-  { id: "vertical", label: "1080×1920 竖屏", width: 1080, height: 1920, fps: 30 },
-  { id: "square", label: "1080×1080 方形", width: 1080, height: 1080, fps: 30 },
-];
-
-const WORKSPACE_TREE = ["src", "src/compositions", "src/effects", "src/captions", "src/components", "src/components/remotion-templates", "src/components/shotcraft"];
+// 项目侧只记录 seed 时的 kit 版本；版本差异交给 Agent/UI 的提示，不做逐组件比对。
+function workspaceKitState(_, ctx) {
+  ensureSchema(ctx);
+  const catalog = readCatalog(ctx);
+  let seededKitVersion = null;
+  try {
+    const marker = JSON.parse(ctx.files.readText("workspace/.recut-workspace"));
+    seededKitVersion = marker.kitVersion || null;
+  } catch (_) { /* 旧项目无版本标记 */ }
+  return { kitVersion: catalog.kitVersion, seededKitVersion };
+}
 
 function catalog(_, ctx) {
   ensureSchema(ctx);
-  return { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES };
+  return readCatalog(ctx);
 }
 
 function createBrief(input, ctx) {
   ensureSchema(ctx);
   const template = String(input.template || "").trim();
   const topic = String(input.topic || "").trim();
-  if (!template || !STYLE_TEMPLATES[template]) throw new Error("template 必须选择一个有效的风格模板");
+  if (!template || !readCatalog(ctx).styleTemplates[template]) throw new Error("template 必须选择一个有效的风格模板");
   if (!topic) throw new Error("topic 是必填项");
   const details = String(input.details ?? "").trim();
   const expectedDurationSec = input.expectedDurationSec === undefined ? 60 : Number(input.expectedDurationSec);
@@ -147,51 +155,9 @@ function workspaceReset(_, ctx) {
   return { ok: true, seeded: true, root: WORKSPACE };
 }
 
-function listRecursive(ctx, base) {
-  const result = [];
-  const walk = (prefix) => {
-    let entries = [];
-    try { entries = ctx.files.list(prefix); } catch (_) { result.push(prefix); return; }
-    entries.forEach((name) => {
-      if (name === "node_modules" || name === ".git") return;
-      const child = prefix ? `${prefix}/${name}` : name;
-      let sub = [];
-      try { sub = ctx.files.list(child); } catch (_) { result.push(child); return; }
-      walk(child);
-    });
-  };
-  walk(base);
-  return result;
-}
-
-function codeList(_, ctx) {
-  ensureSchema(ctx);
-  if (!workspaceSeeded(ctx)) return { root: WORKSPACE, files: [] };
-  return { root: WORKSPACE, files: listRecursive(ctx, WORKSPACE) };
-}
-
-function codeRead(input, ctx) {
-  ensureSchema(ctx);
-  const path = String(input.path || "").trim();
-  assertWorkspacePath(path);
-  return { path, content: ctx.files.readText(path) };
-}
-
-function codeWrite(input, ctx) {
-  ensureSchema(ctx);
-  const path = String(input.path || "").trim();
-  assertWorkspacePath(path);
-  const content = String(input.content ?? "");
-  ctx.files.writeText(path, content);
-  return { path, bytes: content.length };
-}
-
-function assertWorkspacePath(path) {
-  if (!path || !/^workspace\//.test(path) || path.includes("..") || path.startsWith(`${WORKSPACE}/node_modules`)) {
-    throw new Error("code 路径必须位于 workspace/ 内且不允许越界");
-  }
-}
-
+// 项目侧文件系统的绝对路径由平台注入 ctx.paths（dataRoot/appRoot/projectFilesRoot/
+// workspacePath/…），Agent 用原生文件工具直接读写 workspace / app 包源码，
+// 不再需要 code.* / kit.read 这类包装 op。
 function registeredAssets(ctx) {
   ensureSchema(ctx);
   return ctx.sqlite.query("select asset_id from composition_assets where project_id = ? order by created_at asc", [scope(ctx)]).map((row) => row.asset_id);
@@ -244,6 +210,17 @@ function previewServeStart(_, ctx) {
   return { jobId: job.id, phase: "starting", port: null, url: null };
 }
 
+function previewResponds(ctx, port) {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) return false;
+  const check = ctx.shell.run({
+    command: "node",
+    args: ["-e", "const http=require('http');const request=http.get(process.argv[1],(response)=>{response.resume();process.exit(response.statusCode===200?0:1)});request.setTimeout(1000,()=>request.destroy());request.on('error',()=>process.exit(1));", `http://127.0.0.1:${port}/`],
+    cwd: "files",
+    timeoutSeconds: 3,
+  });
+  return check.exitCode === 0;
+}
+
 function previewServeStatus(_, ctx) {
   ensureSchema(ctx);
   const rows = ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]);
@@ -264,9 +241,16 @@ function previewServeStatus(_, ctx) {
   let error = null;
   try {
     const status = JSON.parse(ctx.files.readText(`serve/status.json`));
-    if (status && status.port) { port = Number(status.port); phase = status.phase || phase; error = status.error || null; }
+    if (status) {
+      phase = status.phase || phase;
+      error = status.error || null;
+      if (status.port) port = Number(status.port);
+    }
   } catch (_) { /* 尚未写状态 */ }
-  const running = jobStatus === "running" || jobStatus === "queued";
+  if (phase === "ready" && port && !previewResponds(ctx, port)) {
+    return { running: false, phase: "failed", port: null, url: null, error: "预览进程未监听声明的端口；可重新启动预览服务。", jobId };
+  }
+  const running = (jobStatus === "running" || jobStatus === "queued") && phase !== "failed" && phase !== "stopped";
   return { running, phase, port, url: port ? `http://127.0.0.1:${port}/player.html` : null, error, jobId };
 }
 
@@ -352,18 +336,36 @@ function workflowContext(_, ctx) {
   const seeded = workspaceSeeded(ctx);
   const stage = !brief ? "brief" : "studio";
   const serve = previewServeStatus({}, ctx);
+  const catalog = readCatalog(ctx);
+  let seededKitVersion = null;
+  try {
+    const marker = JSON.parse(ctx.files.readText("workspace/.recut-workspace"));
+    seededKitVersion = marker.kitVersion || null;
+  } catch (_) { /* 旧项目无版本标记 */ }
+  const filesRoot = ctx.paths && ctx.paths.projectFilesRoot ? String(ctx.paths.projectFilesRoot) : "";
+  const appRoot = ctx.paths && ctx.paths.appRoot ? String(ctx.paths.appRoot) : "";
   return {
     revision: `${stage}:${brief?.createdAt || "none"}:${seeded ? "workspace-seeded" : "no-workspace"}`,
     stage,
     nextAction: stage === "brief" ? "create_brief" : "edit_composition_code",
     brief,
-    workspace: { root: WORKSPACE, seeded },
+    workspace: { root: WORKSPACE, seeded, seededKitVersion },
+    paths: {
+      appId: "recut.remotion-studio",
+      workspacePath: filesRoot ? `${filesRoot}/${WORKSPACE}` : `${WORKSPACE}`,
+      projectFilesRoot: filesRoot,
+      appRoot,
+      appKitPath: appRoot ? `${appRoot}/packages/remotion-kit` : "",
+      workspaceKitPath: filesRoot ? `${filesRoot}/${WORKSPACE}/remotion-kit` : `${WORKSPACE}/remotion-kit`,
+    },
     preview: serve,
     registeredAssets: registeredAssets(ctx),
-    catalogs: { styleTemplates: STYLE_TEMPLATES, captionThemes: CAPTION_THEMES, canvasSizes: CANVAS_SIZES },
-    allowedActions: stage === "brief" ? ["create_brief"] : ["workspace.ensure", "code.list", "code.read", "code.write", "composition.assets", "preview.serve.start", "preview.serve.status", "preview.serve.stop", "preview.props", "terminal.exec", "logs.read", "render.export"],
+    catalogs: catalog,
+    // 只列出 Agent 可经 MCP 调用的 operation：代码读写与版本对比由原生文件工具完成，
+    // 预览服务与渲染导出由界面触发。
+    allowedActions: stage === "brief" ? ["project.create"] : ["workspace.ensure", "composition.assets"],
     mediaExecution: {
-      composition: { kind: "per-project-code", generate: "用 code.list/code.read 读项目 workspace 的 composition 源码，用 code.write 直接改写 src/Root.tsx 与 src/compositions/ 成片代码；复用 src/effects、src/captions、src/components；画面素材用 resolveMediaUrl(assetId) 引用", complete: "code.write 保存后 Vite dev server 自动热更新预览；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
+      composition: { kind: "per-project-code", generate: "设计就是写代码：从 paths.workspacePath 读 src/Root.tsx 与 src/compositions/ProjectVideo.tsx，用原生文件工具改写 SCENES 与渲染层。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本），直接 `import { ... } from \"@recut/remotion-kit\"`（模板经 @recut/remotion-kit/templates/<name>），预览/渲染都解析到该冻结副本。旧项目（无版本标记）组件在 workspace/src/captions 等，沿用其现有相对引用。用户选择与项目不一致的新组件时：读 workspace/.recut-workspace 与 {paths.appKitPath}/catalog.json 对比版本，用原生文件工具直接读 app 包源码 {paths.appKitPath}/src/，写回 workspace/remotion-kit/src/<workspacePath> 按需升级（只动被选组件，其余保持冻结）；画面素材用 resolveMediaUrl(assetId) 引用", complete: "保存代码后 Vite dev server 自动热更新预览；把代码引用的素材 assetId 用 composition.assets 登记，导出才能物化" },
     },
   };
 }
@@ -462,9 +464,7 @@ recut.operation.register("workflow.context", workflowContext);
 recut.operation.register("catalog.list", catalog);
 recut.operation.register("workspace.ensure", workspaceEnsure);
 recut.operation.register("workspace.reset", workspaceReset);
-recut.operation.register("code.list", codeList);
-recut.operation.register("code.read", codeRead);
-recut.operation.register("code.write", codeWrite);
+recut.operation.register("workspace.kit-state", workspaceKitState);
 recut.operation.register("composition.assets", registerAssets);
 recut.operation.register("preview.serve.start", previewServeStart);
 recut.operation.register("preview.serve.status", previewServeStatus);

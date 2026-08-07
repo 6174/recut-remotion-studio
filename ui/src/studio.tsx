@@ -1,21 +1,24 @@
 /**
- * [INPUT]: 依赖项目 brief、素材状态、系统目录资源与 Player/日志/终端/导出子面板
- * [OUTPUT]: 对外提供左预览、场景→参数→Prompt 的创作面、轻量维护工具与日志/终端分栏
+ * [INPUT]: 依赖项目 brief、素材状态、系统目录资源与 Player/日志/终端/导出子面板，以及按 kind 分模块的场景选择器
+ * [OUTPUT]: 对外提供左预览、场景网格（打开对应场景模块生成 Prompt）、轻量维护工具与日志/终端分栏
  * [POS]: remotion-studio/ui 的工作面编排层；把创作决策置于首位，连接资源选择、预览、导出、终端和诊断
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlignCenter,
   Captions,
   Clapperboard,
   Expand,
   ImagePlus,
+  Mic2,
   MessageCircle,
+  Music2,
+  PanelTop,
   Sparkles,
 } from "lucide-react";
 import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
+import { Textarea } from "./components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Modal } from "./ui";
 import { recut } from "./recut-sdk";
@@ -23,7 +26,17 @@ import { PlayerPanel, type PlayerPanelHandle } from "./player-panel";
 import { LogPanel } from "./log-panel";
 import { TerminalPanel } from "./terminal-panel";
 import { ExportPanel } from "./export-panel";
-import type { Brief, Catalog, MediaAsset, MediaMap } from "./app";
+import { TemplateScenario } from "./scenarios/TemplateScenario";
+import { CaptionsScenario } from "./scenarios/CaptionsScenario";
+import { CanvasScenario } from "./scenarios/CanvasScenario";
+import { ComponentScenario } from "./scenarios/ComponentScenario";
+import { DirectScenario } from "./scenarios/DirectScenario";
+import { SrtScenario } from "./scenarios/SrtScenario";
+import { MaterialsScenario } from "./scenarios/MaterialsScenario";
+import { CreationScenario } from "./scenarios/CreationScenario";
+import { SCENE_MODES, type SceneMode } from "./scenarios/scene-modes";
+import type { ScenarioProps } from "./scenarios/types";
+import type { Brief, Catalog, KitState, MediaAsset, MediaMap } from "./app";
 
 interface StudioProps {
   assets: MediaAsset[];
@@ -42,73 +55,95 @@ export interface WorkspaceActions {
   resetWorkspace: () => void;
 }
 
-const CREATION_SCENARIOS = [
+type ScenarioKind = "creation" | "srt" | "template" | "captions" | "canvas" | "component" | "direct" | "materials";
+
+interface ScenarioConfig {
+  kind: ScenarioKind;
+  title: string;
+  description: string;
+  basePrompt: string;
+  Icon: React.FC<{ className?: string }>;
+  sceneMode?: SceneMode;
+}
+
+const FINISHED_VIDEO_SCENARIOS: ScenarioConfig[] = [
+  { kind: "creation", title: SCENE_MODES["faceless-explainer"].title, description: SCENE_MODES["faceless-explainer"].description, basePrompt: SCENE_MODES["faceless-explainer"].basePrompt, Icon: Sparkles, sceneMode: SCENE_MODES["faceless-explainer"] },
+  { kind: "creation", title: SCENE_MODES["product-launch"].title, description: SCENE_MODES["product-launch"].description, basePrompt: SCENE_MODES["product-launch"].basePrompt, Icon: PanelTop, sceneMode: SCENE_MODES["product-launch"] },
+  { kind: "creation", title: SCENE_MODES.slideshow.title, description: SCENE_MODES.slideshow.description, basePrompt: SCENE_MODES.slideshow.basePrompt, Icon: ImagePlus, sceneMode: SCENE_MODES.slideshow },
+  { kind: "creation", title: SCENE_MODES["talking-head-recut"].title, description: SCENE_MODES["talking-head-recut"].description, basePrompt: SCENE_MODES["talking-head-recut"].basePrompt, Icon: Mic2, sceneMode: SCENE_MODES["talking-head-recut"] },
+  { kind: "creation", title: SCENE_MODES["music-visual"].title, description: SCENE_MODES["music-visual"].description, basePrompt: SCENE_MODES["music-visual"].basePrompt, Icon: Music2, sceneMode: SCENE_MODES["music-visual"] },
+  { kind: "creation", title: SCENE_MODES["captioned-clip"].title, description: SCENE_MODES["captioned-clip"].description, basePrompt: SCENE_MODES["captioned-clip"].basePrompt, Icon: Captions, sceneMode: SCENE_MODES["captioned-clip"] },
+];
+
+const EDITING_SCENARIOS: ScenarioConfig[] = [
   {
     kind: "srt" as const,
     title: "从 SRT 生成视频",
     description: "上传字幕，选择模板和字幕风格。",
-    prompt: "请根据我上传的 SRT 字幕生成一支完整的 Remotion 视频：按字幕时间轴拆分自然段，为每段设计匹配的镜头和画面节奏，并使用我选择的视觉模板与字幕风格。",
+    basePrompt: "请根据我上传的 SRT 字幕生成一支完整的 Remotion 视频：按字幕时间轴拆分自然段，为每段设计匹配的镜头和画面节奏，并使用我选择的视觉模板与字幕风格。",
     Icon: Captions,
   },
   {
     kind: "template" as const,
     title: "选择视觉模板",
     description: "换一套色彩、排版和动效语言。",
-    prompt: "请将当前视频改造成我选择的 Remotion 视觉模板，并统一更新色彩、字体层级、背景特效和转场。保留当前内容与时间轴。",
+    basePrompt: "请将当前视频改造成我选择的 Remotion 视觉模板，并统一更新色彩、字体层级、背景特效和转场。保留当前内容与时间轴。",
     Icon: Sparkles,
   },
   {
     kind: "captions" as const,
     title: "选择字幕风格",
     description: "为现有时间轴换一套字幕主题。",
-    prompt: "请将当前视频的字幕替换为我选择的字幕风格，保持原有时间轴和文案不变，同时调整字号、行数、关键词强调和安全边距，确保可读性。",
+    basePrompt: "请将当前视频的字幕替换为我选择的字幕风格，保持原有时间轴和文案不变，同时调整字号、行数、关键词强调和安全边距，确保可读性。",
     Icon: Captions,
   },
   {
     kind: "canvas" as const,
     title: "适配目标画幅",
     description: "选择画布，重构移动端版式。",
-    prompt: "请把当前视频适配为我选择的画布尺寸。重新安排安全边距、文字长度、素材裁切和信息层级，确保关键内容在该画幅下第一眼就能读清。",
+    basePrompt: "请把当前视频适配为我选择的画布尺寸。重新安排安全边距、文字长度、素材裁切和信息层级，确保关键内容在该画幅下第一眼就能读清。",
     Icon: Expand,
   },
   {
     kind: "component" as const,
     title: "加入动态组件",
     description: "选择内置组件，强化一个重点段落。",
-    prompt: "请在最能强化叙事的场景中加入我选择的内置 Remotion 组件。先阅读组件源码确认 API，只在内容需要的地方使用，并保持时间轴和视觉风格协调。",
+    basePrompt: "请在最能强化叙事的场景中加入我选择的内置 Remotion 组件。先阅读组件源码确认 API，只在内容需要的地方使用，并保持时间轴和视觉风格协调。",
     Icon: Sparkles,
   },
   {
     kind: "direct" as const,
     title: "重组镜头表达",
     description: "为现有内容重做镜头和转场。",
-    prompt: "请重新编排这支视频的镜头表达：为开场建立明确钩子，中段按信息层级推进，结尾形成清晰收束。用导演语言选择镜头运动和转场，不要只是机械替换文案。",
+    basePrompt: "请重新编排这支视频的镜头表达：为开场建立明确钩子，中段按信息层级推进，结尾形成清晰收束。用导演语言选择镜头运动和转场，不要只是机械替换文案。",
     Icon: Clapperboard,
   },
   {
     kind: "direct" as const,
     title: "调整叙事节奏",
     description: "压缩重复信息，突出关键观点。",
-    prompt: "请重排这支视频的叙事节奏：压缩重复信息，为关键观点留出呼吸，把每个场景的镜头时长和转场调整得更有推进感。保留选题与核心信息。",
+    basePrompt: "请重排这支视频的叙事节奏：压缩重复信息，为关键观点留出呼吸，把每个场景的镜头时长和转场调整得更有推进感。保留选题与核心信息。",
     Icon: AlignCenter,
   },
   {
     kind: "materials" as const,
     title: "用素材重剪",
     description: "选择素材，重做镜头和叙事节奏。",
-    prompt: "请围绕我选择的素材重剪这支视频：先审视每段素材最有价值的信息，再把它们安排到最能支撑叙事的场景。使用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记所有 assetId；没有合适素材的位置保留干净的程序化视觉。",
+    basePrompt: "请围绕我选择的素材重剪这支视频：先审视每段素材最有价值的信息，再把它们安排到最能支撑叙事的场景。使用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记所有 assetId；没有合适素材的位置保留干净的程序化视觉。",
     Icon: ImagePlus,
   },
-] as const;
+];
 
-const selectClass = "h-8 w-full rounded-xs border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30";
-const COMPONENT_OPTIONS = [
-  { id: "PageCam", label: "PageCam", description: "页面镜头与相机运动", path: "workspace/src/components/shotcraft/PageCam.tsx" },
-  { id: "DigitRoll", label: "DigitRoll", description: "数字滚动强调", path: "workspace/src/components/shotcraft/DigitRoll.tsx" },
-  { id: "VerticalTicker", label: "VerticalTicker", description: "纵向信息流", path: "workspace/src/components/shotcraft/VerticalTicker.tsx" },
-  { id: "FlashCut", label: "FlashCut", description: "闪切与节奏转场", path: "workspace/src/components/shotcraft/FlashCut.tsx" },
-  { id: "FlatPanel", label: "FlatPanel", description: "扁平信息面板", path: "workspace/src/components/shotcraft/FlatPanel.tsx" },
-] as const;
+const SCENARIO_MODULES: Partial<Record<ScenarioKind, React.FC<ScenarioProps>>> = {
+  creation: CreationScenario,
+  srt: SrtScenario,
+  template: TemplateScenario,
+  captions: CaptionsScenario,
+  canvas: CanvasScenario,
+  component: ComponentScenario,
+  direct: DirectScenario,
+  materials: MaterialsScenario,
+};
 
 export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus, onHeaderActionsChange }: StudioProps) {
   const completed = assets.filter((item) => item.status === "completed");
@@ -119,15 +154,23 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [scenario, setScenario] = useState<(typeof CREATION_SCENARIOS)[number] | null>(null);
-  const [scenarioTemplate, setScenarioTemplate] = useState("");
-  const [scenarioCaption, setScenarioCaption] = useState("");
-  const [scenarioCanvas, setScenarioCanvas] = useState("");
-  const [scenarioComponent, setScenarioComponent] = useState(COMPONENT_OPTIONS[0].id);
-  const [scenarioAssets, setScenarioAssets] = useState<MediaAsset[]>([]);
-  const [srtSourceAsset, setSrtSourceAsset] = useState<MediaAsset | null>(null);
-  const [srtFile, setSrtFile] = useState<File | null>(null);
-  const [srtText, setSrtText] = useState("");
+  const [scenario, setScenario] = useState<(ScenarioConfig & { key: number }) | null>(null);
+  const [scenarioPrompt, setScenarioPrompt] = useState("");
+  const [scenarioSupplement, setScenarioSupplement] = useState("");
+  const [scenarioReady, setScenarioReady] = useState(true);
+  const [kitState, setKitState] = useState<KitState | null>(null);
+
+  useEffect(() => {
+    recut.background.call("workspace.kit-state", {}).then(setKitState).catch(() => setKitState(null));
+  }, []);
+
+  const kitVersionHint = useMemo(() => {
+    if (!kitState) return undefined;
+    if (kitState.seededKitVersion && kitState.seededKitVersion !== kitState.kitVersion) {
+      return `项目组件冻结于 v${kitState.seededKitVersion} · 目录 v${kitState.kitVersion}；选择后 AI 将按需升级所选组件`;
+    }
+    return `组件目录 v${kitState.kitVersion}`;
+  }, [kitState]);
 
   useEffect(() => {
     const move = (event: PointerEvent) => {
@@ -170,99 +213,44 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
     }
   };
 
-  const copyPrompt = async (prompt: string) => {
+  const finalPrompt = useMemo(() => {
+    const dynamic = scenarioPrompt.trim();
+    const supplement = scenarioSupplement.trim();
+    if (!supplement) return dynamic;
+    return `${dynamic}\n\n补充要求：\n${supplement}`;
+  }, [scenarioPrompt, scenarioSupplement]);
+
+  const openScenario = (next: ScenarioConfig) => {
+    const key = Date.now();
+    const hasModule = Boolean(SCENARIO_MODULES[next.kind]);
+    setScenario({ ...next, key });
+    setScenarioPrompt(hasModule ? "" : next.basePrompt);
+    setScenarioSupplement("");
+    setScenarioReady(true);
+  };
+
+  const copyPrompt = async () => {
     try {
-      await navigator.clipboard?.writeText(prompt);
+      await navigator.clipboard?.writeText(finalPrompt);
       setStatus("编辑提示词已复制，可以补充后发送给 AI。");
     } catch {
       setStatus("无法访问剪贴板，请直接选择“交给 AI”。");
     }
   };
 
-  const openScenario = (next: (typeof CREATION_SCENARIOS)[number]) => {
-    setScenario(next);
-    setScenarioTemplate(brief.template || Object.keys(catalog.styleTemplates)[0] || "");
-    setScenarioCaption(catalog.captionThemes[0]?.id || "");
-    setScenarioCanvas(catalog.canvasSizes[0]?.id || "");
-    setScenarioComponent(COMPONENT_OPTIONS[0].id);
-    setScenarioAssets([]);
-    setSrtSourceAsset(null);
-    setSrtFile(null);
-    setSrtText("");
-  };
-
-  const buildScenarioPrompt = () => {
-    if (!scenario) return;
-    let prompt = scenario.prompt;
-    if (scenario.kind === "template") {
-      const selected = catalog.styleTemplates[scenarioTemplate];
-      prompt += `\n\n视觉模板：${scenarioTemplate}（${selected?.label ?? ""}；${selected?.description ?? ""}；${selected?.motion ?? ""}）`;
-    }
-    if (scenario.kind === "captions") {
-      const selected = catalog.captionThemes.find((item) => item.id === scenarioCaption);
-      prompt += `\n\n字幕风格：${scenarioCaption}（${selected?.label ?? ""}；${selected?.description ?? ""}）`;
-    }
-    if (scenario.kind === "srt") {
-      const selectedTemplate = catalog.styleTemplates[scenarioTemplate];
-      const selectedCaption = catalog.captionThemes.find((item) => item.id === scenarioCaption);
-      const sourceText = srtSourceAsset ? `\n字幕来源素材：${srtSourceAsset.name}（${srtSourceAsset.kind}，assetId: ${srtSourceAsset.id}）\n请先从该素材转录生成 SRT，再按时间轴构建视频，并在 composition.assets 中登记它。` : "";
-      prompt += `\n\n视觉模板：${selectedTemplate?.label ?? scenarioTemplate}\n字幕风格：${selectedCaption?.label ?? scenarioCaption}${srtText.trim() ? `\nSRT 文件：${srtFile?.name ?? "未命名.srt"}\n\nSRT 内容：\n${srtText.slice(0, 16000)}` : sourceText || "\n请上传 .srt 文件或选择一个音视频素材。"}`;
-    }
-    if (scenario.kind === "canvas") {
-      const selected = catalog.canvasSizes.find((item) => item.id === scenarioCanvas);
-      prompt += `\n\n目标画布：${selected?.label ?? scenarioCanvas}（${selected?.width ?? ""}×${selected?.height ?? ""}，${selected?.fps ?? ""} fps）`;
-    }
-    if (scenario.kind === "component") {
-      const selected = COMPONENT_OPTIONS.find((item) => item.id === scenarioComponent);
-      prompt += `\n\n组件：${selected?.label ?? scenarioComponent}（${selected?.description ?? ""}）\n组件源码：${selected?.path ?? ""}`;
-    }
-    if (scenario.kind === "materials") {
-      prompt += `\n\n优先使用以下素材：\n${scenarioAssets.map((asset) => `- ${asset.name}（${asset.kind}，assetId: ${asset.id}）`).join("\n")}`;
-    }
-    return prompt;
-  };
-
   const submitScenario = () => {
-    if (scenario?.kind === "srt" && !srtText.trim() && !srtSourceAsset) {
-      setStatus("请上传一个 SRT 文件，或选择一个音视频素材。");
+    if (!scenario) return;
+    if (!scenarioReady) {
+      setStatus(scenario.kind === "srt" ? "请上传一个 SRT 文件，或选择一个音视频素材。" : "请至少选择一个用于重剪的素材。");
       return;
     }
-    if (scenario?.kind === "materials" && scenarioAssets.length === 0) {
-      setStatus("请至少选择一个用于重剪的素材。");
+    const prompt = finalPrompt.trim();
+    if (!prompt) {
+      setStatus("请输入要交给 AI 的 Prompt。");
       return;
     }
-    const prompt = buildScenarioPrompt();
-    if (!prompt) return;
     setScenario(null);
     onRedesign(prompt);
-  };
-
-  const pickScenarioMaterials = async () => {
-    try {
-      const selection = await recut.media.pick({ kinds: ["image", "video", "audio"], multiple: true });
-      if (!selection) return;
-      const picked = Array.isArray(selection) ? selection : [selection];
-      setScenarioAssets(picked.map((item) => ({ id: item.id, kind: item.kind as MediaAsset["kind"], name: item.name, status: "completed" })));
-    } catch (cause) {
-      setStatus(cause instanceof Error ? cause.message : "素材选择失败");
-    }
-  };
-
-  const pickSrtSource = async () => {
-    try {
-      const selection = await recut.media.pick({ kinds: ["video", "audio"], multiple: false, selectedIDs: srtSourceAsset ? [srtSourceAsset.id] : undefined });
-      if (!selection) return;
-      const picked = Array.isArray(selection) ? selection[0] : selection;
-      setSrtSourceAsset({ id: picked.id, kind: picked.kind as MediaAsset["kind"], name: picked.name, status: "completed" });
-      setSrtFile(null);
-      setSrtText("");
-    } catch (cause) {
-      setStatus(cause instanceof Error ? cause.message : "素材选择失败");
-    }
-  };
-
-  const toggleScenarioAsset = (asset: MediaAsset) => {
-    setScenarioAssets((current) => current.some((item) => item.id === asset.id) ? current.filter((item) => item.id !== asset.id) : [...current, asset]);
   };
 
   return (
@@ -280,13 +268,25 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
             </div>
             <Button className="mt-3 w-full" onClick={() => onRedesign("请先阅读当前 workspace 代码，然后询问我希望如何调整这支视频。不要改动代码，直到我给出明确的编辑要求。")} type="button"><MessageCircle className="size-3.5" />自由创作</Button>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {CREATION_SCENARIOS.map((item) => (
+              {FINISHED_VIDEO_SCENARIOS.map((item) => (
                 <button className="min-h-24 rounded-xs border border-border bg-muted/20 p-2.5 text-left outline-none transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring/30" key={item.title} onClick={() => openScenario(item)} type="button">
                   <span className="grid size-6 place-items-center rounded-xs bg-primary/10 text-primary"><item.Icon className="size-3.5" /></span>
                   <span className="mt-2 block text-xs font-semibold leading-4">{item.title}</span>
                   <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground">{item.description}</span>
                 </button>
               ))}
+            </div>
+            <div className="mt-4 border-t border-border pt-3">
+              <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">EDIT CURRENT VIDEO</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {EDITING_SCENARIOS.map((item) => (
+                  <button className="min-h-24 rounded-xs border border-border bg-muted/20 p-2.5 text-left outline-none transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring/30" key={item.title} onClick={() => openScenario(item)} type="button">
+                    <span className="grid size-6 place-items-center rounded-xs bg-primary/10 text-primary"><item.Icon className="size-3.5" /></span>
+                    <span className="mt-2 block text-xs font-semibold leading-4">{item.title}</span>
+                    <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground">{item.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </section>
 
@@ -316,17 +316,34 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
         </div>
       </Modal>
 
-      <Modal eyebrow="AI EDITING" onClose={() => setScenario(null)} open={scenario !== null} title={scenario?.title ?? "配置编辑场景"}>
+      <Modal eyebrow="AI EDITING" onClose={() => setScenario(null)} open={scenario !== null} title={scenario?.title ?? "配置编辑场景"} wide>
         {scenario ? <div className="space-y-4">
-          <p className="text-sm leading-6 text-muted-foreground">选择要用的系统资源，生成一个完整 Prompt；你可以先复制修改，也可以直接交给 Agent。</p>
-          {(scenario.kind === "template" || scenario.kind === "srt") ? <label className="block"><span className="mb-1.5 block text-xs font-medium">视觉模板</span><select className={selectClass} onChange={(event) => setScenarioTemplate(event.target.value)} value={scenarioTemplate}>{Object.entries(catalog.styleTemplates).map(([id, item]) => <option key={id} value={id}>{item.label} · {item.description}</option>)}</select></label> : null}
-          {(scenario.kind === "captions" || scenario.kind === "srt") ? <label className="block"><span className="mb-1.5 block text-xs font-medium">字幕风格</span><select className={selectClass} onChange={(event) => setScenarioCaption(event.target.value)} value={scenarioCaption}>{catalog.captionThemes.map((item) => <option key={item.id} value={item.id}>{item.label} · {item.description}</option>)}</select></label> : null}
-          {scenario.kind === "canvas" ? <label className="block"><span className="mb-1.5 block text-xs font-medium">目标画布</span><select className={selectClass} onChange={(event) => setScenarioCanvas(event.target.value)} value={scenarioCanvas}>{catalog.canvasSizes.map((item) => <option key={item.id} value={item.id}>{item.label}（{item.width}×{item.height} · {item.fps} fps）</option>)}</select></label> : null}
-          {scenario.kind === "component" ? <label className="block"><span className="mb-1.5 block text-xs font-medium">内置组件</span><select className={selectClass} onChange={(event) => setScenarioComponent(event.target.value)} value={scenarioComponent}>{COMPONENT_OPTIONS.map((item) => <option key={item.id} value={item.id}>{item.label} · {item.description}</option>)}</select></label> : null}
-          {scenario.kind === "srt" ? <div className="space-y-3"><label className="block"><span className="mb-1.5 block text-xs font-medium">上传 SRT 字幕文件</span><Input accept=".srt,.vtt,text/plain" onChange={(event) => { const file = event.target.files?.[0] ?? null; setSrtFile(file); setSrtSourceAsset(null); setSrtText(""); if (file) void file.text().then(setSrtText).catch(() => setStatus("字幕文件读取失败，请更换后重试。")); }} type="file" />{srtFile ? <p className="mt-1.5 text-xs text-muted-foreground">已选择：{srtFile.name}</p> : <p className="mt-1.5 text-xs text-muted-foreground">上传后会把字幕时间轴交给 Agent，用于拆分场景。</p>}</label><div className="border-t border-border pt-3"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium">或者从 assets 选择音视频</span><Button className="px-2 text-[11px]" onClick={() => void pickSrtSource()} type="button" variant="outline">从素材库选择</Button></div>{completed.filter((asset) => asset.kind === "video" || asset.kind === "audio").length > 0 ? <div className="mt-2 space-y-1.5">{completed.filter((asset) => asset.kind === "video" || asset.kind === "audio").map((asset) => <button className={`flex w-full items-center gap-2 rounded-xs border p-2 text-left text-xs outline-none ${srtSourceAsset?.id === asset.id ? "border-primary bg-primary/5" : "border-border bg-muted/20"}`} key={asset.id} onClick={() => { setSrtSourceAsset(asset); setSrtFile(null); setSrtText(""); }} type="button"><span className="min-w-0 flex-1 truncate">{asset.name}</span><span className="font-mono text-[10px] text-muted-foreground">{asset.kind}</span></button>)}</div> : <p className="mt-2 text-xs leading-5 text-muted-foreground">项目内没有音视频素材；可从素材库选择。</p>}{srtSourceAsset ? <p className="mt-2 text-xs text-muted-foreground">已选择：{srtSourceAsset.name}。Agent 会先转录为 SRT。</p> : null}</div></div> : null}
-          {scenario.kind === "materials" ? <div><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium">用于重剪的素材</span><Button className="px-2 text-[11px]" onClick={() => void pickScenarioMaterials()} type="button" variant="outline">从素材库选择</Button></div>{completed.length > 0 ? <div className="mt-2 space-y-1.5">{completed.map((asset) => <label className="flex cursor-pointer items-center gap-2 rounded-xs border border-border bg-muted/20 p-2" key={asset.id}><input checked={scenarioAssets.some((item) => item.id === asset.id)} className="accent-[var(--primary)]" onChange={() => toggleScenarioAsset(asset)} type="checkbox" /><span className="min-w-0 flex-1 truncate text-xs">{asset.name}</span><span className="font-mono text-[10px] text-muted-foreground">{asset.kind}</span></label>)}</div> : <p className="mt-2 text-xs leading-5 text-muted-foreground">项目内还没有可用素材。请从素材库选择，或先上传/生成素材。</p>}{scenarioAssets.some((asset) => !completed.some((item) => item.id === asset.id)) ? <p className="mt-2 text-xs text-muted-foreground">已从素材库选择 {scenarioAssets.filter((asset) => !completed.some((item) => item.id === asset.id)).length} 个素材。</p> : null}</div> : null}
-          <div><span className="mb-1.5 block text-xs font-medium">生成的 Prompt</span><p className="max-h-40 overflow-y-auto rounded-xs border border-border bg-muted/30 p-2 text-[11px] leading-5 text-muted-foreground whitespace-pre-wrap">{buildScenarioPrompt()}</p></div>
-          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt(buildScenarioPrompt() ?? "")} type="button" variant="ghost">复制 Prompt</Button><Button onClick={submitScenario} type="button">交给 AI</Button></div>
+          <p className="text-sm leading-6 text-muted-foreground">选择要用的系统资源，自动生成 Prompt；你的补充要求单独填写，互不覆盖。</p>
+          {(() => {
+            const Module = SCENARIO_MODULES[scenario.kind];
+            if (!Module) return null;
+            return <Module
+              basePrompt={scenario.basePrompt}
+              brief={brief}
+              catalog={catalog}
+              completedAssets={completed}
+              key={scenario.key}
+              kitVersionHint={kitVersionHint}
+              onPrompt={setScenarioPrompt}
+              onReady={setScenarioReady}
+              onStatus={setStatus}
+              sceneMode={scenario.sceneMode}
+            />;
+          })()}
+          <div className="border-t border-border pt-3">
+            <label className="mb-1.5 block text-xs font-medium" htmlFor="scenario-prompt">生成的 Prompt（由选择自动生成）</label>
+            <Textarea className="max-h-56 min-h-32 resize-y bg-muted/30 font-mono text-[11px] leading-5 text-foreground" id="scenario-prompt" readOnly value={scenarioPrompt} />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium" htmlFor="scenario-supplement">补充 Prompt（可选）</label>
+            <Textarea className="max-h-48 min-h-24 resize-y bg-muted/10 text-[11px] leading-5 text-foreground" id="scenario-supplement" onChange={(event) => setScenarioSupplement(event.target.value)} placeholder="补充你对这支视频的要求，如：竖屏 9:16、强调关键词、字幕放大、风格更克制等" value={scenarioSupplement} />
+          </div>
+          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt()} type="button" variant="ghost">复制 Prompt</Button><Button onClick={submitScenario} type="button">交给 AI</Button></div>
         </div> : null}
       </Modal>
     </div>

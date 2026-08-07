@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 @remotion/player、ProjectVideo 与 preview/props.json
+ * [OUTPUT]: 对外提供读取 preview/props.json 并渲染 ProjectVideo 的预览 React 根
+ * [POS]: remotion-skeleton 的浏览器预览入口；可用性由 Studio 应用层的预览服务健康检查决定
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Player } from "@remotion/player";

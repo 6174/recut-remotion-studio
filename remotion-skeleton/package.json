@@ -7,6 +7,7 @@
     "render": "node render.js"
   },
   "dependencies": {
+    "@recut/remotion-kit": "file:../packages/remotion-kit",
     "@remotion/bundler": "4.0.506",
     "@remotion/renderer": "4.0.506",
     "@tailwindcss/postcss": "4.1.17",

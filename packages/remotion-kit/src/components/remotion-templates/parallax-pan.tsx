@@ -1,6 +1,11 @@
-"use client";
+/**
+ * [INPUT]: 依赖 remotion 的帧时钟、插值函数与 Img
+ * [OUTPUT]: 对外提供 ParallaxPan，为图片提供可导出、可寻帧的平移动效
+ * [POS]: remotion-templates 的电影感图片运动组件；与 KenBurns、ZoomPulse 共用图片动效职责
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
-import Image from "next/image";
+import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 interface ParallaxPanProps {
   imageUrl?: string;
   duration?: number;
@@ -14,30 +19,14 @@ export const ParallaxPan: React.FC<ParallaxPanProps> = ({
   direction = "left-right",
   scale = 1.2,
 }) => {
-  const getKeyframes = () => {
-    switch (direction) {
-      case "left-right":
-        return `
-          0% { transform: translateX(0) scale(${scale}); }
-          100% { transform: translateX(-20%) scale(${scale}); }
-        `;
-      case "right-left":
-        return `
-          0% { transform: translateX(-20%) scale(${scale}); }
-          100% { transform: translateX(0) scale(${scale}); }
-        `;
-      case "top-bottom":
-        return `
-          0% { transform: translateY(0) scale(${scale}); }
-          100% { transform: translateY(-20%) scale(${scale}); }
-        `;
-      case "bottom-top":
-        return `
-          0% { transform: translateY(-20%) scale(${scale}); }
-          100% { transform: translateY(0) scale(${scale}); }
-        `;
-    }
-  };
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const progress = interpolate(frame, [0, Math.max(1, duration * fps)], [0, 1], { extrapolateRight: "clamp" });
+  const offset = interpolate(progress, [0, 1], [0, -20]);
+  const translate = direction === "right-left" ? `translateX(${-20 - offset}%)`
+    : direction === "top-bottom" ? `translateY(${offset}%)`
+      : direction === "bottom-top" ? `translateY(${-20 - offset}%)`
+        : `translateX(${offset}%)`;
 
   return (
     <div
@@ -50,24 +39,15 @@ export const ParallaxPan: React.FC<ParallaxPanProps> = ({
         overflow: "hidden",
       }}
     >
-      <Image
+      <Img
         src={imageUrl}
-        width={800}
-        height={450}
-        unoptimized={true}
-        alt="Parallax Pan"
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          animation: `parallaxPan ${duration}s ease-out infinite alternate`,
+          transform: `${translate} scale(${scale})`,
         }}
       />
-      <style jsx>{`
-        @keyframes parallaxPan {
-          ${getKeyframes()}
-        }
-      `}</style>
     </div>
   );
 };

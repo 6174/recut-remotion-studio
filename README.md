@@ -5,7 +5,7 @@
 ## 能力
 
 - **Brief 表单**：新建项目时选择风格模板、选题、细节、时长与素材，一键交给 AI 设计。
-- **代码驱动的创作台**：AI 经 `code.read/code.write` 直接改写项目私有 `workspace/` 里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
+- **代码驱动的创作台**：AI 用原生文件工具直接读写项目私有 `workspace/`（绝对路径由 `workflow.context` 的 `paths` 提供）里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
 - **Vite 热更新预览**：每个项目一个 Vite dev server，iframe 嵌入其预览页（`@remotion/player`，播放/暂停/进度条）；AI 改代码即热更新。
 - **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「场景 → 参数选择 → Prompt → Agent」组织创作，参数调用风格模板、字幕主题、画布、内置 shotcraft 组件与素材库；SRT 场景可上传 `.srt/.vtt` 或选取音视频 asset 后交给 Agent 转录，素材选择归入「用素材重剪」场景而非独立技术面板。导出配置放进模态框，构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab——终端用 xterm 对接 `terminal.exec` 在项目目录执行命令调试，日志实时滚动预览与渲染的 shell 输出。
 - **重置项目**：一键把 workspace 重置回骨架（丢失 AI 改写，仅测试/回退用）。
@@ -15,11 +15,11 @@
 
 ```text
 manifest.json   唯一运行时配置（operations、permissions、onboarding）
-background.js   Goja 沙箱业务后端：Brief、workspace seed/reset、code.read/write、素材登记、预览服务、终端、日志、渲染任务编排
+background.js   Goja 沙箱业务后端：Brief、workspace seed/reset、组件目录（catalog.list）、素材登记、预览服务、终端、日志、渲染任务编排
 seed.js         骨架 remotion-skeleton → 项目私有 workspace/（含 node_modules 符号链接）
-skills/remotion-studio/
-  SKILL.md      注入 Agent 的代码驱动工作流
-  references/   表达特效目录、字幕主题目录、导演语言速查 + video-shotcraft/（流水线/镜头卡/准则/TEMPLATE 整体拷贝）
+skills/
+  remotion-studio/  代码驱动主技能与表达特效、字幕、导演语言参考
+  remotion-scenes/  用户可选的成片场景技能：无真人解说、发布片、图文故事、口播、音乐与字幕高光
 remotion-skeleton/   每个项目工作区的骨架（seed 时整体复制，AI 改的是项目副本）
   Makefile      install / start / restart / stop / status / clean（内部处理依赖与端口冲突）
   index.html    预览页入口（@remotion/player）
@@ -45,7 +45,7 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 
 - **每项目一个 Remotion 工程**：首次 `workspace.ensure` 把 `remotion-skeleton/` 整体复制到项目私有目录，AI 直接改写项目代码；项目间互不干扰，骨架改动只影响新项目。
 - **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入）。
-- **创作走右侧列**：右侧上半只显示创作场景，场景模态框收集模板、字幕、画布、SRT 或 shotcraft 组件参数并生成可审阅 Prompt；导出、构建预览、重启与重置为次级操作，统一放在项目 Header，其中导出在模态框中配置。
+- **创作走右侧列**：右侧上半先显示面向交付目标的成片场景；选择场景后，模态框收集模板、字幕、画布和所需真实素材，并将可发现的 `remotion-scenes` skill id 一起写入可审阅 Prompt。下方保留 SRT、组件、画布等局部编辑工具；导出、构建预览、重启与重置为次级操作，统一放在项目 Header，其中导出在模态框中配置。
 - **日志与终端**：右侧下半分栏。日志用 `logs.list` 全量回填（预览服务/终端命令/渲染导出所有任务，去重合并）+ `shell.job.log` 实时追加；终端用 xterm 组件对接 `terminal.exec` 在项目目录执行命令调试（非交互式，单条命令，本地行编辑与 ↑↓ 历史），命令继承用户登录 shell 的完整 PATH（service 层 `userBaseEnv` 统一捕获）。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
@@ -62,7 +62,7 @@ make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 
 ## 复用来源与授权
 
-参考库整体拷贝进 App 骨架，AI 在项目 workspace 里直接复用，不自己重写：
+参考库以 `@recut/remotion-kit`（`packages/remotion-kit/`）为规范源，seed 时**整包拷贝模式**冻结进每个项目 workspace 的 `remotion-kit/`，AI 直接 `import { ... } from "@recut/remotion-kit"` 复用、按需升级，不自己重写。组件目录（风格模板/字幕主题/画幅/内置组件）维护在 `packages/remotion-kit/catalog.json`，版本在 `manifest.json`；Agent 用 `catalog.list` 读目录、`workspace.kit-state` 看项目冻结版本，读最新源码用原生文件工具读 app 包 `paths.appKitPath/src/`。
 
 - **remotion-templates**（reactvideoeditor.com，免费）：全部 81 个单文件模板组件拷贝到 `remotion-skeleton/src/components/remotion-templates/`（含 README 目录表），背景特效已封装进 `src/effects/registry.tsx`、文字特效封装进 `src/effects/text.tsx`；目录见 `skills/remotion-studio/references/effects.md`。
 - **remotion-captions-themes**（vshukla7，MIT）：字幕主题源码整体拷贝到 `remotion-skeleton/src/captions/vendor/`（保持原结构），目录见 `references/captions.md`。

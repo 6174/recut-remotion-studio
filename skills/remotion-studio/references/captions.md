@@ -1,6 +1,6 @@
 # 字幕主题目录（复用自 vshukla7/remotion-captions-themes，MIT）
 
-> 用户选择主题后，把它写进 `palette.captionTheme`（`ProjectVideo.resolvePalette` 会传给 `CaptionTheme`）。组件源码已整体 vendored 到 `workspace/src/captions/`（保持原仓库结构），直接 import 复用。
+> 用户选择主题后，把它写进 `palette.captionTheme`（`ProjectVideo.resolvePalette` 会传给 `CaptionTheme`）。组件源码以冻结副本形式存在 `workspace/remotion-kit/src/captions/`（新项目；旧项目为 `workspace/src/captions/`），直接 `import { CaptionTheme, buildCaptionsData } from "@recut/remotion-kit"` 复用；目录与版本读 `{paths.appKitPath}/catalog.json`，最新规范源用原生文件工具读 `paths.appKitPath/src/`。
 
 ## 用法
 
@@ -27,11 +27,11 @@ const data = buildCaptionsData("这句话会成为字幕。", sceneStartSec, sce
 | `kinetic-01` | Kinetic 动能排版 | 主词放大、侧词对齐的动能排版 |
 | `kinetic-02` | Kinetic 变体 | 动能排版第二套 |
 | `hustle` | Hustle 快节奏 | 快速进入，活力十足 |
-| `grape` | Grape 圆角盒 | 圆角色块背景字幕 |
+| `grape` | Grape 倾斜强调 | 无底框的倾斜强调字幕 |
 | `beast` | Beast 粗体高对比 | 粗体加高对比阴影 |
 | `poppin` | Poppin 大写字幕 | 全大写 Poppins 字体 |
 | `aarit` | Aarit 逐字缩放 | 电影感逐字缩放与渐变扫光 |
-| `soft-ai` | Soft AI 毛玻璃 | 磨砂玻璃模糊进入 |
+| `soft-ai` | Soft AI 柔焦 | 无底框的柔焦浮现 |
 | `gaming-stream` | Gaming 霓虹 | 霓虹发光游戏风格 |
 | `simple-one-word` | 单字聚焦 | 每次只高亮一个词 |
 | `podcast` | Podcast 播客 | 播客风格的段落字幕 |

@@ -10,16 +10,24 @@ references: references/effects.md, references/captions.md, references/directing.
 
 ## 目标
 
-把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频。**每个项目拥有自己的 Remotion 工程**（项目私有 `workspace/`，首次打开自动从 App 模板复制）：AI 直接改写 `workspace/` 里的 composition 代码，改完调用 `preview.build`，UI 内嵌 `@remotion/player` 刷新预览（带进度控制），导出由 App 本地渲染并归档为媒体素材。
+把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频。**每个项目拥有自己的 Remotion 工程**（项目私有 `workspace/`，首次打开自动从 App 模板复制）：AI 用**原生文件工具**直接改写 `workspace/` 里的 composition 代码，改完保存后 Vite dev server 自动热更新，UI 内嵌 `@remotion/player` 刷新预览（带进度控制），导出由 App 本地渲染并归档为媒体素材。
 
 ## 工作流
 
 `Brief → 编辑代码 → 预览确认 → 导出`
 
 1. **Brief**：`project.create` 保存风格模板、选题、细节、预期时长与素材 assetId 列表。没有 Brief 时先让用户用表单提交，不要凭空开篇。
-2. **编辑代码**：先调用 `workflow.context` 看阶段与 `workspace` 状态，再 `workspace.ensure` 确保工程就绪，然后 `code.list`/`code.read` 读当前代码，用 `code.write` 直接改写 `workspace/src/compositions/ProjectVideo.tsx` 与 `workspace/src/Root.tsx`。**设计就是写代码**：不要调用 `composition.save` 之类结构契约（不存在），也不要执行 `render.export`。
-3. **预览**：每次 `code.write` 改完代码后调用 `preview.build` 重建预览 bundle，UI 内嵌 `@remotion/player`（播放/暂停/进度条）会自动刷新；用户会按帧评审。局部修改只动对应代码块，用 `code.read` 后 `code.write` 原位更新。
+2. **编辑代码**：先调用 `workflow.context` 看阶段、`workspace` 状态与绝对路径 `paths.workspacePath`，再 `workspace.ensure` 确保工程就绪，然后用**原生文件工具**（Read/Write/Edit/Glob）直接读写 `${paths.workspacePath}` 下的 `src/compositions/ProjectVideo.tsx` 与 `src/Root.tsx`。**设计就是写代码**：不存在 `code.read`/`code.write`/`composition.save` 之类的结构契约，也不要执行 `render.export`。
+3. **预览**：每次改完代码**保存即生效**，Vite dev server 会自动热更新，UI 内嵌 `@remotion/player`（播放/暂停/进度条）自动刷新；用户会按帧评审。局部修改只动对应代码块，用原生文件工具原位更新。
 4. **导出**：用户在界面触发 `render.export`，由 App 本地渲染并归档为媒体素材。AI 不直接调用渲染操作。
+
+## 成片场景
+
+当 UI Prompt 带有“成片场景”和场景 id 时，先读取可发现的 `remotion-scenes` skill 中的同名章节，再回到本技能执行。它把 HyperFrames 的场景分流逻辑本地化为 Recut 当前可完成的路径：`faceless-explainer`、`product-launch`、`slideshow`、`talking-head-recut`、`music-visual` 与 `captioned-clip`。
+
+- 场景决定叙事骨架、真实素材边界和字幕策略；风格模板、字幕主题、画幅和 assetId 仍由 UI Prompt 的明确选择决定。
+- `figma`、`pr-to-video` 等依赖 Recut 尚未连接的数据源的路径不在当前场景集合中；不能暗中把无素材请求改成虚构界面或数据。
+- 场景只约束首次成片或指定重剪；后续局部编辑继续遵守“只动目标 scene”的规则。
 
 ## 每个项目的 Remotion 工程（workspace/）
 
@@ -62,10 +70,10 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 - 布局/间距/字阶用 Tailwind 工具类（`flex`/`absolute`/`px-*`/`text-*`/`tracking-*`…），颜色交给 token 或 palette。
 ## 复用资产：用户先选择，AI 再写进代码
 
-开始设计前，先读以下 reference，并让用户在目录里做出选择：
+开始设计前，先读以下 reference，并让用户在目录里做出选择。可用组件的**规范目录**以数据文件 `packages/remotion-kit/catalog.json` 维护（风格模板/字幕主题/画幅/内置组件）；`workflow.context` 已返回 `catalogs`，或用原生文件工具读 `{paths.appKitPath}/catalog.json`。项目冻结版本读 `workspace/.recut-workspace` 的 `kitVersion` 字段：
 
-1. **`references/effects.md`** —— 表达特效目录（remotion-templates）。用户选择想要的效果（背景 / 文字 / 镜头运动），你把它用进对应 scene；`workspace/src/components/remotion-templates/` 里还有全部 81 个模板组件可直接复制进成片代码，`effects.md` 给出了包装与适配规则。
-2. **`references/captions.md`** —— 字幕主题目录（remotion-captions-themes，13 套）。用户选择主题后，把主题 id 设为 `palette.captionTheme`，或直接用 `<CaptionTheme theme="…">`；旁白用 `buildCaptionsData` 生成逐词字幕。
+1. **`references/effects.md`** —— 表达特效目录（remotion-templates）。用户选择想要的效果（背景 / 文字 / 镜头运动），你把它用进对应 scene；`workspace/remotion-kit/`（seed 时从 `@recut/remotion-kit` 整包拷贝的冻结副本）里有全部 81 个模板，直接 `import X from "@recut/remotion-kit/templates/<name>"` 复用；若用户想用更新版本，对比 `workspace/.recut-workspace` 与 `{paths.appKitPath}/catalog.json` 的版本，用原生文件工具读 `{paths.appKitPath}/src/` 最新源码按需升级。`effects.md` 给出了包装与适配规则。
+2. **`references/captions.md`** —— 字幕主题目录（remotion-captions-themes，13 套）。用户选择主题后，把主题 id 设为 `palette.captionTheme`，或直接用 `<CaptionTheme theme="…">`；旁白用 `buildCaptionsData` 生成逐词字幕。主题源码在 `workspace/remotion-kit/src/captions/` 冻结副本，组件规范源与版本见 `{paths.appKitPath}/catalog.json` 与 `{paths.appKitPath}/package.json`。
 3. **`references/directing.md`** —— 导演语言与提示词模板（提炼自 video-shotcraft）。完整流水线、镜头配方卡与验收清单见 `references/video-shotcraft/`（已整体拷贝，可用 `recut.skills.reference` 读取）：`SKILL.md`（三种创作模式）、`references/pipeline.md`（八阶段流水线）、`references/shots/`（104 张镜头配方卡）、`references/aesthetic-rules.md`（审美准则）、`references/sound-design.md`（声音设计）与 `template/TEMPLATE.md`（Ink Press 成片模板）。
 
 ## 媒体边界

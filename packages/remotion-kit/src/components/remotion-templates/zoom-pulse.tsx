@@ -1,6 +1,11 @@
-"use client";
+/**
+ * [INPUT]: 依赖 remotion 的帧时钟、插值函数与 Img
+ * [OUTPUT]: 对外提供 ZoomPulse，为图片提供可导出、可寻帧的循环缩放效果
+ * [POS]: remotion-templates 的电影感图片运动组件；与 KenBurns、ParallaxPan 共用图片动效职责
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
-import Image from "next/image";
+import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 interface ZoomPulseProps {
   imageUrl?: string;
   duration?: number;
@@ -14,6 +19,11 @@ export const ZoomPulse: React.FC<ZoomPulseProps> = ({
   minScale = 1,
   maxScale = 1.1,
 }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const cycle = Math.max(1, duration * fps);
+  const phase = (frame % cycle) / cycle;
+  const scale = interpolate(phase, [0, 0.5, 1], [minScale, maxScale, minScale]);
   return (
     <div
       style={{
@@ -25,30 +35,15 @@ export const ZoomPulse: React.FC<ZoomPulseProps> = ({
         overflow: "hidden",
       }}
     >
-      <Image
+      <Img
         src={imageUrl}
-        width={800}
-        height={450}
-        unoptimized={true}
-        alt="Zoom Pulse"
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          animation: `zoomPulse ${duration}s ease-in-out infinite`,
+          transform: `scale(${scale})`,
         }}
       />
-      <style jsx>{`
-        @keyframes zoomPulse {
-          0%,
-          100% {
-            transform: scale(${minScale});
-          }
-          50% {
-            transform: scale(${maxScale});
-          }
-        }
-      `}</style>
     </div>
   );
 };

@@ -1,0 +1,22 @@
+{
+  "name": "@recut/remotion-kit",
+  "version": "0.3.0",
+  "updatedAt": "2026-08-07",
+  "changelog": [
+    {
+      "version": "0.3.0",
+      "date": "2026-08-07",
+      "notes": "参考 HyperFrames Design 的公开设计原则，新增 Biennale Yellow、BlockFrame、Cobalt Grid、Bold Poster、Capsule、Editorial Forest 六套逐帧确定的 Remotion 样片与风格契约。"
+    },
+    {
+      "version": "0.2.0",
+      "date": "2026-08-07",
+      "notes": "新增 Motion Explainer、Product Launch、Data Briefing、Creator Collage 四套完整可播放视觉模板；原有四套样片同步升级为有开场、推进与收束的叙事预览。"
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-08-07",
+      "notes": "抽取为共享包并引入版本管理。组件目录：captions（13 主题）/ effects / components/remotion-templates（81 模板）/ components/shotcraft。项目 workspace 在 seed 时冻结拷贝本版本；选择器按需从本包升级单组件。"
+    }
+  ]
+}

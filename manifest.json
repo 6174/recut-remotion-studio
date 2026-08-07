@@ -14,13 +14,13 @@
       "id": "start-video",
       "title": "从一次设计开始",
       "description": "提交选题、风格与素材，让 AI 把它写进项目的 Remotion 工程代码并实时预览。",
-      "prompt": "我想用 Remotion Studio 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：用 code.list/code.read 读、code.write 改 workspace/compositions/ProjectVideo.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完调用 preview.build 让内嵌 Player 刷新预览；保存后停下等待预览确认，不要提前渲染或导出。"
+      "prompt": "我想用 Remotion Studio 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：先读 workflow.context 拿绝对路径 paths（workspacePath/appKitPath），用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认，不要提前渲染或导出。"
     },
     {
       "id": "design-video",
       "title": "把想法写成代码",
       "description": "把模糊想法收敛成可热更新预览的 Remotion composition 代码。",
-      "prompt": "我有一个还不成熟的视频想法：【请在这里填写想法】。请像视频剪辑师一样帮我收敛：先调用 workflow.context 看阶段，读 remotion-studio skill 的 references/directing.md 定动效与节拍，然后直接改写 workspace 里的 composition 代码（code.read → code.write），复用内置特效与字幕主题，媒体用真实 assetId 引用。改完用 composition.assets 登记素材，调用 preview.build 刷新预览，等待预览确认，不要渲染导出。"
+      "prompt": "我有一个还不成熟的视频想法：【请在这里填写想法】。请像视频剪辑师一样帮我收敛：先调用 workflow.context 看阶段与绝对路径 paths，读 remotion-studio skill 的 references/directing.md 定动效与节拍，然后用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（设计就是写代码，复用内置特效与字幕主题，媒体用真实 assetId 引用）。改完用 composition.assets 登记素材，保存后 Vite 预览自动热更新，等待预览确认，不要渲染导出。"
     }
   ],
   "permissions": ["sqlite", "files", "media.read", "media.write", "artifacts.publish", "shell"],
@@ -40,7 +40,7 @@
     {
       "name": "workflow.context",
       "surfaces": ["api", "mcp"],
-      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、预览 dev server 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
+      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、绝对路径 paths（workspacePath/appKitPath）、预览 dev server 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -62,27 +62,15 @@
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
-      "name": "code.list",
-      "surfaces": ["api", "mcp"],
-      "description": "列出项目 workspace/ 下的 composition 源码文件（排除 node_modules）。",
+      "name": "workspace.kit-state",
+      "surfaces": ["api"],
+      "description": "返回 App 当前 kit 版本与项目 workspace 冻结副本的 seed 版本，供界面对比组件目录。Agent 可读 workspace/.recut-workspace 与 app 包 packages/remotion-kit/catalog.json 获得等价信息。",
       "inputSchema": { "type": "object", "properties": {} }
-    },
-    {
-      "name": "code.read",
-      "surfaces": ["api", "mcp"],
-      "description": "读取 workspace/ 下某个文件的完整正文（例如 compositions/ProjectVideo.tsx、Root.tsx）。改写前必须先读。",
-      "inputSchema": { "type": "object", "required": ["path"], "properties": { "path": { "type": "string", "description": "相对项目私有目录的路径，必须以 workspace/ 开头。" } } }
-    },
-    {
-      "name": "code.write",
-      "surfaces": ["api", "mcp"],
-      "description": "写入（整体替换）workspace/ 下某个文件。设计就是写代码：AI 直接改写 composition 源码，Remotion Studio 会即时热更新预览。禁止写 node_modules。",
-      "inputSchema": { "type": "object", "required": ["path", "content"], "properties": { "path": { "type": "string", "description": "相对项目私有目录的路径，必须以 workspace/ 开头。" }, "content": { "type": "string", "description": "文件完整新内容。" } } }
     },
     {
       "name": "composition.assets",
       "surfaces": ["api", "mcp"],
-      "description": "登记当前 composition 代码引用的所有素材 assetId（覆盖式）。每次 code.write 后调用，导出才能物化这些素材；漏登记的画面在导出里会是空。",
+      "description": "登记当前 composition 代码引用的所有素材 assetId（覆盖式）。每次保存 composition 代码后调用，导出才能物化这些素材；漏登记的画面在导出里会是空。",
       "inputSchema": { "type": "object", "required": ["assetIds"], "properties": { "assetIds": { "type": "array", "items": { "type": "string" } } } }
     },
     {

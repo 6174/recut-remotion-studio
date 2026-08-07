@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Remotion 帧时间、视频尺寸与字幕逐词时间轴
+ * [OUTPUT]: 对外提供 GrapeTheme 无底框倾斜强调字幕主题
+ * [POS]: remotion-kit/captions 的文字型主题；与其他主题共用 CaptionTheme 注册与颜色契约
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { InternalThemeProps } from "../types";
@@ -41,11 +47,8 @@ export const GrapeTheme: React.FC<InternalThemeProps> = ({
   const relativeFrame = frame - Math.round(lineStart * fps);
   const opacity = interpolate(relativeFrame, [0, 30], [0, 1], { extrapolateRight: "clamp" });
 
-  // Custom background color matches passed primaryColor
-  const backgroundColor = primaryColor;
-  // If primary background is white/light, we use dark text for base, otherwise white text
-  const isLightBg = primaryColor.toLowerCase() === "#ffffff" || primaryColor.toLowerCase() === "#fff";
-  const baseTextColor = isLightBg ? "#111827" : "#ffffff";
+  // Text-only treatment: color and shadow create contrast without a caption box.
+  const baseTextColor = primaryColor;
 
   return (
     <div
@@ -55,10 +58,6 @@ export const GrapeTheme: React.FC<InternalThemeProps> = ({
         justifyContent: "center",
         alignItems: "center",
         gap: `${10 * scaleFactor}px ${18 * scaleFactor}px`,
-        background: backgroundColor,
-        padding: `${12 * scaleFactor}px ${36 * scaleFactor}px`,
-        borderRadius: `${8 * scaleFactor}px`,
-        boxShadow: `0 ${20 * scaleFactor}px ${40 * scaleFactor}px rgba(0,0,0,0.3)`,
         maxWidth: "85%",
         textAlign: "center",
         opacity,
@@ -79,6 +78,7 @@ export const GrapeTheme: React.FC<InternalThemeProps> = ({
               fontWeight: 900,
               fontStyle: "italic",
               textTransform: "uppercase",
+              textShadow: `0 ${8 * scaleFactor}px ${20 * scaleFactor}px rgba(0,0,0,0.7)`,
               display: "inline-block",
             }}
           >

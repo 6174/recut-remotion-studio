@@ -19,6 +19,11 @@ if (!filesRoot) {
 const workspace = path.join(filesRoot, "workspace");
 const markerPath = path.join(workspace, ".recut-workspace");
 const skeleton = path.join(__dirname, "remotion-skeleton");
+// 共享组件库 @recut/remotion-kit：seed 时「整包拷贝」进 workspace/remotion-kit/（冻结副本）。
+// workspace 的 vite/render 用别名把 `@recut/remotion-kit` 指向该副本；组件规范源仍只在
+// packages/remotion-kit，app 迭代不影响历史项目（kitVersion 记录在 .recut-workspace）。
+const kitSrc = path.join(__dirname, "packages", "remotion-kit");
+const manifestPath = path.join(kitSrc, "manifest.json");
 const skip = new Set(["node_modules", ".remotion", "package-lock.json", ".git"]);
 
 function copyTree(source, dest) {
@@ -34,9 +39,19 @@ function copyTree(source, dest) {
   }
 }
 
+function kitVersion() {
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, "utf8")).version || "0.0.0";
+  } catch (_) {
+    return "0.0.0";
+  }
+}
+
 if (!fs.existsSync(workspace)) {
   copyTree(skeleton, workspace);
-  console.log(`seed: seeded workspace from ${skeleton}`);
+  // 整包拷贝 kit → workspace/remotion-kit，保证新项目即当前目录版本。
+  copyTree(kitSrc, path.join(workspace, "remotion-kit"));
+  console.log(`seed: seeded workspace from ${skeleton} + remotion-kit v${kitVersion()}`);
 }
 
 const nodeModulesLink = path.join(workspace, "node_modules");
@@ -55,7 +70,7 @@ if (!fs.existsSync(nodeModulesLink)) {
 }
 
 if (!fs.existsSync(markerPath)) {
-  fs.writeFileSync(markerPath, JSON.stringify({ template: "recut-remotion-studio", seededAt: new Date().toISOString() }));
+  fs.writeFileSync(markerPath, JSON.stringify({ template: "recut-remotion-studio", seededAt: new Date().toISOString(), kitVersion: kitVersion() }));
 }
 console.log(`seed: workspace ready at ${workspace}`);
 process.exit(0);

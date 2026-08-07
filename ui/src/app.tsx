@@ -25,6 +25,13 @@ export interface Catalog {
   styleTemplates: Record<string, { label: string; description: string; motion: string }>;
   captionThemes: Array<{ id: string; label: string; description: string }>;
   canvasSizes: Array<{ id: string; label: string; width: number; height: number; fps: number }>;
+  components: Array<{ id: string; label: string; description: string; kind: string; category?: string; path: string; workspacePath: string }>;
+  directives: Array<{ id: string; label: string; description: string; prompt: string }>;
+}
+
+export interface KitState {
+  kitVersion: string;
+  seededKitVersion: string | null;
 }
 
 export interface MediaAsset {
@@ -116,7 +123,7 @@ export default function App() {
     const materialText = input.materialAssetIds.length
       ? `\n已选用素材（assetId）：\n${input.materialAssetIds.join("\n")}\n`
       : "";
-    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 风格模板：${input.template}（${template?.label ?? ""}；${template?.motion ?? ""}）\n- 选题：${input.topic}\n- 详细描述：${input.details || "无额外补充"}\n- 预期时长：${input.expectedDurationSec} 秒${materialText}\n\n开始前先做这些事：\n1. 调用 recut.skills.read 读本 App 的 remotion-studio skill，并读它的 references（effects.md / captions.md / directing.md），让用户确认想用的表达特效与字幕主题。\n2. 调用 workflow.context 看阶段与 workspace 状态；必要时 workspace.ensure。\n3. 用 code.list / code.read 读 workspace/src/compositions/ProjectVideo.tsx 与 workspace/src/Root.tsx 的当前代码。\n4. 用 code.write 直接改写：SCENES 与渲染层，复用 workspace/src/effects、workspace/src/captions 与 src/components/remotion-templates；媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n5. 改完调用 preview.build 刷新内嵌 Player 预览。\n6. 保存后停下等待预览确认；不要调用 render.export。`;
+    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 风格模板：${input.template}（${template?.label ?? ""}；${template?.motion ?? ""}）\n- 选题：${input.topic}\n- 详细描述：${input.details || "无额外补充"}\n- 预期时长：${input.expectedDurationSec} 秒${materialText}\n\n开始前先做这些事：\n1. 调用 recut.skills.read 读本 App 的 remotion-studio skill，并读它的 references（effects.md / captions.md / directing.md），让用户确认想用的表达特效与字幕主题。\n2. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n3. 用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx 的当前代码。\n4. 用原生文件工具直接改写 SCENES 与渲染层。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData } from "@recut/remotion-kit"，效果 import { BackgroundFX, TextFX } from "@recut/remotion-kit"，模板经 @recut/remotion-kit/templates/<name> 引用，预览/渲染都解析到该冻结副本（旧项目组件在 workspace/src/captions 等，沿用其现有相对引用）。组件目录与版本读 {paths.appKitPath}/catalog.json；若用户选择的组件与项目不一致，用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/，写回 workspace/remotion-kit/src/<workspacePath> 按需升级（只动被选组件）；媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n5. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n6. 不要调用 render.export。`;
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(prompt);
     } catch { /* 剪贴板不可用不影响 compose */ }
@@ -126,7 +133,7 @@ export default function App() {
 
   const redesign = async (instruction: string | undefined) => {
     if (!brief) return;
-    const prompt = `请继续在 Remotion Studio 中改写这支视频的 composition 代码。\n\n当前 Brief：${brief.topic}（${brief.details || ""}）\n\n用户的改写要求：${instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context 与当前 workspace 代码（code.list/code.read）。\n3. 用 code.write 直接改写 workspace/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。`;
+    const prompt = `请继续在 Remotion Studio 中改写这支视频的 composition 代码。\n\n当前 Brief：${brief.topic}（${brief.details || ""}）\n\n用户的改写要求：${instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context（含绝对路径 paths.workspacePath/appKitPath）与当前 workspace 代码（用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx）。\n3. 用原生文件工具直接改写 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律；字幕主题、效果与模板组件从 @recut/remotion-kit（seed 时整包拷贝进 workspace/remotion-kit/ 的冻结副本，旧项目沿用 workspace/src/captions 等相对引用）复用。若用户选择的组件与项目副本不一致（读 workspace/.recut-workspace 与 {paths.appKitPath}/catalog.json 对比），用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/、按需升级，只动被选组件。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。`;
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(prompt);
     } catch { /* ignore */ }
