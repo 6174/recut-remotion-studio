@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖后台 preview.serve/preview.props 操作、项目 brief 与素材映射
- * [OUTPUT]: 对外提供 Vite iframe 预览、服务重启与可复制的完整错误诊断
+ * [OUTPUT]: 对外提供仅在 Vite ready 后挂载的 iframe 预览、启动 Loading、服务重启与可复制的完整错误诊断
  * [POS]: remotion-studio/ui 的左侧 Player；只显示预览状态，核心命令由右侧工作区调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -117,7 +117,7 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     }
   };
 
-  if (serve?.running && serve.url) {
+  if (serve?.running && serve.phase === "ready" && serve.url) {
     return <iframe className="h-full w-full border-0 bg-terminal" key={frameKey} src={`${serve.url}?refresh=${frameKey}`} title="Remotion 预览" />;
   }
 
@@ -140,5 +140,13 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     );
   }
 
-  return <div className="grid h-full w-full place-items-center text-center text-muted-foreground"><div><Loader2 className="mx-auto size-5 animate-spin" /><p className="mt-3 text-sm">{starting ? "正在启动预览服务…" : "正在准备预览…"}</p></div></div>;
+  return (
+    <div className="grid h-full w-full place-items-center bg-terminal p-6 text-center text-muted-foreground">
+      <div>
+        <Loader2 className="mx-auto size-5 animate-spin text-primary" />
+        <p className="mt-3 text-sm text-foreground">{starting || serve?.phase === "starting" ? "正在启动 Remotion 预览…" : "正在准备预览…"}</p>
+        <p className="mt-1 text-xs">预览服务就绪后会自动显示画面。</p>
+      </div>
+    </div>
+  );
 });
