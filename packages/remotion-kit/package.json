@@ -11,10 +11,10 @@
     "./captions": "./src/captions/index.ts",
     "./effects": "./src/effects/index.ts",
     "./styles": "./src/styles/index.ts",
-    "./shotcraft": "./src/components/shotcraft/index.ts",
+    "./shotcraft": "./src/components/index.ts",
     "./templates": "./src/components/index.ts",
     "./templates/*": "./src/components/*.tsx",
-    "./shotcraft/*": "./src/components/shotcraft/*.tsx"
+    "./shotcraft/*": "./src/components/*.tsx"
   },
   "files": [
     "src"
@@ -22,7 +22,7 @@
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "remotion": "^4.0.0",
+    "remotion": "4.0.507",
     "three": "*"
   },
   "devDependencies": {
@@ -38,5 +38,8 @@
     "three": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "roughjs": "^4.6.6"
   }
 }

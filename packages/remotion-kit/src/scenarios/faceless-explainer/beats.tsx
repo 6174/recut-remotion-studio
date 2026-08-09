@@ -7,7 +7,7 @@
  */
 import React from "react";
 import { AbsoluteFill, interpolate, spring } from "remotion";
-import { DigitRoll } from "../../components/shotcraft";
+import { DigitRoll } from "../../components";
 import type { BeatContext, BeatRenderer } from "../_shared/types";
 import { clamp, DataBars, DiagramTitle, DoodleArrow, DoodleEyes, GlowProgress, Grid, MarkerBlob, MarkerChip, PaperCard, StepList } from "./primitives";
 

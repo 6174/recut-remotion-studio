@@ -4,7 +4,7 @@
  *           引擎只负责画布（背景/淡入淡出）、字幕层、时序与媒体，把每一帧的主体
  *           画面交给场景注册的 beat 渲染器（beats[kind]）。这样每个场景的叙事
  *           结构与视觉语言都由自己的 beat 渲染器表达，而不是一个通用模板换文案；可读文字遵循
- *           1080p 正文/字幕 ≥56px、辅助信息 ≥32px 的全局门槛。
+ *           1080p 主信息 ≥56px、无底框字幕 ≥40px、辅助信息 ≥32px 的全局门槛。
  * [POS]: scenarios/_shared 的共享编排引擎；场景模板只定义 SCENES（beat 序列）
  *        与 beats（每类 beat 的渲染器），引擎负责把两者粘合成成片。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
@@ -58,9 +58,9 @@ export const totalDurationFrames = (fps: number, scenes: Scene[]) =>
 const CaptionLayer: React.FC<{ data: CaptionsData; p: Palette; width: number }> = ({ data, p, width }) => {
   if (!data.lines.length) return null;
   return (
-    <div style={{ position: "absolute", left: 0, right: 0, bottom: "8%", zIndex: 30, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
-      <div style={{ width: "fit-content", maxWidth: Math.round(width * 0.86), padding: "16px 28px", border: "4px solid #111", borderRadius: 14, background: p.background, boxShadow: `10px 10px 0 ${p.accent}` }}>
-        <CaptionTheme data={data} theme={p.captionTheme || "pop"} primaryColor={p.captionPrimary || p.text} secondaryColor={p.captionSecondary || p.accent} fontSize={Math.max(56, Math.round(width / 26))} />
+    <div style={{ position: "absolute", left: 0, right: 0, bottom: "7%", zIndex: 30, display: "flex", justifyContent: "center", pointerEvents: "none" }}>
+      <div style={{ width: Math.round(width * 0.7), maxWidth: "70%" }}>
+        <CaptionTheme data={data} theme={p.captionTheme || "pop"} primaryColor={p.captionPrimary || p.text} secondaryColor={p.captionSecondary || p.accent} fontSize={46} />
       </div>
     </div>
   );

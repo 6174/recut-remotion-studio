@@ -5,7 +5,7 @@
 成员清单
 SKILL.md: 科技新闻解读的导演手册、视觉语法、分镜纪律与可读性验收。
 beats.tsx: 八类科技新闻 beat 的场景组合；只编排专属视觉原语。
-primitives.tsx: 网格纸、荧光 marker、手绘箭头、卡通眼睛、新闻卡与大字号数据条的确定性 SVG 原语。
+primitives.tsx: 网格纸、荧光 marker、手绘箭头、卡通眼睛、新闻卡与大字号数据条的确定性 SVG 原语；也保留旧冻结 workspace 所需的兼容导出。
 template/ProjectVideo.tsx: 默认调色板与“每天一条科技新闻，三问读懂”的场景序列。
 
 依赖边界

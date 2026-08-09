@@ -16,6 +16,14 @@ export const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "cla
 export const enter = (frame: number, fps: number, delay = 0, damping = 16, stiffness = 140) =>
   spring({ frame: Math.max(0, frame - delay), fps, config: { damping, mass: 0.8, stiffness } });
 
+/** 冻结 workspace 的旧 beat 仍会用到：保留这个纯函数，避免升级时把旧项目打断。 */
+export const isDark = (hex: string) => {
+  const channels = hex.match(/[0-9a-f]{2}/gi);
+  if (!channels || channels.length < 3) return false;
+  const [r, g, b] = channels.slice(0, 3).map((value) => parseInt(value, 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b < 150;
+};
+
 /** 网格纸：参考图的秩序底，不承载任何阅读信息。 */
 export const Grid: React.FC<{ color: string; opacity?: number; size?: number }> = ({ color, opacity = 0.08, size = 38 }) => (
   <div style={{ position: "absolute", inset: 0, opacity, backgroundImage: `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`, backgroundSize: `${size}px ${size}px` }} />
@@ -64,6 +72,40 @@ export const DiagramTitle: React.FC<{ children: React.ReactNode; color: string; 
   return (
     <div style={{ fontSize, lineHeight, fontWeight: 950, letterSpacing: "-0.08em", color, fontFamily, transform: `translateY(${(1 - reveal) * 48}px)`, opacity: reveal }}>
       {children}
+    </div>
+  );
+};
+
+/** 兼容旧模板的强调线；新科技新闻模板优先使用 DoodleArrow。 */
+export const AccentRule: React.FC<{ accent: string; primary: string; frame: number; from?: number; to?: number; max?: number; height?: number }> = ({ accent, primary, frame, from = 18, to = 54, max = 220, height = 10 }) => (
+  <div style={{ width: Math.round(interpolate(frame, [from, to], [0, max], clamp)), height, borderRadius: 999, background: `linear-gradient(90deg, ${accent}, ${primary})`, marginTop: 28 }} />
+);
+
+/** 兼容旧模板的概念标签；同样遵循标签字号 ≥32px。 */
+export const ConceptPills: React.FC<{ items: string[]; accent: string; text: string; background: string; fontFamily?: string }> = ({ items, accent, text, background, fontFamily }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
+      {items.map((item, index) => {
+        const delay = 18 + index * 8;
+        const opacity = interpolate(frame, [delay, delay + 12], [0, 1], clamp);
+        return <span key={item} style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "14px 22px", border: `3px solid ${accent}`, borderRadius: 999, background, color: text, fontSize: 32, fontWeight: 900, fontFamily, opacity }}><span style={{ width: 14, height: 14, borderRadius: "50%", background: accent }} />{item}</span>;
+      })}
+    </div>
+  );
+};
+
+/** 兼容旧模板的代码窗；旧项目仍可预览，但不再以不可读的小字承载内容。 */
+export const CodeWindow: React.FC<{ lines: { text: string; accent?: string }[]; borderColor: string; accent?: string }> = ({ lines, borderColor, accent = "#55f436" }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const progress = enter(frame, fps, 24);
+  return (
+    <div style={{ padding: "34px 38px", border: `5px solid ${borderColor}`, borderRadius: 28, background: "#111", boxShadow: "16px 18px 0 rgba(17,17,17,0.2)", transform: `translateY(${(1 - progress) * 60}px) rotate(${(1 - progress) * -3}deg)`, opacity: progress }}>
+      {lines.map((line, index) => {
+        const reveal = enter(frame, fps, 30 + index * 12, 18);
+        return <div key={index} style={{ overflow: "hidden", whiteSpace: "pre", fontFamily: MONO, fontSize: 34, lineHeight: 1.5, color: "#fffdf7", clipPath: `inset(0 ${(1 - reveal) * 100}% 0 0)` }}><span style={{ color: line.accent || accent }}>› </span>{line.text}</div>;
+      })}
     </div>
   );
 };

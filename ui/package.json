@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@recut/remotion-kit": "file:../packages/remotion-kit",
-    "@remotion/player": "4.0.506",
+    "@remotion/player": "4.0.507",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
     "class-variance-authority": "0.7.1",
@@ -17,7 +17,8 @@
     "lucide-react": "^0.469.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "remotion": "4.0.506",
+    "remotion": "4.0.507",
+    "roughjs": "^4.6.6",
     "tailwind-merge": "3.3.0"
   },
   "devDependencies": {

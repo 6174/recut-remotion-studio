@@ -1,13 +1,26 @@
 /**
- * [INPUT]: 依赖 Host 注入的 MessageChannel
- * [OUTPUT]: 对外提供不依赖安全上下文 UUID、带通信诊断日志的 iframe React UI SDK、只回填不提交的 Agent compose 请求
+ * [INPUT]: 依赖 Host 注入的 MessageChannel，并向 Host 发出可重试的 UI 就绪握手
+ * [OUTPUT]: 对外提供等待 Host MessageChannel 就绪、以 debug 输出成功通信诊断的 iframe React UI SDK、只回填不提交的 Agent compose 请求
  * [POS]: remotion-studio 的 UI 通信边界；业务 UI 不直接访问 SQLite 或终端，实时事件由宿主转发，Agent 内容必须经全局 chat 可见
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 type RequestType = "state.query" | "background.call" | "agent.compose" | "media.pick";
 type Request = { id: string; type: RequestType; input: Record<string, unknown> };
 let port: MessagePort | null = null;
+let resolveConnection: ((port: MessagePort) => void) | null = null;
+const connection = new Promise<MessagePort>((resolve) => { resolveConnection = resolve; });
 const pending = new Map<string, { type: RequestType; resolve: (value: any) => void; reject: (error: Error) => void }>();
 let requestSequence = 0;
+let readyAttempts = 0;
+const hostOrigin = document.referrer ? new URL(document.referrer).origin : "*";
+
+function announceReady() {
+  if (port || window.parent === window || readyAttempts >= 40) return;
+  readyAttempts += 1;
+  window.parent.postMessage({ type: "recut.ui.ready" }, hostOrigin);
+}
+
+const readyTimer = window.setInterval(announceReady, 250);
 
 function requestID() {
   requestSequence += 1;
@@ -33,19 +46,21 @@ window.addEventListener("message", (event) => {
     request.resolve(message.data.result);
   };
   port.start();
-  console.warn(`[recut-sdk] host connected origin=${window.location.origin}`);
+  resolveConnection?.(port);
+  resolveConnection = null;
+  window.clearInterval(readyTimer);
+  console.debug(`[recut-sdk] host connected origin=${window.location.origin}`);
   window.dispatchEvent(new Event("recut-sdk-ready"));
 });
 
-function call(type: RequestType, input: Record<string, unknown>) {
+announceReady();
+
+async function call(type: RequestType, input: Record<string, unknown>) {
+  const activePort = port ?? await connection;
   return new Promise<any>((resolve, reject) => {
     const id = requestID();
-    if (!port) {
-      console.warn(`[recut-sdk] request blocked: host not connected id=${id} type=${type}`);
-      return reject(new Error("Recut Host 尚未连接"));
-    }
     pending.set(id, { type, resolve, reject });
-    port.postMessage({ id, type, input } satisfies Request);
+    activePort.postMessage({ id, type, input } satisfies Request);
   });
 }
 

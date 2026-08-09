@@ -12,7 +12,7 @@
 
 - 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。
 - **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。
-- 用户对当前风格不满意、想换风格时，走**外层 design-system 迭代**（改 `brief.style` / 换设计系统），不在本场景模板内解决。
+- 模板是完整视觉方案；需要改变表达时应选择更匹配的成片模板，或在具体镜头要求中描述变化，不提供独立设计系统迭代。
 
 ## 三、导演视角：分镜画面与动画展示过程
 
@@ -45,7 +45,7 @@
 ## 六、执行步骤
 
 1. `workflow.context` 拿路径，`workspace.ensure` 就绪。
-2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；换风格由外层 design-system 迭代处理，不在本场景内。
+2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；保持模板的视觉语言，不引入独立设计系统。
 3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。
 4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。
 5. 保存后等待 Player 预览，用户逐帧评审后停下。

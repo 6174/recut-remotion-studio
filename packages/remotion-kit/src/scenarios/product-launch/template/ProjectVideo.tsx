@@ -2,7 +2,7 @@
  * [INPUT]: 依赖共享 SceneEngine、product-launch 的 beat 渲染器与内置调色板
  * [OUTPUT]: 对外提供 PRODUCT_LAUNCH_PALETTE（场景内置视觉）、buildProductLaunchScenes 与 ProductLaunchVideo
  * [POS]: scenarios/product-launch 的模板代码。场景自带一套内置视觉（palette + beats + 默认 SCENES），
- *        AI 直接参考本文件实现，不读全局设计系统；用户想换风格时走外层 design-system 迭代。
+ *        AI 直接参考本文件实现；本模板是视觉与叙事的完整选择，不依赖独立设计系统。
  *        叙事序列：hook（结果承诺）→ pain（痛点）→ feature×2（功能证据）→ metric（数据）→ cta（行动号召）。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */

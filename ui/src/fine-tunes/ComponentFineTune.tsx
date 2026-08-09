@@ -1,15 +1,15 @@
 /**
- * [INPUT]: 依赖组件目录、preview/PreviewCard 与场景通用 prompt 回调
- * [OUTPUT]: 对外提供 ComponentScenario，左侧选择目录、右侧播放真实组件预览并生成插入提示
- * [POS]: remotion-studio/ui/scenarios 的动态组件选择场景；将 catalog 的 template/shotcraft 类型映射到右侧预览层
+ * [INPUT]: 依赖组件目录、preview/PreviewCard 与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 ComponentFineTune，左侧选择目录、右侧播放真实组件预览并生成插入提示
+ * [POS]: remotion-studio/ui/fine-tunes 的动态组件微调动作；将 catalog 的 template/shotcraft 类型映射到右侧预览层
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";
 import { LivePreview } from "../preview/PreviewCard";
 import type { PreviewKind } from "../preview/compositions";
-import type { ScenarioProps } from "./types";
+import type { FineTuneProps } from "./FineTuneProps";
 
-export const ComponentScenario: React.FC<ScenarioProps> = ({ catalog, basePrompt, kitVersionHint, onPrompt, onReady }) => {
+export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, kitVersionHint, onPrompt, onReady }) => {
   const [value, setValue] = useState(catalog.components[0]?.id || "");
   const [hovered, setHovered] = useState<string | null>(null);
   const active = catalog.components.find((item) => item.id === (hovered ?? value)) ?? catalog.components[0];

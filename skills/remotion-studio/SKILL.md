@@ -1,6 +1,6 @@
 ---
 name: remotion-studio
-description: 把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频：先按模板（场景 × 风格）读取四件参考（模板代码 / 场景技能 / 设计系统 / 组件目录），AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。开始设计前先读 references 目录与所选 scenario skill。
+description: 把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频：先按成片模板读取模板代码、场景技能与组件目录，AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。开始设计前先读 references 目录与所选模板 skill。
 references: references/effects.md, references/captions.md, references/directing.md, references/video-shotcraft/SKILL.md, references/video-shotcraft/references/pipeline.md, references/video-shotcraft/references/aesthetic-rules.md, references/video-shotcraft/references/sound-design.md, references/video-shotcraft/template/TEMPLATE.md
 ---
 
@@ -16,30 +16,29 @@ references: references/effects.md, references/captions.md, references/directing.
 
 视频不是网页缩略图。**任何希望观众阅读的文字，必须在手机和内嵌预览中清晰可读；看不见的小字没有信息价值，禁止使用。**
 
-- 以最终渲染画布验证，而不是只看代码里的 `fontSize`：1080p 成片中，叙事字幕/正文的有效字高必须至少 **56px**，辅助文字、标签、统计和 CTA 至少 **32px**；父级缩放、透视或裁切会降低有效字高，必须一并计算。
+- 以最终渲染画布验证，而不是只看代码里的 `fontSize`：1080p 成片中，画面主信息的有效字高至少 **56px**，逐词字幕至少 **40px**，辅助文字、标签、统计和 CTA 至少 **32px**；父级缩放、透视或裁切会降低有效字高，必须一并计算。字幕是叙事层，不得与主标题争夺画面。
 - 画面文字只有两种合法状态：**可读信息**（达到上述尺寸与对比度）或**装饰纹理**（明确降低对比度/虚化，且不承载信息）。不存在“想让人读、却读不清”的中间态；这类文字直接删掉。
 - 信息太多时，先删减或拆成多个 beat，再放大文字；不要通过缩小字号塞进一个镜头。每个 content beat 只承载一个新信息。
+- **所有字幕默认无底框**：不用卡片、气泡、描边容器或投影块包住字幕；字幕以干净的高对比文字叠在画面下三分之一，只有用户明确要求时才可以例外。
 - 交付前抽关键帧缩至约 480px 宽检查：标题、正文、字幕、数字与 CTA 仍能一眼读清，才算通过。
+- **视频不是 UI**：不使用微型 tag、chip、状态栏或缩小段落来制造信息密度。将一条信息做成大字、分词/分句入场、位移、色彩渐变或形状关系；观众看不到的文字没有存在价值。
+- **渐变建立景深**：每个风格化场景至少在背景、主色块、文字或光晕中使用两层协调渐变。禁止单一纯色大铺底；文字渐变必须保持足够对比度，不能替代信息层级。
 
-## 四件参考：模板 = 场景 × 风格
+## 三件参考：模板是单一真相源
 
-用户选择的是一个**模板**（UI 术语），背后组合了两条轴：
+用户选择一个**成片模板**。`brief.template` 存模板 id；每个模板同时定义做什么、怎样表达和使用哪些组件。模板技能与模板代码在 **remotion-kit 内**：`{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）+ `template/ProjectVideo.tsx`（模板代码）。模板清单读 `{paths.appKitPath}/catalog.json` 的 `scenarios`。
 
-- **场景（scenario）**：做什么样的视频。`brief.template` 存场景 id；场景技能与模板代码在 **remotion-kit 内**：`{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）+ `template/ProjectVideo.tsx`（模板代码）。场景清单读 `{paths.appKitPath}/catalog.json` 的 `scenarios`。
-- **视觉风格（design system）**：选择什么样的风格表达。`brief.style` 存设计系统 id；完整契约在**全局 recut-design-system skill**（`recut.design_system.get({ styleId })` 或 `~/.recut/skills/recut-design-system/design-systems/<id>/DESIGN.md`），直接复用 Open Design 的抽象风格定义，不做视频适配。运行时 palette 由 `@recut/remotion-kit` 的 `resolvePalette(styleId)` 提供。
-
-开始设计前按顺序读**四件参考**：
+开始设计前按顺序读**三件参考**：
 
 1. **模板代码**：`{paths.workspacePath}/src/compositions/ProjectVideo.tsx`（该项目的成片骨架，直接改写 SCENES 与渲染层；场景模板代码在 `{paths.appKitPath}/src/scenarios/<brief.template>/template/ProjectVideo.tsx`）。
 2. **场景技能**：`{paths.appKitPath}/src/scenarios/<brief.template>/SKILL.md`（这种视频怎么表达更好：分镜结构、镜头语言、节奏、素材纪律、验收）。
-3. **设计系统**：全局 `recut-design-system` skill，读 `DESIGN.md` + `tokens.css`（抽象风格定义：颜色/字体/间距/表面语言）。用 `resolvePalette(brief.style)` 落到运行时。需要计划门槛的场景先运行 `validate-scene-plan.mjs`。
-4. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `references/effects.md` / `references/captions.md`（表达特效、字幕主题、81 个 remotion-templates 与 shotcraft 组件）。按需 lazy 引用，不一次全读。
+3. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `references/effects.md` / `references/captions.md`（表达特效、字幕主题、81 个 remotion-templates 与 shotcraft 组件）。按需 lazy 引用，不一次全读。需要计划门槛的模板先运行 `validate-scene-plan.mjs`。
 
 ## 工作流
 
-`Brief → 读四件参考 → 编辑代码 → 预览确认 → 导出`
+`Brief → 读三件参考 → 编辑代码 → 预览确认 → 导出`
 
-1. **Brief**：`project.create` 保存模板（scenario×style）、选题、细节、预期时长与素材 assetId 列表。没有 Brief 时先让用户用表单提交，不要凭空开篇。
+1. **Brief**：`project.create` 保存成片模板、选题与素材 assetId 列表。没有 Brief 时先让用户用表单提交，不要凭空开篇。
 2. **编辑代码**：先调用 `workflow.context` 看阶段、`workspace` 状态与绝对路径 `paths.workspacePath`，再 `workspace.ensure` 确保工程就绪。然后读上述四件参考，用**原生文件工具**（Read/Write/Edit/Glob）直接读写 `${paths.workspacePath}` 下的 `src/compositions/ProjectVideo.tsx` 与 `src/Root.tsx`。**设计就是写代码**：不存在 `code.read`/`code.write`/`composition.save` 之类的结构契约，也不要执行 `render.export`。
 3. **预览**：每次改完代码**保存即生效**，Vite dev server 会自动热更新，UI 内嵌 `@remotion/player`（播放/暂停/进度条）自动刷新；用户会按帧评审。局部修改只动对应代码块，用原生文件工具原位更新。
 4. **导出**：用户在界面触发 `render.export`，由 App 本地渲染并归档为媒体素材。AI 不直接调用渲染操作。
@@ -68,7 +67,7 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 │   ├── lib/utils.ts       # cn（clsx + tailwind-merge 类名合并）
 │   ├── components/ui/     # 本地 shadcn 原子（画面内展示用）
 │   ├── components/  # remotion-templates 全部 81 个单文件组件
-│   ├── components/shotcraft/           # video-shotcraft 的 lib 组件
+│   ├── components/           # video-shotcraft 的 lib 组件
 │   ├── runtime/media.ts   # resolveMediaUrl(assetId, media)
 │   └── media.tsx / types.ts
 ├── remotion-kit/          # @recut/remotion-kit 整包冻结副本（含 src/scenarios/<id>/ 场景技能与模板代码）
@@ -81,13 +80,13 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 成片渲染层直接用现成的设计系统，不要逐条手写样式：
 
 - **语义 token**（`src/index.css` 的 `@theme`）：`bg-primary` / `bg-background` / `text-foreground` / `text-muted-foreground` / `text-accent` / `bg-destructive` / `rounded-xs` / `font-sans` / `font-mono` 等，全片统一用它们；**不要手写十六进制色值**（模板色板例外，见 `palette.*`）。
-- **动态色板**（每套风格不同）走 `palette` 内联样式：`palette.background/primary/accent/text/fontFamily/captionTheme`。`resolvePalette(brief.style)` 已按风格解析。
+- **模板色板**走 `palette` 内联样式：`palette.background/primary/accent/text/fontFamily/captionTheme`。色板由所选模板的 `template/ProjectVideo.tsx` 定义。
 - **shadcn 原子**（`src/components/ui/`）：画面里要出现 UI（按钮/卡片/标签/输入框等界面感场景）时直接复用 Button/Card/Badge/Input/Textarea + `cn`，不要从零写组件。
 - 布局/间距/字阶用 Tailwind 工具类，颜色交给 token 或 palette。
 
 ## 复用资产：用户先选择，AI 再写进代码
 
-开始设计前，先让用户在目录里做出选择。可用组件的**规范目录**以数据文件 `packages/remotion-kit/catalog.json` 维护（场景/设计系统/字幕主题/画幅/内置组件）；`workflow.context` 已返回 `catalogs`，或用原生文件工具读 `{paths.appKitPath}/catalog.json`。项目冻结版本读 `workspace/.recut-workspace` 的 `kitVersion` 字段：
+开始设计前，先让用户选择成片模板；可用组件的**规范目录**以数据文件 `packages/remotion-kit/catalog.json` 维护（成片模板/字幕主题/画幅/内置组件）；`workflow.context` 已返回 `catalogs`，或用原生文件工具读 `{paths.appKitPath}/catalog.json`。项目冻结版本读 `workspace/.recut-workspace` 的 `kitVersion` 字段：
 
 1. **场景技能** —— 用户选择场景后，读 `{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）与 `template/ProjectVideo.tsx`（模板代码）。
 2. **`references/effects.md`** —— 表达特效目录（remotion-templates）。用户选择想要的效果（背景 / 文字 / 镜头运动），你把它用进对应 scene；`workspace/remotion-kit/`（seed 时从 `@recut/remotion-kit` 整包拷贝的冻结副本）里有全部 81 个模板，直接 `import X from "@recut/remotion-kit/templates/<name>"` 复用；若用户想用更新版本，对比 `workspace/.recut-workspace` 与 `{paths.appKitPath}/catalog.json` 的版本，用原生文件工具读 `{paths.appKitPath}/src/` 最新源码按需升级。

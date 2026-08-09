@@ -7,14 +7,13 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import {
-  BackgroundFX,
   buildCaptionsData,
   CaptionTheme,
   DigitRoll,
-  FlashCut,
+  DoodleExplainerVideo,
   FacelessExplainerVideo,
+  FlashCut,
   ProductLaunchVideo,
-  resolvePalette,
   VerticalTicker,
 } from "@recut/remotion-kit";
 import * as Templates from "@recut/remotion-kit/templates";
@@ -23,22 +22,20 @@ import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
 export const PREVIEW_WIDTH = 1920;
 export const PREVIEW_HEIGHT = 1080;
 
-/**
- * `style` 是 Studio 的视觉风格样板；`template` 是可直接运行的 Remotion 模板。
- * 两者不能共用一个名称，否则组件目录里的模板会被错误派发到风格样板预览。
- */
-export type PreviewKind = "caption" | "style" | "composition" | "template" | "component";
+/** `composition` 是成片模板；`template` 是可直接运行的内置组件模板。 */
+export type PreviewKind = "caption" | "composition" | "template" | "component";
 
 export interface PreviewSpec {
   kind: PreviewKind;
   id: string;
+  thumbnail?: boolean;
 }
 
 export const previewDurationFrames = (spec: PreviewSpec): number => {
   if (spec.kind === "caption") return Math.round((CAPTION_DURATION_SEC + 1.5) * PREVIEW_FPS);
   if (spec.kind === "composition") {
-    // 场景预览跟随真实成片时长：product-launch 60s / faceless-explainer 55s。
-    const seconds = spec.id === "product-launch" ? 60 : spec.id === "faceless-explainer" ? 55 : 14;
+    // 场景预览跟随真实成片时长：product-launch 60s / faceless-explainer 55s / doodle-explainer 44s。
+    const seconds = spec.id === "product-launch" ? 60 : spec.id === "faceless-explainer" ? 55 : spec.id === "doodle-explainer" ? 44 : 14;
     return Math.round(seconds * PREVIEW_FPS);
   }
   return Math.round(5 * PREVIEW_FPS);
@@ -46,14 +43,18 @@ export const previewDurationFrames = (spec: PreviewSpec): number => {
 
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
-const CaptionPanel: React.FC<{ theme: string; palettePrimary?: string; paletteAccent?: string; compact?: boolean }> = ({
+const CAPTION_PRIMARY = "#18211B";
+const CAPTION_ACCENT = "#17A764";
+
+const CaptionPanel: React.FC<{ theme: string; palettePrimary?: string; paletteAccent?: string; compact?: boolean; thumbnail?: boolean }> = ({
   theme,
   palettePrimary,
   paletteAccent,
   compact,
+  thumbnail,
 }) => {
   const { width, height } = useVideoConfig();
-  const data = useMemo(() => buildCaptionsData(SAMPLE_NARRATION, 0.4, CAPTION_DURATION_SEC), []);
+  const data = useMemo(() => buildCaptionsData(SAMPLE_NARRATION, 0.4, CAPTION_DURATION_SEC, 2), []);
   return (
     <div
       style={{
@@ -69,7 +70,7 @@ const CaptionPanel: React.FC<{ theme: string; palettePrimary?: string; paletteAc
     >
       <CaptionTheme
         data={data}
-        fontSize={compact ? Math.round(width / 34) : Math.round(width / 24)}
+        fontSize={thumbnail ? Math.round(width / 9) : compact ? Math.round(width / 34) : Math.round(width / 20)}
         primaryColor={palettePrimary ?? "#ffffff"}
         secondaryColor={paletteAccent ?? "#f5c044"}
         theme={theme}
@@ -78,40 +79,19 @@ const CaptionPanel: React.FC<{ theme: string; palettePrimary?: string; paletteAc
   );
 };
 
-/** 字幕主题演示：中性深色底 + 主题自身的动效与字形。 */
-export const CaptionDemo: React.FC<{ theme: string }> = ({ theme }) => {
+/** 字幕主题演示：默认白色网格全画布，直接检验无底框字幕的字形与层级。 */
+export const CaptionDemo: React.FC<{ theme: string; thumbnail?: boolean }> = ({ theme, thumbnail }) => {
   const { width, height } = useVideoConfig();
   return (
-    <AbsoluteFill style={{ background: "#0d1017" }}>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(130% 100% at 50% 0%, #1d2634 0%, #0d1017 60%)" }} />
+    <AbsoluteFill style={{ background: "#ffffff", backgroundImage: "linear-gradient(#e1e8e2 1px, transparent 1px), linear-gradient(90deg, #e1e8e2 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
       <div style={{ position: "absolute", top: "10%", left: 0, right: 0, textAlign: "center" }}>
-        <span style={{ fontFamily: MONO, fontSize: Math.max(16, Math.round(width / 110)), letterSpacing: "0.3em", color: "#9aa4b5" }}>
+        <span style={{ fontFamily: MONO, fontSize: Math.max(16, Math.round(width / 110)), letterSpacing: "0.3em", color: "#637367" }}>
           CAPTION · {theme}
         </span>
       </div>
-      <CaptionPanel theme={theme} />
+      <CaptionPanel paletteAccent={CAPTION_ACCENT} palettePrimary={CAPTION_PRIMARY} theme={theme} thumbnail={thumbnail} />
       <div style={{ position: "absolute", bottom: height * 0.02, left: 0, right: 0, textAlign: "center" }}>
-        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.2em", color: "#4b5563" }}>LIVE ANIMATED PREVIEW</span>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-/** 视觉模板演示：模板调色板 + 背景效果 + 标题排版 + 模板默认字幕主题。 */
-export const TemplateDemo: React.FC<{ template: string }> = ({ template }) => {
-  const palette = resolvePalette(template);
-  const { width, height } = useVideoConfig();
-  return (
-    <AbsoluteFill style={{ background: palette.background }}>
-      <BackgroundFX effectId={palette.effectId} palette={palette} />
-      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 10%" }}>
-        <div style={{ fontFamily: MONO, fontSize: Math.max(18, Math.round(width / 100)), letterSpacing: "0.3em", color: palette.accent, fontWeight: 600, marginBottom: 26 }}>RECUT × REMOTION</div>
-        <h1 style={{ fontSize: Math.max(56, Math.round(width / 20)), fontWeight: 900, color: palette.text, margin: 0, lineHeight: 1.08, fontFamily: palette.fontFamily, letterSpacing: "-0.03em" }}>把想法，写成成片</h1>
-        <div style={{ width: Math.round(width / 11), height: 5, borderRadius: 3, background: `linear-gradient(90deg, ${palette.accent}, ${palette.primary})`, marginTop: 28 }} />
-      </div>
-      <CaptionPanel compact paletteAccent={palette.accent} theme={palette.captionTheme || "pop"} />
-      <div style={{ position: "absolute", bottom: height * 0.02, left: 0, right: 0, textAlign: "center" }}>
-        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.2em", color: "rgba(154,164,181,0.6)" }}>{template.toUpperCase()} · STYLE</span>
+        <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: "0.2em", color: "#77877c" }}>LIVE ANIMATED PREVIEW</span>
       </div>
     </AbsoluteFill>
   );
@@ -219,13 +199,21 @@ const ScenarioDemo: React.FC<{ id: string }> = ({ id }) => {
   if (id === "product-launch") {
     return <ProductLaunchVideo />;
   }
+  if (id === "doodle-explainer") {
+    return <DoodleExplainerVideo />;
+  }
   return <FacelessExplainerVideo />;
 };
 
 /** 按 kind+id 分发到真实组件的演示合成（PreviewCard / PreviewPicker 复用）。 */
-export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id }) => {
-  if (kind === "caption") return <CaptionDemo theme={id} />;
-  if (kind === "style") return <TemplateDemo template={id} />;
+export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => {
+  if (kind === "caption") return <CaptionDemo theme={id} thumbnail={thumbnail} />;
   if (kind === "composition") return <ScenarioDemo id={id} />;
-  return <ComponentDemo id={id} kind={kind} />;
+  return (
+    <AbsoluteFill style={{ background: "#ffffff", backgroundImage: "linear-gradient(#e7ece8 1px, transparent 1px), linear-gradient(90deg, #e7ece8 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
+      <div style={{ position: "absolute", inset: "8%", overflow: "hidden", border: "1px solid #d8e0da", borderRadius: 16, background: "#ffffff", boxShadow: "0 18px 50px rgba(16, 32, 23, 0.12)" }}>
+        <ComponentDemo id={id} kind={kind} />
+      </div>
+    </AbsoluteFill>
+  );
 };

@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖全局 recut-design-system skill（service/skills/recut-design-system/design-systems）
- *          与下面的 SCENARIO_SPEC（场景目录）
- * [OUTPUT]: 生成 catalog.json（designSystems + scenarios + captionThemes/canvasSizes/components/directives）
- * [POS]: remotion-kit 目录生成器；designSystems 直接从全局 skill 的 manifest 读取，
- *        scenarios/components/captionThemes/canvasSizes/directives 从下方内联目录拼接
+ * [INPUT]: 依赖下面的 SCENARIO_SPEC（成片模板目录）
+ * [OUTPUT]: 生成 catalog.json（scenarios + captionThemes/canvasSizes/components/directives）
+ * [POS]: remotion-kit 目录生成器；成片模板、组件、字幕主题、画布与导演指令从下方内联目录拼接
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-// 全局设计系统 skill 的包目录（recut 仓库 service/skills/recut-design-system/design-systems）。
-const GLOBAL_DESIGN_SYSTEMS = join(ROOT, "..", "..", "..", "..", "service", "skills", "recut-design-system", "design-systems");
-
-// 场景（L2 场景层）：模板 = 场景 × 风格。brief.template 存场景 id，brief.style 存设计系统 id。
+// 场景即成片模板：brief.template 存模板 id，模板内置视觉、组件和导演规划。
 const SCENARIO_SPEC = [
   {
     id: "faceless-explainer",
@@ -24,7 +19,6 @@ const SCENARIO_SPEC = [
     skill: "faceless-explainer",
     skillPath: "src/scenarios/faceless-explainer/SKILL.md",
     components: ["AnimatedText", "TitleSplit", "LowerThird", "StatCounter"],
-    defaultStyle: "bold",
     implemented: true,
     motion: "荧光绿纸面新闻钩子 → 大字号事实/影响拆解 → 三条信号 → 一句结论；网格纸、marker、箭头与眼睛建立强风格表达。",
   },
@@ -35,9 +29,18 @@ const SCENARIO_SPEC = [
     skill: "product-launch",
     skillPath: "src/scenarios/product-launch/SKILL.md",
     components: ["SpotlightReveal", "CardFlip", "EndCard", "DigitRoll"],
-    defaultStyle: "futuristic",
     implemented: true,
     motion: "结果承诺 → 痛点 → 功能证据 → 收束 CTA；每个功能只用一个可读的证据镜头。",
+  },
+  {
+    id: "doodle-explainer",
+    label: "白板涂鸦讲解",
+    description: "用一页手绘速写本把抽象概念讲成看得见的步骤。",
+    skill: "doodle-explainer",
+    skillPath: "src/scenarios/doodle-explainer/SKILL.md",
+    components: ["SketchBox", "SketchNote", "DigitRoll"],
+    implemented: true,
+    motion: "画出来 → 给形状 → 拆步骤 → 举例子 → 换角度 → 看信号 → 便签收束 → 结论；roughjs 手绘速写本 + 橙色 marker 建立强风格表达。",
   },
   {
     id: "data-briefing",
@@ -46,7 +49,6 @@ const SCENARIO_SPEC = [
     skill: "data-briefing",
     skillPath: "src/scenarios/data-briefing/SKILL.md",
     components: ["DigitRoll", "ChartAnimation", "ProgressBars", "StatCounter"],
-    defaultStyle: "modern",
     implemented: false,
     motion: "结论先行 → 数据逐项显现 → 回到行动结论；让数字承担运动。",
   },
@@ -57,7 +59,6 @@ const SCENARIO_SPEC = [
     skill: "motion-explainer",
     skillPath: "src/scenarios/motion-explainer/SKILL.md",
     components: ["AnimatedText", "TitleSplit", "LowerThird"],
-    defaultStyle: "contemporary",
     implemented: false,
     motion: "提问 → 拆解 → 结论；信息以可读的递进而不是装饰堆叠出现。",
   },
@@ -68,7 +69,6 @@ const SCENARIO_SPEC = [
     skill: "creator-collage",
     skillPath: "src/scenarios/creator-collage/SKILL.md",
     components: ["PhotoStack", "AnimatedList", "TextHighlight"],
-    defaultStyle: "editorial",
     implemented: false,
     motion: "主题定调 → 灵感卡拼贴 → 一句旁白收束；像完成一面灵感墙。",
   },
@@ -79,7 +79,6 @@ const SCENARIO_SPEC = [
     skill: "slideshow",
     skillPath: "src/scenarios/slideshow/SKILL.md",
     components: ["GalleryGrid", "ImageCarousel", "PhotoStack"],
-    defaultStyle: "minimal",
     implemented: false,
     motion: "先按叙事价值排序，交替使用静止、推近、平移，避免机械轮播。",
   },
@@ -90,7 +89,6 @@ const SCENARIO_SPEC = [
     skill: "talking-head-recut",
     skillPath: "src/scenarios/talking-head-recut/SKILL.md",
     components: ["Caption", "LowerThird", "QuoteCard"],
-    defaultStyle: "clean",
     implemented: false,
     motion: "转录后按完整意思分段，说话者为锚点，字幕逐词对齐，只在关键短语放大。",
   },
@@ -101,7 +99,6 @@ const SCENARIO_SPEC = [
     skill: "music-visual",
     skillPath: "src/scenarios/music-visual/SKILL.md",
     components: ["SoundWave", "ParticleExplosion", "RotatingCarousel"],
-    defaultStyle: "neon",
     implemented: false,
     motion: "先找段落与能量变化，镜头切换只在节拍节点产生节奏；副歌只设一个主视觉高潮。",
   },
@@ -112,7 +109,6 @@ const SCENARIO_SPEC = [
     skill: "captioned-clip",
     skillPath: "src/scenarios/captioned-clip/SKILL.md",
     components: ["Caption", "KineticTitle", "TextHighlight"],
-    defaultStyle: "bold",
     implemented: false,
     motion: "先挑一段自洽观点，剪掉寒暄重复；字幕逐词同步、始终可读，只有一句做视觉高潮。",
   },
@@ -243,8 +239,8 @@ const COMPONENTS = [
   description,
   kind,
   category,
-  path: kind === "shotcraft" ? `packages/remotion-kit/src/components/shotcraft/${id}.tsx` : `packages/remotion-kit/src/components/${id}.tsx`,
-  workspacePath: kind === "shotcraft" ? `src/components/shotcraft/${id}.tsx` : `src/components/${id}.tsx`,
+  path: kind === "shotcraft" ? `packages/remotion-kit/src/components/${id}.tsx` : `packages/remotion-kit/src/components/${id}.tsx`,
+  workspacePath: kind === "shotcraft" ? `src/components/${id}.tsx` : `src/components/${id}.tsx`,
 }));
 
 const DIRECTIVES = [
@@ -257,44 +253,6 @@ const DIRECTIVES = [
   { id: "rapid-fire", label: "快节奏推进", description: "高密度信息，快速切换", prompt: "采用快节奏推进：短镜头、快速转场、高密度信息，适合社交媒体的强节奏；注意信息可读性。" },
   { id: "breathing-room", label: "留白呼吸", description: "关键信息后停顿", prompt: "关键信息落定后留出呼吸：在重点镜头后放慢节奏、加停留，让观众消化，而不是全程匀速。" },
 ];
-
-/** 从全局 recut-design-system skill 的包文件（DESIGN.md + tokens.css）读取设计系统目录。 */
-const designSystems = (() => {
-  const result = {};
-  let dirs = [];
-  try { dirs = readdirSync(GLOBAL_DESIGN_SYSTEMS, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name); } catch (_) { /* skill 未同步时退化为内置清单 */ }
-  for (const id of dirs) {
-    try {
-      // 包已裁剪为最小契约集：名称从 DESIGN.md 的 H1 推导，分类从 tokens.css 头部注释推导。
-      const design = readFileSync(join(GLOBAL_DESIGN_SYSTEMS, id, "DESIGN.md"), "utf8");
-      let label = id;
-      for (const line of design.split("\n")) {
-        if (line.startsWith("# ")) { label = line.slice(2).trim(); break; }
-      }
-      let category = "";
-      try {
-        const tokens = readFileSync(join(GLOBAL_DESIGN_SYSTEMS, id, "tokens.css"), "utf8");
-        for (const line of tokens.split("\n")) {
-          if (line.startsWith(" *") && !line.includes("token bindings") && line.includes("language")) { category = line.replace(/[^A-Za-z &,-]/g, "").trim(); break; }
-        }
-      } catch (_) { /* tokens 缺失时分类留空 */ }
-      result[id] = {
-        label,
-        category,
-        source: "open-design",
-        description: "",
-        motion: "",
-      };
-    } catch (_) { /* 跳过不完整包 */ }
-  }
-  if (Object.keys(result).length === 0) {
-    // 全局 skill 不可读时给出最小回退（Recut 原生编辑风），避免目录为空。
-    for (const [id, name] of [["paper-collage", "纸拼贴编辑风"], ["cinematic-dark", "电影感深色"], ["clean-editorial", "简洁杂志排版"], ["vibrant-tech", "科技活力风"]]) {
-      result[id] = { label: name, category: "Editorial", source: "bundled", description: "", motion: "" };
-    }
-  }
-  return result;
-})();
 
 const scenarios = Object.fromEntries(
   SCENARIO_SPEC.filter((s) => s.implemented).map((s) => {
@@ -309,7 +267,6 @@ const scenarios = Object.fromEntries(
 );
 
 const catalog = {
-  designSystems,
   scenarios,
   captionThemes: CAPTION_THEMES,
   canvasSizes: CANVAS_SIZES,
@@ -318,4 +275,4 @@ const catalog = {
 };
 
 writeFileSync(join(ROOT, "catalog.json"), JSON.stringify(catalog, null, 2) + "\n");
-console.log(`generated catalog.json (${Object.keys(designSystems).length} designSystems, ${Object.keys(scenarios).length} scenarios, ${COMPONENTS.length} components)`);
+console.log(`generated catalog.json (${Object.keys(scenarios).length} scenarios, ${COMPONENTS.length} components)`);

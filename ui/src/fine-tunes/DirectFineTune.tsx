@@ -1,7 +1,13 @@
+/**
+ * [INPUT]: 依赖导演指令目录与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 DirectFineTune，组装无资源选择的镜头/节奏微调提示
+ * [POS]: fine-tunes 的直接表达微调动作；不承载成片模板定义
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import { useEffect, useMemo, useState } from "react";
-import type { ScenarioProps } from "./types";
+import type { FineTuneProps } from "./FineTuneProps";
 
-export const DirectScenario: React.FC<ScenarioProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
+export const DirectFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
   const directives = catalog.directives ?? [];
   const [value, setValue] = useState(directives[0]?.id ?? "");
   const prompt = useMemo(() => {

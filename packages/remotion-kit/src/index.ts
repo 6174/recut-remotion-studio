@@ -7,6 +7,6 @@
 export * from "./captions";
 export * from "./effects";
 export * from "./palette";
-export * from "./components/shotcraft";
+export * from "./components";
 export * from "./styles";
 export * from "./scenarios";

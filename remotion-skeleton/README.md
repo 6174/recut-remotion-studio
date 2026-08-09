@@ -17,7 +17,7 @@
 - `src/captions/` 13 套字幕主题（vendor/ 保原始结构；中文旁白按短语切分）
 - `src/components/ui/` 本地 shadcn 原子（Button/Card/Badge/Input/Textarea）+ `src/lib/utils.ts` 的 `cn`
 - `src/components/` 81 个单文件模板（含 README 目录表）
-- `src/components/shotcraft/` video-shotcraft lib 组件
+- `src/components/` video-shotcraft lib 组件
 - `src/runtime/media.ts` resolveMediaUrl(assetId, media)
 
 ## 设计系统

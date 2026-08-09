@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖素材目录、media.pick 与父级 onStart 提交回调
- * [OUTPUT]: 对外提供新建项目 Brief 的表单：风格模板、选题描述、时长与素材选择
+ * [OUTPUT]: 对外提供新建项目 Brief 的表单：可预览成片模板、选题与素材选择
  * [POS]: remotion-studio/ui 的创建入口；提交后切换到工作室工作面
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -10,24 +10,19 @@ import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Input } from "./components/ui/input";
-import { Textarea } from "./components/ui/textarea";
+import { PreviewPicker } from "./preview/PreviewPicker";
 import { recut } from "./recut-sdk";
 import type { Catalog, MediaAsset } from "./app";
 
 interface BriefFormProps {
   catalog: Catalog;
   status: string;
-  onStart: (input: { template: string; style: string; topic: string; details: string; expectedDurationSec: number; materialAssetIds: string[] }) => Promise<void>;
+  onStart: (input: { template: string; topic: string; materialAssetIds: string[] }) => Promise<void>;
 }
-
-const selectClass = "h-8 w-full rounded-xs border border-input bg-background px-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:opacity-50";
 
 export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
   const [template, setTemplate] = useState(Object.keys(catalog.scenarios)[0] || "faceless-explainer");
-  const [style, setStyle] = useState(Object.keys(catalog.designSystems)[0] || "clean-editorial");
   const [topic, setTopic] = useState("");
-  const [details, setDetails] = useState("");
-  const [duration, setDuration] = useState(60);
   const [materials, setMaterials] = useState<MediaAsset[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -47,7 +42,7 @@ export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
     if (!topic.trim()) return;
     setBusy(true);
     try {
-      await onStart({ template, style, topic: topic.trim(), details: details.trim(), expectedDurationSec: duration, materialAssetIds: materials.map((item) => item.id) });
+      await onStart({ template, topic: topic.trim(), materialAssetIds: materials.map((item) => item.id) });
     } finally {
       setBusy(false);
     }
@@ -58,39 +53,20 @@ export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
       <div className="mx-auto max-w-3xl px-5 py-6">
         <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION STUDIO / NEW BRIEF</p>
         <h2 className="mt-1.5 text-xl font-semibold tracking-tight">新建一支程序化视频</h2>
-        <p className="mt-1 text-sm leading-5 text-muted-foreground">先选成片场景（做什么样的视频），再选设计系统（什么风格表达）；前者决定叙事和组件组合，后者决定视觉语言。AI 会把两者写进项目的 Remotion 代码。</p>
+        <p className="mt-1 text-sm leading-5 text-muted-foreground">从一个完整模板开始：模板已经定义了视觉、节奏和组件组合。然后给出选题并按需加入素材，AI 会直接把它写成成片。</p>
 
         <div className="mt-5 space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <div><CardTitle>成片场景</CardTitle><p className="mt-0.5 font-mono text-[10px] text-muted-foreground">定义叙事骨架与底层组件组合；Agent 会读对应场景技能（导演视角）</p></div>
+              <div><CardTitle>选择模板</CardTitle><p className="mt-0.5 font-mono text-[10px] text-muted-foreground">先看真实预览；模板决定视频的视觉、叙事骨架与组件组合。</p></div>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {Object.entries(catalog.scenarios).map(([id, templateInfo]) => {
-                const active = template === id;
-                return (
-                  <button aria-checked={active} className={`rounded-xs border p-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/30 ${active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/30 hover:bg-muted"}`} key={id} onClick={() => setTemplate(id)} role="radio" type="button">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium">{templateInfo.label}</span>
-                      {active ? <span className="size-1.5 rounded-full bg-primary" /> : null}
-                    </span>
-                    <span className="mt-1 block text-[11px] leading-4 text-muted-foreground">{templateInfo.description}</span>
-                    <span className="mt-1.5 block text-[10px] leading-4 text-muted-foreground/80">组件：{templateInfo.components.join(" · ")}</span>
-                  </button>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <div><CardTitle>设计系统</CardTitle><p className="mt-0.5 font-mono text-[10px] text-muted-foreground">独立的色彩、字体、间距、形状与动效语法；Agent 会读取对应 DESIGN.md</p></div>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {Object.entries(catalog.designSystems).map(([id, styleInfo]) => {
-                const active = style === id;
-                return <button aria-checked={active} className={`rounded-xs border p-3 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/30 ${active ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/30 hover:bg-muted"}`} key={id} onClick={() => setStyle(id)} role="radio" type="button"><span className="flex items-center justify-between gap-2"><span className="text-xs font-medium">{styleInfo.label}</span>{active ? <span className="size-1.5 rounded-full bg-primary" /> : null}</span><span className="mt-1 block text-[11px] leading-4 text-muted-foreground">{styleInfo.description}</span><span className="mt-1.5 block text-[10px] leading-4 text-muted-foreground/80">{styleInfo.category ? `${styleInfo.category} · ` : ""}{styleInfo.motion}</span></button>;
-              })}
+            <CardContent>
+              <PreviewPicker
+                items={Object.entries(catalog.scenarios).map(([id, item]) => ({ id, label: item.label, description: item.description }))}
+                kind="composition"
+                onChange={setTemplate}
+                value={template}
+              />
             </CardContent>
           </Card>
 
@@ -98,18 +74,9 @@ export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
             <CardHeader><CardTitle>选题与描述</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium">选题方向</span>
+                <span className="mb-1.5 block text-xs font-medium">选题</span>
                 <Input autoFocus id="brief-topic" onChange={(event) => setTopic(event.target.value)} placeholder="例如：为什么人人都该学会做视频" value={topic} />
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-medium">详细描述（可选）</span>
-                <Textarea id="brief-details" onChange={(event) => setDetails(event.target.value)} placeholder="目标观众、核心观点、风格偏好、想要的效果或任何约束…" value={details} />
-              </label>
-              <label className="block max-w-56">
-                <span className="mb-1.5 block text-xs font-medium">预期时长（秒）</span>
-                <select className={selectClass} id="brief-duration" onChange={(event) => setDuration(Number(event.target.value))} value={duration}>
-                  {[15, 30, 45, 60, 90, 120].map((seconds) => <option key={seconds} value={seconds}>{seconds} 秒</option>)}
-                </select>
+                <span className="mt-1.5 block text-[11px] text-muted-foreground">写清楚你想传达的核心观点；模板会负责视觉表达与叙事节奏。</span>
               </label>
             </CardContent>
           </Card>

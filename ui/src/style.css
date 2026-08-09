@@ -72,3 +72,11 @@
 }
 
 body.is-resizing { cursor: ns-resize; user-select: none; }
+
+.preview-grid {
+  background-color: #fff;
+  background-image:
+    linear-gradient(to right, rgb(221 229 223 / 0.72) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(221 229 223 / 0.72) 1px, transparent 1px);
+  background-size: 18px 18px;
+}

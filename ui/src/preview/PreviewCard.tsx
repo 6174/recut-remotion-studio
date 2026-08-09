@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 @remotion/player 与 preview/compositions 的 PreviewScene
- * [OUTPUT]: 对外提供 Player 大预览与代表帧卡片；视口外卡片自动卸载
+ * [OUTPUT]: 对外提供 Player 大预览与代表帧卡片；全铺预览以白色底承接重载瞬间，视口外卡片自动卸载
  * [POS]: remotion-studio/ui 预览层的卡片原子；只渲染预览，不持有业务选择状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -9,9 +9,9 @@ import { Player } from "@remotion/player";
 import { PreviewScene, PreviewSpec, previewDurationFrames } from "./compositions";
 import { PREVIEW_FPS } from "./sample";
 
-export const LivePreview: React.FC<{ spec: PreviewSpec; aspectRatio?: string | number; height?: number; showControls?: boolean; autoPlay?: boolean; initialFrame?: number }> = ({ spec, aspectRatio = "16 / 9", height, showControls = false, autoPlay = true, initialFrame = 0 }) => {
+export const LivePreview: React.FC<{ spec: PreviewSpec; aspectRatio?: string | number; height?: number; showControls?: boolean; autoPlay?: boolean; initialFrame?: number; fullBleed?: boolean }> = ({ spec, aspectRatio = "16 / 9", height, showControls = false, autoPlay = true, initialFrame = 0, fullBleed = false }) => {
   return (
-    <div className="overflow-hidden rounded-xs bg-terminal" style={height ? { height, minHeight: 0 } : { aspectRatio, minHeight: 0 }}>
+    <div className={fullBleed ? "overflow-hidden rounded-sm bg-white" : "preview-grid overflow-hidden rounded-sm border border-border p-2"} style={height ? { height, minHeight: 0 } : { aspectRatio, minHeight: 0 }}>
       <Player
         acknowledgeRemotionLicense
         component={PreviewScene}
@@ -25,7 +25,7 @@ export const LivePreview: React.FC<{ spec: PreviewSpec; aspectRatio?: string | n
         inputProps={spec}
         loop
         muted
-        style={{ width: "100%", height: "100%" }}
+        style={fullBleed ? { width: "100%", height: "100%" } : { width: "100%", height: "100%", borderRadius: 4, boxShadow: "0 8px 22px rgba(20, 33, 26, 0.10)" }}
       />
     </div>
   );
@@ -73,7 +73,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({ spec, selected, label,
       ref={holderRef}
       type="button"
     >
-      <div className="min-h-0">{inView ? <LivePreview autoPlay={false} initialFrame={48} spec={spec} /> : <div style={{ aspectRatio: "16 / 9" }} />}</div>
+      <div className="min-h-0">{inView ? <LivePreview autoPlay={false} fullBleed initialFrame={48} spec={{ ...spec, thumbnail: true }} /> : <div style={{ aspectRatio: "16 / 9" }} />}</div>
       <span className="mt-1.5 flex items-center justify-between gap-1">
         <span className="truncate text-xs font-semibold">{label}</span>
         {selected ? <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">✓</span> : null}

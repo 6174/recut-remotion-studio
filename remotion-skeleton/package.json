@@ -8,21 +8,22 @@
   },
   "dependencies": {
     "@recut/remotion-kit": "file:../packages/remotion-kit",
-    "@remotion/bundler": "4.0.506",
-    "@remotion/renderer": "4.0.506",
+    "@remotion/bundler": "4.0.507",
+    "@remotion/renderer": "4.0.507",
     "@tailwindcss/postcss": "4.1.17",
     "@tailwindcss/vite": "4.1.17",
+    "@vitejs/plugin-react": "4.3.4",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "lucide-react": "^0.469.0",
     "postcss": "^8.4.49",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "remotion": "4.0.506",
+    "remotion": "4.0.507",
+    "roughjs": "^4.6.6",
     "tailwind-merge": "3.3.0",
     "tailwindcss": "4.1.17",
-    "vite": "6.3.5",
-    "@vitejs/plugin-react": "4.3.4"
+    "vite": "6.3.5"
   },
   "devDependencies": {
     "@types/react": "18.3.12",

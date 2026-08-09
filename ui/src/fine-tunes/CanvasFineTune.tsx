@@ -1,8 +1,14 @@
+/**
+ * [INPUT]: 依赖画布目录、CanvasPicker 与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 CanvasFineTune，组装画幅适配提示
+ * [POS]: fine-tunes 的画幅微调动作；不改变成片模板身份
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import { useEffect, useMemo, useState } from "react";
 import { CanvasPicker } from "../preview/CanvasPicker";
-import type { ScenarioProps } from "./types";
+import type { FineTuneProps } from "./FineTuneProps";
 
-export const CanvasScenario: React.FC<ScenarioProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
+export const CanvasFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
   const [value, setValue] = useState(catalog.canvasSizes[0]?.id || "");
   const prompt = useMemo(() => {
     const selected = catalog.canvasSizes.find((item) => item.id === value);

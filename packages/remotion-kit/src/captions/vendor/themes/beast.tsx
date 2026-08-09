@@ -1,13 +1,19 @@
+/**
+ * [INPUT]: 依赖逐词时间轴、Remotion 帧时钟与 CaptionTheme 的主题分发
+ * [OUTPUT]: 对外提供 BeastTheme：无底框的白字黑描边逐词字幕
+ * [POS]: captions/vendor/themes 的科技新闻字幕主题；不使用容器或背景框，只提供克制的文字层。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring } from "remotion";
-import { InternalThemeProps } from "../types";
+import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type { InternalThemeProps } from "../types";
 
 export const BeastTheme: React.FC<InternalThemeProps> = ({
   data,
   fontSize,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const time = frame / fps;
 
   // Find active line
@@ -29,12 +35,9 @@ export const BeastTheme: React.FC<InternalThemeProps> = ({
   const activeLine = data.lines[activeLineIdx] || data.lines[0];
   if (!activeLine || !activeLine.words.length) return null;
 
-  // Responsive scaling
-  const scaleFactor = width / 1080;
-  const baseSize = typeof fontSize === "number" ? fontSize : 92;
-  const scaledFontSize = `${baseSize * scaleFactor}px`;
-  const strokeWidth = `${12 * scaleFactor}px`;
-  const shadowOffset = `${6 * scaleFactor}px`;
+  // fontSize 已是最终画布像素值：不能再按 1920/1080 二次放大。
+  const baseSize = typeof fontSize === "number" ? fontSize : 46;
+  const strokeWidth = Math.max(3, Math.round(baseSize * 0.075));
 
   return (
     <div
@@ -43,8 +46,8 @@ export const BeastTheme: React.FC<InternalThemeProps> = ({
         flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
-        gap: `${12 * scaleFactor}px ${22 * scaleFactor}px`,
-        maxWidth: "95%",
+        gap: "8px 14px",
+        maxWidth: "100%",
         textAlign: "center",
       }}
     >
@@ -58,30 +61,24 @@ export const BeastTheme: React.FC<InternalThemeProps> = ({
           config: { damping: 10, stiffness: 180 },
         });
 
-        // Official MrBeast colors: white base, yellow active
-        const color = isActive ? "#ffff00" : "#ffffff";
-
-        const transform = isActive
-          ? `scale(${1.0 + pop * 0.15}) rotate(-2deg)`
-          : "scale(1) rotate(0deg)";
+        const transform = isActive ? `scale(${1 + pop * 0.06})` : "scale(1)";
 
         return (
           <span
             key={index}
             style={{
-              color,
-              fontFamily: '"Komika Axis", "Montserrat", "Arial Black", sans-serif',
-              fontSize: scaledFontSize,
+              color: "#ffffff",
+              fontFamily: '"Arial Black", "PingFang SC", "Noto Sans SC", sans-serif',
+              fontSize: baseSize,
               fontWeight: 900,
-              fontStyle: "italic",
-              textTransform: "uppercase",
-              letterSpacing: `-${2 * scaleFactor}px`,
-              WebkitTextStroke: `${strokeWidth} #000000`,
-              textShadow: `${shadowOffset} ${shadowOffset} 0px #000000`,
+              fontStyle: "normal",
+              letterSpacing: "-1px",
+              lineHeight: 1.16,
+              WebkitTextStroke: `${strokeWidth}px #111111`,
+              textShadow: "2px 3px 0 #111111",
               paintOrder: "stroke fill",
               transform,
               display: "inline-block",
-              transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.1s ease",
             }}
           >
             {word.text}

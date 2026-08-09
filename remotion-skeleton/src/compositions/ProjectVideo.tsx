@@ -6,19 +6,19 @@
  *        （导演视角见场景 SKILL.md）；视觉风格内敛进场景，不依赖全局设计系统。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  *
- * 模板 = 场景 × 风格：
- *   - 场景（scenario，brief.template）：路由到 @recut/remotion-kit 的 src/scenarios/<id>/
- *     （ProductLaunchVideo / FacelessExplainerVideo，每个自带 palette + beats + 默认 SCENES）；
- *   - 换风格走外层 design-system 迭代，不在场景模板职责内。
+ * 模板（brief.template）路由到 @recut/remotion-kit 的 src/scenarios/<id>/；
+ * ProductLaunchVideo / FacelessExplainerVideo / DoodleExplainerVideo 各自携带
+ * palette、beats 与默认 SCENES，是视觉与叙事的完整选择，不再叠加独立风格层。
  */
 import React from "react";
-import { FACELESS_EXPLAINER_DURATION_SEC, FacelessExplainerVideo, PRODUCT_LAUNCH_DURATION_SEC, ProductLaunchVideo } from "@recut/remotion-kit";
+import { DOODLE_EXPLAINER_DURATION_SEC, DoodleExplainerVideo, FACELESS_EXPLAINER_DURATION_SEC, FacelessExplainerVideo, PRODUCT_LAUNCH_DURATION_SEC, ProductLaunchVideo } from "@recut/remotion-kit";
 import { resolveMediaUrl } from "../runtime/media";
 import type { MediaMap, ProjectVideoProps } from "../types";
 
 export const SCENARIO_DURATION_SEC: Record<string, number> = {
   "product-launch": PRODUCT_LAUNCH_DURATION_SEC,
   "faceless-explainer": FACELESS_EXPLAINER_DURATION_SEC,
+  "doodle-explainer": DOODLE_EXPLAINER_DURATION_SEC,
 };
 
 export const getProjectMetadata = (props: ProjectVideoProps) => {
@@ -41,6 +41,9 @@ export const ProjectVideo: React.FC<ProjectVideoProps> = ({ brief, media }) => {
   };
   if (scenario === "product-launch") {
     return <ProductLaunchVideo {...common} productName={brief?.details} />;
+  }
+  if (scenario === "doodle-explainer") {
+    return <DoodleExplainerVideo {...common} />;
   }
   return <FacelessExplainerVideo {...common} />;
 };

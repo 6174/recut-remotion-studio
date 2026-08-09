@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖视觉/字幕目录、素材选择器、预览选择器与 Recut 媒体 API
- * [OUTPUT]: 对外提供 SrtScenario，收集 SRT 或音视频来源并生成成片提示
- * [POS]: remotion-studio/ui/scenarios 的字幕成片入口；组合视觉风格、字幕主题与字幕来源
+ * [INPUT]: 依赖成片模板目录、素材选择器、预览选择器与 Recut 媒体 API
+ * [OUTPUT]: 对外提供 SrtFineTune，收集 SRT 或音视频来源并生成成片提示
+ * [POS]: remotion-studio/ui/fine-tunes 的字幕成片微调动作；组合成片模板与字幕来源
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";
@@ -11,11 +11,10 @@ import { PreviewPicker } from "../preview/PreviewPicker";
 import { recut } from "../recut-sdk";
 import type { MediaAsset } from "../app";
 import { AssetPicker } from "./AssetPicker";
-import type { ScenarioProps } from "./types";
+import type { FineTuneProps } from "./FineTuneProps";
 
-export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
-  const [template, setTemplate] = useState(Object.keys(catalog.designSystems)[0] || "");
-  const [caption, setCaption] = useState(catalog.captionThemes[0]?.id || "");
+export const SrtFineTune: React.FC<FineTuneProps> = ({ catalog, completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
+  const [template, setTemplate] = useState(Object.keys(catalog.scenarios)[0] || "");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
   const [sourceAsset, setSourceAsset] = useState<MediaAsset | null>(null);
@@ -24,15 +23,14 @@ export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets,
   useEffect(() => { onReady(ready); }, [onReady, ready]);
 
   const prompt = useMemo(() => {
-    const selectedTemplate = catalog.designSystems[template];
-    const selectedCaption = catalog.captionThemes.find((item) => item.id === caption);
+    const selectedTemplate = catalog.scenarios[template];
     const sourceText = sourceAsset
       ? `\n字幕来源素材：${sourceAsset.name}（${sourceAsset.kind}，assetId: ${sourceAsset.id}）\n请先从该素材转录生成 SRT，再按时间轴构建视频，并在 composition.assets 中登记它。`
       : "";
-    return `${basePrompt}\n\n视觉模板：${selectedTemplate?.label ?? template}\n字幕风格：${selectedCaption?.label ?? caption}${
+    return `${basePrompt}\n\n成片模板：${selectedTemplate?.label ?? template}（${selectedTemplate?.description ?? ""}）${
       text.trim() ? `\nSRT 文件：${file?.name ?? "未命名.srt"}\n\nSRT 内容：\n${text.slice(0, 16000)}` : sourceText || "\n请上传 .srt 文件或选择一个音视频素材。"
     }`;
-  }, [basePrompt, caption, catalog, file?.name, sourceAsset, template, text]);
+  }, [basePrompt, catalog, file?.name, sourceAsset, template, text]);
   useEffect(() => { onPrompt(prompt); }, [onPrompt, prompt]);
 
   const pickSource = async () => {
@@ -53,24 +51,12 @@ export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets,
   return (
     <div className="space-y-4">
       <div>
-        <span className="mb-1.5 block text-xs font-medium">设计系统</span>
+        <span className="mb-1.5 block text-xs font-medium">选择成片模板</span>
         <PreviewPicker
-          layout="side"
-          items={Object.entries(catalog.designSystems).map(([id, item]) => ({ id, label: item.label, description: `${item.description} · ${item.motion}` }))}
-          kind="style"
+          items={Object.entries(catalog.scenarios).map(([id, item]) => ({ id, label: item.label, description: item.description }))}
+          kind="composition"
           onChange={setTemplate}
           value={template}
-        />
-      </div>
-      <div>
-        <span className="mb-1.5 block text-xs font-medium">字幕风格</span>
-        <PreviewPicker
-          columns={4}
-          layout="side"
-          items={catalog.captionThemes.map((item) => ({ id: item.id, label: item.label, description: item.description }))}
-          kind="caption"
-          onChange={setCaption}
-          value={caption}
         />
       </div>
       <label className="block">

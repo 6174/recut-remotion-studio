@@ -8,7 +8,7 @@
  */
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { DigitRoll } from "../../components/shotcraft";
+import { DigitRoll } from "../../components";
 import type { BeatRenderer, BeatContext } from "../_shared/types";
 import { AccentRule, ClaimTitle, clamp, CtaButton, EvidenceCard, Eyebrow, GlowPill, neonField, PointList, Ring } from "./primitives";
 

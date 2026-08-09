@@ -1,18 +1,26 @@
+/**
+ * [INPUT]: 依赖项目素材、AssetPicker、Recut 媒体 API 与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 MaterialsFineTune，组装所选素材的引用清单
+ * [POS]: fine-tunes 的素材使用动作；只提供素材，不预设改写方式
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
 import { recut } from "../recut-sdk";
 import type { MediaAsset } from "../app";
 import { AssetPicker } from "./AssetPicker";
-import type { ScenarioProps } from "./types";
+import type { FineTuneProps } from "./FineTuneProps";
 
-export const MaterialsScenario: React.FC<ScenarioProps> = ({ completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
+export const MaterialsFineTune: React.FC<FineTuneProps> = ({ completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
   const [selected, setSelected] = useState<MediaAsset[]>([]);
 
   const ready = selected.length > 0;
   useEffect(() => { onReady(ready); }, [onReady, ready]);
 
   const prompt = useMemo(
-    () => `${basePrompt}\n\n优先使用以下素材：\n${selected.map((asset) => `- ${asset.name}（${asset.kind}，assetId: ${asset.id}）`).join("\n")}`,
+    () => [basePrompt, `使用以下素材：\n${selected.map((asset) => `- ${asset.name}（${asset.kind}，assetId: ${asset.id}）`).join("\n")}`]
+      .filter(Boolean)
+      .join("\n\n"),
     [basePrompt, selected],
   );
   useEffect(() => { onPrompt(prompt); }, [onPrompt, prompt]);
@@ -45,7 +53,7 @@ export const MaterialsScenario: React.FC<ScenarioProps> = ({ completedAssets, ba
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium">用于重剪的素材</span>
+        <span className="text-xs font-medium">要使用的素材</span>
         <Button className="px-2 text-[11px]" onClick={() => void pick()} type="button" variant="outline">从素材库选择</Button>
       </div>
       {completedAssets.length > 0 ? (
