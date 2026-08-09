@@ -22,7 +22,7 @@ references: references/effects.md, references/captions.md, references/directing.
 - **所有字幕默认无底框**：不用卡片、气泡、描边容器或投影块包住字幕；字幕以干净的高对比文字叠在画面下三分之一，只有用户明确要求时才可以例外。
 - 交付前抽关键帧缩至约 480px 宽检查：标题、正文、字幕、数字与 CTA 仍能一眼读清，才算通过。
 - **视频不是 UI**：不使用微型 tag、chip、状态栏或缩小段落来制造信息密度。将一条信息做成大字、分词/分句入场、位移、色彩渐变或形状关系；观众看不到的文字没有存在价值。
-- **渐变建立景深**：每个风格化场景至少在背景、主色块、文字或光晕中使用两层协调渐变。禁止单一纯色大铺底；文字渐变必须保持足够对比度，不能替代信息层级。
+- **色彩由场景决定**：是否使用渐变、怎样建立景深，由所选场景的 `SKILL.md` 与模板代码共同规定；不要把某个场景的渐变配色扩散为所有成片的默认。任何色彩处理都必须保持足够对比度，不能替代信息层级。
 
 ## 三件参考：模板是单一真相源
 
@@ -30,9 +30,19 @@ references: references/effects.md, references/captions.md, references/directing.
 
 开始设计前按顺序读**三件参考**：
 
-1. **模板代码**：`{paths.workspacePath}/src/compositions/ProjectVideo.tsx`（该项目的成片骨架，直接改写 SCENES 与渲染层；场景模板代码在 `{paths.appKitPath}/src/scenarios/<brief.template>/template/ProjectVideo.tsx`）。
+1. **模板代码**：`{paths.workspacePath}/src/compositions/ProjectVideo.tsx`（该项目的成片骨架。默认只是接近空白的标题页，请按所选模板整体重写为完整成片：以 `{paths.appKitPath}/src/scenarios/<brief.template>/template/ProjectVideo.tsx` 的默认 palette、beats 与 SCENES 为骨架，替换为当前选题的真实内容）。
 2. **场景技能**：`{paths.appKitPath}/src/scenarios/<brief.template>/SKILL.md`（这种视频怎么表达更好：分镜结构、镜头语言、节奏、素材纪律、验收）。
-3. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `references/effects.md` / `references/captions.md`（表达特效、字幕主题、81 个 remotion-templates 与 shotcraft 组件）。按需 lazy 引用，不一次全读。需要计划门槛的模板先运行 `validate-scene-plan.mjs`。
+3. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `effects`（镜头层效果）+ `references/effects.md` / `references/captions.md`（表达特效、字幕主题、81 个 remotion-templates 与 shotcraft 组件）。按需 lazy 引用，不一次全读。需要计划门槛的模板先运行 `validate-scene-plan.mjs`。
+
+## HTML-in-Canvas 表达镜头（镜头层效果）
+
+这是把**已经正确排版的 HTML**作为可被后处理的动态纹理的镜头能力：模拟交互（鼠标轨迹、点击波纹、拖拽尾迹）、聚焦引导、文本选择与放大镜。它只走原生 HTML-in-Canvas 渲染，是浏览器硬能力，**不支持时绝不降级为普通 DOM 画面**。
+
+- **优先复用 `@recut/remotion-kit/html-canvas`**：唯一 `HtmlCanvasVideoStage`（在 `src/compositions/ProjectVideo.tsx` 包住场景路由一次，接 `stagePlan` prop）、`BrowserCapabilityGate`、`useInteraction()`。
+- **先写 `InteractionScript`（InteractionEvent[]）与 `EffectClip`，再写 JSX**。坐标使用 composition 设计像素；时间用帧；禁止真实 pointer 事件回放、`Date.now()`/`Math.random()`/`requestAnimationFrame()`。
+- **禁止粘贴 CanvasUI 等网页交互示例代码**；只能按 MIT 归属移植 frame-driven 内核（来源 commit 与 LICENSE 见 `remotion-kit/third_party/`）。
+- 目标几何（`FocusTarget`/token `Rect[]`）由场景在排版时产出，效果只消费已知几何，不做 CSS selector 扫描或 DOM layout 读回。
+- 新增镜头层效果时只改 `StagePlan` 与必要场景代码；不创建第二个 `<HtmlInCanvas>`（嵌套在服务器导出尚不支持）。
 
 ## 工作流
 
@@ -61,7 +71,7 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 │   ├── index.ts           # registerRoot 入口（服务端渲染用）
 │   ├── index.css          # Tailwind v4 入口 + Recut 设计系统 token
 │   ├── Root.tsx           # 注册 ProjectVideo（时长/尺寸由 getProjectMetadata 推导）
-│   ├── compositions/ProjectVideo.tsx   # 成片模板：改 SCENES 与渲染层（主编辑对象）
+│   ├── compositions/ProjectVideo.tsx   # 成片骨架：默认接近空白（仅标题），按模板整体重写（主编辑对象）
 │   ├── effects/           # 表达特效封装：BackgroundFX、TextFX、useImageMotion
 │   ├── captions/          # 字幕主题（remotion-captions-themes 13 套，vendor/ 保原始结构）
 │   ├── lib/utils.ts       # cn（clsx + tailwind-merge 类名合并）

@@ -33,6 +33,8 @@ export interface ProjectVideoProps {
   brief?: Brief | null;
   media?: MediaMap;
   settings?: RenderSettings;
+  /** HTML-in-Canvas 舞台计划：interaction + effects + targets；提供时整片进入唯一捕获面。 */
+  stagePlan?: import("@recut/remotion-kit").StagePlan | null;
 }
 
 export const defaultProjectVideoProps = (): ProjectVideoProps => ({

@@ -1,8 +1,13 @@
 {
   "name": "@recut/remotion-kit",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "updatedAt": "2026-08-09",
   "changelog": [
+    {
+      "version": "0.5.0",
+      "date": "2026-08-09",
+      "notes": "新增 HTML-in-Canvas 表达镜头层（src/html-canvas/）：BrowserCapabilityGate 硬门禁、唯一 HtmlCanvasVideoStage 捕获面、StagePlan 确定性合同（interaction/timeline/targets）、CursorDirector/FocusSpotlight/TextSelection/Magnifier/SceneTransition/AmbientCanvasFX 六种 paint renderer；catalog.json 新增 effects 目录与产品 UI click→focus 演示（product-ui-demo）。预览/导出都走原生路径，不支持时不降级。"
+    },
     {
       "version": "0.4.0",
       "date": "2026-08-09",

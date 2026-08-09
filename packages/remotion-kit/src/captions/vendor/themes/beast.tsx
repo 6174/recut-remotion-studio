@@ -17,22 +17,19 @@ export const BeastTheme: React.FC<InternalThemeProps> = ({
   const time = frame / fps;
 
   // Find active line
-  let activeLineIdx = 0;
+  let activeLine: (typeof data.lines)[number] | null = null;
   for (let i = 0; i < data.lines.length; i++) {
     const line = data.lines[i];
     if (line.words.length === 0) continue;
     const lineStart = line.words[0].start;
     const lineEnd = line.words[line.words.length - 1].end;
     if (time >= lineStart && time <= lineEnd) {
-      activeLineIdx = i;
+      activeLine = line;
       break;
-    }
-    if (time > lineEnd) {
-      activeLineIdx = i;
     }
   }
 
-  const activeLine = data.lines[activeLineIdx] || data.lines[0];
+  // 没有正在说的句子就不渲染；绝不能把上一句字幕挂到下一镜头上。
   if (!activeLine || !activeLine.words.length) return null;
 
   // fontSize 已是最终画布像素值：不能再按 1920/1080 二次放大。

@@ -15,6 +15,8 @@ import {
   FlashCut,
   ProductLaunchVideo,
   VerticalTicker,
+  planForEffect,
+  ProductUiDemo,
 } from "@recut/remotion-kit";
 import * as Templates from "@recut/remotion-kit/templates";
 import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
@@ -22,8 +24,8 @@ import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
 export const PREVIEW_WIDTH = 1920;
 export const PREVIEW_HEIGHT = 1080;
 
-/** `composition` 是成片模板；`template` 是可直接运行的内置组件模板。 */
-export type PreviewKind = "caption" | "composition" | "template" | "component";
+/** `composition` 是成片模板；`template` 是可直接运行的内置组件模板；`effect` 是 HTML-in-Canvas 表达镜头。 */
+export type PreviewKind = "caption" | "composition" | "template" | "component" | "effect";
 
 export interface PreviewSpec {
   kind: PreviewKind;
@@ -32,10 +34,11 @@ export interface PreviewSpec {
 }
 
 export const previewDurationFrames = (spec: PreviewSpec): number => {
+  if (spec.kind === "effect") return Math.round(8 * PREVIEW_FPS);
   if (spec.kind === "caption") return Math.round((CAPTION_DURATION_SEC + 1.5) * PREVIEW_FPS);
   if (spec.kind === "composition") {
-    // 场景预览跟随真实成片时长：product-launch 60s / faceless-explainer 55s / doodle-explainer 44s。
-    const seconds = spec.id === "product-launch" ? 60 : spec.id === "faceless-explainer" ? 55 : spec.id === "doodle-explainer" ? 44 : 14;
+    // 场景预览跟随真实成片时长：product-launch 66s / faceless-explainer 55s / doodle-explainer 44s。
+    const seconds = spec.id === "product-launch" ? 66 : spec.id === "faceless-explainer" ? 55 : spec.id === "doodle-explainer" ? 44 : 14;
     return Math.round(seconds * PREVIEW_FPS);
   }
   return Math.round(5 * PREVIEW_FPS);
@@ -155,7 +158,7 @@ const pascalCase = (id: string) => id.split("-").map((part) => part.charAt(0).to
 
 /** 模板真实预览：按 id 查模板目录 barrel，用默认 props 直接渲染真实组件。 */
 const TemplatePreview: React.FC<{ id: string }> = ({ id }) => {
-  const Component = (Templates as Record<string, React.ComponentType | undefined>)[pascalCase(id)];
+  const Component = (Templates as unknown as Record<string, React.ComponentType | undefined>)[pascalCase(id)];
   if (!Component) {
     return <PlaceholderDemo label={id} note="该模板无法直接预览，请以代码为准。" />;
   }
@@ -209,6 +212,7 @@ const ScenarioDemo: React.FC<{ id: string }> = ({ id }) => {
 export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => {
   if (kind === "caption") return <CaptionDemo theme={id} thumbnail={thumbnail} />;
   if (kind === "composition") return <ScenarioDemo id={id} />;
+  if (kind === "effect") return <EffectPreview id={id} />;
   return (
     <AbsoluteFill style={{ background: "#ffffff", backgroundImage: "linear-gradient(#e7ece8 1px, transparent 1px), linear-gradient(90deg, #e7ece8 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
       <div style={{ position: "absolute", inset: "8%", overflow: "hidden", border: "1px solid #d8e0da", borderRadius: 16, background: "#ffffff", boxShadow: "0 18px 50px rgba(16, 32, 23, 0.12)" }}>
@@ -217,3 +221,8 @@ export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => 
     </AbsoluteFill>
   );
 };
+
+/** HTML-in-Canvas 表达镜头真实预览：走唯一捕获舞台，与项目导出同一套 kit 舞台。 */
+const EffectPreview: React.FC<{ id: string }> = ({ id }) => (
+  <ProductUiDemo plan={planForEffect(id)} />
+);

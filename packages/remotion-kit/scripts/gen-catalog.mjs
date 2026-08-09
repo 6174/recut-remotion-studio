@@ -10,6 +10,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const KIT_VERSION = "0.5.0";
+
+const readExistingCatalog = () => {
+  try {
+    return JSON.parse(readFileSync(join(ROOT, "catalog.json"), "utf8"));
+  } catch {
+    return {};
+  }
+};
 // 场景即成片模板：brief.template 存模板 id，模板内置视觉、组件和导演规划。
 const SCENARIO_SPEC = [
   {
@@ -254,6 +263,89 @@ const DIRECTIVES = [
   { id: "breathing-room", label: "留白呼吸", description: "关键信息后停顿", prompt: "关键信息落定后留出呼吸：在重点镜头后放慢节奏、加停留，让观众消化，而不是全程匀速。" },
 ];
 
+// HTML-in-Canvas 表达镜头层（首批实现）。engine/layer/placement 决定它如何与鼠标、
+// 场景进出、背景或组件内生命周期组合；source.path 是 Agent 改写 composition 时读取的源码。
+const EFFECTS = [
+  {
+    id: "cursor",
+    label: "Cursor Director",
+    description: "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail。",
+    engine: "html-canvas",
+    layer: "interaction",
+    intent: "guide",
+    requires: ["html-in-canvas"],
+    placement: ["scene-play", "target", "video-background"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "cursor" } },
+    source: { exportName: "cursorEffect", path: "packages/remotion-kit/src/html-canvas/effects/cursor.tsx", workspacePath: "src/html-canvas/effects/cursor.tsx" },
+    prompt: { constraints: ["互动脚本先于 JSX", "真实 pointer 事件不进入 render"], recommendedDurationFrames: 180 },
+  },
+  {
+    id: "focus-spotlight",
+    label: "Focus Spotlight",
+    description: "聚焦引导：内容纹理外压暗、目标区域清晰，带羽化与边缘光；可由 hover/click 接管 target。",
+    engine: "html-canvas",
+    layer: "content",
+    intent: "emphasize",
+    requires: ["html-in-canvas"],
+    placement: ["target", "scene-play"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "focus-spotlight" } },
+    source: { exportName: "focusSpotlightEffect", path: "packages/remotion-kit/src/html-canvas/effects/focus-spotlight.tsx", workspacePath: "src/html-canvas/effects/focus-spotlight.tsx" },
+    prompt: { constraints: ["target 使用设计像素", "一个 target 起步"], recommendedDurationFrames: 90 },
+  },
+  {
+    id: "text-selection",
+    label: "Text Selection",
+    description: "文本选择与荧光笔：按 token Rect[] 逐词/逐行 reveal，可选扫读光；文本保留在 source HTML。",
+    engine: "html-canvas",
+    layer: "content",
+    intent: "emphasize",
+    requires: ["html-in-canvas"],
+    placement: ["target", "scene-play"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "text-selection" } },
+    source: { exportName: "textSelectionEffect", path: "packages/remotion-kit/src/html-canvas/effects/text-selection.tsx", workspacePath: "src/html-canvas/effects/text-selection.tsx" },
+    prompt: { constraints: ["输入 token Rect[]", "不做 DOM 文本搜索"], recommendedDurationFrames: 90 },
+  },
+  {
+    id: "magnifier",
+    label: "Magnifier",
+    description: "细节放大镜：对 cursor 或关键帧目标二次采样 HTML 纹理，绘制透镜、HUD 与可选色差。",
+    engine: "html-canvas",
+    layer: "content",
+    intent: "inspect",
+    requires: ["html-in-canvas"],
+    placement: ["target", "scene-play"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "magnifier" } },
+    source: { exportName: "magnifierEffect", path: "packages/remotion-kit/src/html-canvas/effects/magnifier.tsx", workspacePath: "src/html-canvas/effects/magnifier.tsx" },
+    prompt: { constraints: ["一个 lens", "折射强度受预算限制"], recommendedDurationFrames: 90 },
+  },
+  {
+    id: "scene-transition",
+    label: "Scene Transition",
+    description: "场景进出：enter 时前一幕失焦淡出，exit 时下一幕由模糊聚焦。",
+    engine: "html-canvas",
+    layer: "transition",
+    intent: "connect",
+    requires: ["html-in-canvas"],
+    placement: ["scene-enter", "scene-exit", "between-scenes"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "scene-transition" } },
+    source: { exportName: "sceneTransitionEffect", path: "packages/remotion-kit/src/html-canvas/effects/scene-transition.tsx", workspacePath: "src/html-canvas/effects/scene-transition.tsx" },
+    prompt: { constraints: ["单舞台内", "不嵌套 HtmlInCanvas"], recommendedDurationFrames: 30 },
+  },
+  {
+    id: "ambient",
+    label: "Ambient Canvas FX",
+    description: "轻量背景材质：确定性 grain、vignette 与冷色调；默认不与强透镜叠加。",
+    engine: "html-canvas",
+    layer: "background",
+    intent: "atmosphere",
+    requires: ["html-in-canvas"],
+    placement: ["video-background", "scene-play"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "ambient" } },
+    source: { exportName: "ambientEffect", path: "packages/remotion-kit/src/html-canvas/effects/ambient.tsx", workspacePath: "src/html-canvas/effects/ambient.tsx" },
+    prompt: { constraints: ["每场景最多一个", "默认关闭"], recommendedDurationFrames: 240 },
+  },
+];
+
 const scenarios = Object.fromEntries(
   SCENARIO_SPEC.filter((s) => s.implemented).map((s) => {
     // 每个场景携带完整 SKILL.md（导演手册全文），UI 选择模板时把全文拼进 Prompt，
@@ -271,8 +363,17 @@ const catalog = {
   captionThemes: CAPTION_THEMES,
   canvasSizes: CANVAS_SIZES,
   components: COMPONENTS,
+  effects: EFFECTS,
   directives: DIRECTIVES,
 };
 
+// 历史目录里由独立流程维护、不归本生成器管理的键，保留原值随目录一起发布：
+// designSystems（151 套设计系统元数据）与 kitVersion（后台 workspace.kit-state 消费）。
+for (const key of ["designSystems", "kitVersion"]) {
+  const prev = readExistingCatalog()[key];
+  if (prev !== undefined) catalog[key] = prev;
+}
+catalog.kitVersion = KIT_VERSION;
+
 writeFileSync(join(ROOT, "catalog.json"), JSON.stringify(catalog, null, 2) + "\n");
-console.log(`generated catalog.json (${Object.keys(scenarios).length} scenarios, ${COMPONENTS.length} components)`);
+console.log(`generated catalog.json (${Object.keys(scenarios).length} scenarios, ${COMPONENTS.length} components, ${EFFECTS.length} effects, kit v${KIT_VERSION})`);

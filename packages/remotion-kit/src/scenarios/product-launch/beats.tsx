@@ -9,6 +9,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { DigitRoll } from "../../components";
+import { useInteractionMaybe } from "../../html-canvas";
 import type { BeatRenderer, BeatContext } from "../_shared/types";
 import { AccentRule, ClaimTitle, clamp, CtaButton, EvidenceCard, Eyebrow, GlowPill, neonField, PointList, Ring } from "./primitives";
 
@@ -223,6 +224,86 @@ const CtaBeat: BeatRenderer = ({ scene, p, frame, fps }) => {
   );
 };
 
+/** product-launch 的 HTML-in-Canvas UI 特写：产品设置面板 + 「导出」按钮（click → magnify 的目标几何）。 */
+export const PRODUCT_LAUNCH_UI_GEOMETRY = {
+  panel: { x: 520, y: 150, width: 880, height: 770 },
+  "export-button": { x: 1160, y: 806, width: 160, height: 64 },
+  "focus:export-button": { x: 1090, y: 726, width: 300, height: 224 },
+};
+
+const SETTING_ROWS = ["自动保存", "云端同步", "深色主题"];
+
+/** ⑨ UI 特写：产品设置面板；「导出」按钮读同一互动脚本的语义状态（hover/pressed），
+ *  放大镜镜头与点击目标由舞台计划提供，beat 只做排版与状态反馈。 */
+const UiDetailBeat: BeatRenderer = ({ scene, p, frame }) => {
+  const interaction = useInteractionMaybe();
+  const exportHovered = interaction?.hoveredTargetId === "export-button";
+  const exportPressed = interaction?.pressedTargetId === "export-button";
+  const opacity = interpolate(frame, [0, 12], [0, 1], clamp);
+  const g = PRODUCT_LAUNCH_UI_GEOMETRY;
+  return (
+    <AbsoluteFill style={{ overflow: "hidden", color: p.text, fontFamily: p.fontFamily, background: p.background }}>
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 0%, ${p.accent}1e 0%, transparent 55%)` }} />
+      <div style={{ position: "absolute", top: 80, left: 112 }}><Eyebrow color={p.accent}>{scene.kicker || "PRODUCT UI"}</Eyebrow></div>
+      <div
+        style={{
+          position: "absolute",
+          left: g.panel.x,
+          top: g.panel.y,
+          width: g.panel.width,
+          height: g.panel.height,
+          borderRadius: 28,
+          background: "linear-gradient(160deg, rgba(26,13,60,0.96), rgba(14,6,34,0.98))",
+          border: "1px solid rgba(255,255,255,0.12)",
+          boxShadow: "0 40px 110px rgba(0, 0, 0, 0.55)",
+          padding: 40,
+          opacity,
+        }}
+      >
+        <p style={{ margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 22, letterSpacing: "0.16em", textTransform: "uppercase" }}>Project Settings</p>
+        <h1 style={{ margin: "10px 0 0", fontSize: 52, fontWeight: 900, letterSpacing: "-0.02em" }}>{scene.title}</h1>
+
+        <div style={{ marginTop: 34, borderRadius: 20, padding: 24, background: `linear-gradient(135deg, ${p.accent}22, transparent)`, border: `1px solid ${p.accent}55` }}>
+          <p style={{ margin: 0, color: p.accent, fontSize: 22, letterSpacing: "0.1em" }}>导出画质</p>
+          <p style={{ margin: "6px 0 0", fontSize: 36, fontWeight: 800 }}>4K · 60fps · HDR</p>
+          <p style={{ margin: "6px 0 0", color: "rgba(255,255,255,0.5)", fontSize: 20 }}>适合电商详情与主图视频</p>
+        </div>
+
+        <div style={{ marginTop: 24 }}>
+          {SETTING_ROWS.map((label) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 60, padding: "0 20px", marginBottom: 14, borderRadius: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <span style={{ fontSize: 26, fontWeight: 600 }}>{label}</span>
+              <span style={{ width: 44, height: 24, borderRadius: 12, background: p.accent, opacity: 0.9 }} />
+            </div>
+          ))}
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            right: 40,
+            bottom: 40,
+            width: g["export-button"].width,
+            height: g["export-button"].height,
+            borderRadius: 16,
+            display: "grid",
+            placeItems: "center",
+            background: exportPressed
+              ? "linear-gradient(135deg, #0ea5c4, #22d3ee)"
+              : exportHovered
+                ? "linear-gradient(135deg, #13b8d8, #67e8f9)"
+                : `linear-gradient(135deg, ${p.accent}, #7fe9fb)`,
+            boxShadow: exportHovered ? `0 0 0 3px ${p.accent}55, 0 14px 36px ${p.accent}55` : `0 14px 36px ${p.accent}33`,
+            transform: exportPressed ? "translateY(2px)" : "none",
+          }}
+        >
+          <span style={{ color: "#06222a", fontSize: 28, fontWeight: 800 }}>{scene.ctaLabel as string || "导出"}</span>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 /** product-launch 的全部 beat 渲染器表：每个 beat 一个唯一视觉主角，全片手法不重复。 */
 export const PRODUCT_LAUNCH_BEATS: Record<string, BeatRenderer> = {
   hook: HookBeat,           // ① 霓虹 hero + 光环
@@ -233,6 +314,7 @@ export const PRODUCT_LAUNCH_BEATS: Record<string, BeatRenderer> = {
   testimonial: TestimonialBeat, // ⑥ 引述扫光
   roadmap: RoadmapBeat,     // ⑦ 路线进度
   cta: CtaBeat,             // ⑧ 发光 CTA
+  "ui-detail": UiDetailBeat, // ⑨ UI 特写（HTML-in-Canvas click → magnify）
 };
 
 export type { BeatContext };

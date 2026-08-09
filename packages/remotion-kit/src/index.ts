@@ -10,3 +10,4 @@ export * from "./palette";
 export * from "./components";
 export * from "./styles";
 export * from "./scenarios";
+export * from "./html-canvas";

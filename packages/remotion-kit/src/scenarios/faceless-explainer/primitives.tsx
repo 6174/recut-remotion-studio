@@ -1,9 +1,9 @@
 /**
- * [INPUT]: 依赖 Remotion 帧时钟、视频尺寸与 faceless-explainer 的荧光绿 palette
+ * [INPUT]: 依赖 Remotion 帧时钟、视频尺寸与 faceless-explainer 的渐变科技新闻 palette
  * [OUTPUT]: 对外提供科技新闻解读的确定性视觉原语：网格纸、marker 色块、手绘箭头、卡通眼睛、
- *           大字号标题/标签、步骤和数据条。
+ *           大字号标题、渐变文字、步骤和数据条。
  * [POS]: scenarios/faceless-explainer 的视觉源语层。beats 只组合本文件原语，不重造风格细节；
- *        全部可读文字遵守 1080p 正文 ≥56px、辅助信息 ≥32px 的全局约束。
+ *        主信息遵守 1080p ≥56px，场景内必要辅助信息 ≥44px；冻结兼容组件例外。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
@@ -12,6 +12,18 @@ import type { Palette } from "../../palette";
 
 export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 export const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+
+/** 场景专属背景：暖白纸面上叠加青绿光晕与冷蓝边缘，避免大色块变成平面。 */
+export const sceneBackground = (p: Palette) =>
+  `radial-gradient(circle at 13% 18%, ${p.accent}32 0%, transparent 30%), radial-gradient(circle at 88% 82%, #64d7ff26 0%, transparent 34%), linear-gradient(135deg, ${p.background} 0%, #f7fff0 48%, #edf9ff 100%)`;
+
+/** 主标题渐变：黑色负责轮廓，青绿负责把文字推成视觉主角。 */
+export const gradientTextStyle = (gradient = "linear-gradient(110deg, #0b1110 0%, #17251e 48%, #159d75 100%)"): React.CSSProperties => ({
+  backgroundImage: gradient,
+  WebkitBackgroundClip: "text",
+  backgroundClip: "text",
+  color: "transparent",
+});
 
 export const enter = (frame: number, fps: number, delay = 0, damping = 16, stiffness = 140) =>
   spring({ frame: Math.max(0, frame - delay), fps, config: { damping, mass: 0.8, stiffness } });
@@ -26,13 +38,21 @@ export const isDark = (hex: string) => {
 
 /** 网格纸：参考图的秩序底，不承载任何阅读信息。 */
 export const Grid: React.FC<{ color: string; opacity?: number; size?: number }> = ({ color, opacity = 0.08, size = 38 }) => (
-  <div style={{ position: "absolute", inset: 0, opacity, backgroundImage: `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`, backgroundSize: `${size}px ${size}px` }} />
+  <div style={{ position: "absolute", inset: 0, opacity, backgroundImage: `radial-gradient(circle at 20% 16%, #55f43628 0%, transparent 28%), radial-gradient(circle at 82% 84%, #64d7ff22 0%, transparent 32%), linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`, backgroundSize: `100% 100%, 100% 100%, ${size}px ${size}px, ${size}px ${size}px` }} />
 );
 
 /** 荧光笔不规则色块：用 SVG 而不是随机路径，确保预览与导出逐帧一致。 */
 export const MarkerBlob: React.FC<{ color: string; style?: React.CSSProperties; opacity?: number }> = ({ color, style, opacity = 1 }) => (
   <svg viewBox="0 0 1000 640" preserveAspectRatio="none" style={{ position: "absolute", overflow: "visible", ...style }}>
-    <path d="M69 111C172 10 330 33 467 59c150 28 344-29 435 87 80 101 89 307-19 398-98 83-292 50-427 73-136 22-342 43-404-73-61-115-72-325 17-433Z" fill={color} opacity={opacity} />
+    <defs>
+      <linearGradient id="faceless-marker-gradient" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#c7ff70" />
+        <stop offset="45%" stopColor={color} />
+        <stop offset="78%" stopColor="#45e1a1" />
+        <stop offset="100%" stopColor="#66d9ff" />
+      </linearGradient>
+    </defs>
+    <path d="M69 111C172 10 330 33 467 59c150 28 344-29 435 87 80 101 89 307-19 398-98 83-292 50-427 73-136 22-342 43-404-73-61-115-72-325 17-433Z" fill="url(#faceless-marker-gradient)" opacity={opacity} />
   </svg>
 );
 
@@ -65,12 +85,12 @@ export const MarkerChip: React.FC<{ children: React.ReactNode; color: string; da
 );
 
 /** 画面标题：第一眼就读到的唯一主张。 */
-export const DiagramTitle: React.FC<{ children: React.ReactNode; color: string; fontFamily?: string; fontSize?: number; delay?: number; lineHeight?: number }> = ({ children, color, fontFamily, fontSize = 112, delay = 8, lineHeight = 0.94 }) => {
+export const DiagramTitle: React.FC<{ children: React.ReactNode; color: string; fontFamily?: string; fontSize?: number; delay?: number; lineHeight?: number; gradient?: string }> = ({ children, color, fontFamily, fontSize = 112, delay = 8, lineHeight = 0.94, gradient }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const reveal = enter(frame, fps, delay, 15);
   return (
-    <div style={{ fontSize, lineHeight, fontWeight: 950, letterSpacing: "-0.08em", color, fontFamily, transform: `translateY(${(1 - reveal) * 48}px)`, opacity: reveal }}>
+    <div style={{ fontSize, lineHeight, fontWeight: 950, letterSpacing: "-0.08em", color, fontFamily, ...(gradient ? gradientTextStyle(gradient) : {}), transform: `translateY(${(1 - reveal) * 48}px)`, opacity: reveal }}>
       {children}
     </div>
   );
@@ -111,7 +131,7 @@ export const CodeWindow: React.FC<{ lines: { text: string; accent?: string }[]; 
 };
 
 /** 大字号步骤：每个步骤是可以在手机上读完的一条新闻判断。 */
-export const StepList: React.FC<{ steps: string[]; accent: string; text: string; fontFamily?: string; fontSize?: number }> = ({ steps, accent, text, fontFamily, fontSize = 40 }) => {
+export const StepList: React.FC<{ steps: string[]; accent: string; text: string; fontFamily?: string; fontSize?: number }> = ({ steps, accent, text, fontFamily, fontSize = 48 }) => {
   const frame = useCurrentFrame();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
@@ -139,7 +159,7 @@ export const DataBars: React.FC<{ rows: { label: string; value: number; color: s
         const progress = interpolate(frame, [startFrame + index * 14, startFrame + 50 + index * 14], [0, row.value], clamp);
         return (
           <div key={row.label} style={{ marginTop: index === 0 ? 0 : 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginBottom: 12, fontSize: 32, lineHeight: 1, fontWeight: 900 }}><span>{row.label}</span><span style={{ color: row.color }}>{Math.round(row.value * 100)}%</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginBottom: 12, fontSize: 44, lineHeight: 1, fontWeight: 900 }}><span>{row.label}</span><span style={{ color: row.color }}>{Math.round(row.value * 100)}%</span></div>
             <div style={{ height: 20, borderRadius: 99, background: track, overflow: "hidden" }}><div style={{ height: "100%", width: `${progress * 100}%`, borderRadius: 99, background: row.color }} /></div>
           </div>
         );
@@ -154,7 +174,7 @@ export const PaperCard: React.FC<{ p: Palette; children: React.ReactNode; width?
   const { fps } = useVideoConfig();
   const progress = enter(frame, fps, delay, 15);
   return (
-    <div style={{ width, padding: "38px 40px", border: "7px solid #111", borderRadius: 28, background: "#fffdf7", boxShadow: `16px 18px 0 ${p.accent}`, transform: `translateY(${(1 - progress) * 60}px) rotate(${rotation}deg)`, opacity: progress, ...style }}>
+    <div style={{ width, padding: "38px 40px", border: "7px solid #111", borderRadius: 28, background: "linear-gradient(135deg, #fffdf7 0%, #f2ffec 64%, #ecfaff 100%)", boxShadow: `16px 18px 0 ${p.accent}`, transform: `translateY(${(1 - progress) * 60}px) rotate(${rotation}deg)`, opacity: progress, ...style }}>
       {children}
     </div>
   );
@@ -166,7 +186,7 @@ export const GlowProgress: React.FC<{ color: string; width?: number; delay?: num
   const bar = interpolate(frame, [delay, delay + 50], [0, 1], { ...clamp, easing: Easing.bezier(0.25, 0.8, 0.25, 1) });
   return (
     <div style={{ width, height: 26, borderRadius: 99, border: "5px solid #111", background: "#fffdf7", marginTop: 44, overflow: "hidden" }}>
-      <div style={{ height: "100%", width: `${bar * 100}%`, background: color }} />
+      <div style={{ height: "100%", width: `${bar * 100}%`, background: `linear-gradient(90deg, ${color}, #45e1a1, #66d9ff)` }} />
     </div>
   );
 };

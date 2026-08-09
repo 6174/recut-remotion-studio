@@ -31,6 +31,8 @@
 | ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |
 | ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |
 
+**HTML-in-Canvas UI 特写（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮，舞台计划 `buildProductLaunchStagePlan` 提供 cursor + magnifier 效果轨与按钮几何（`PRODUCT_LAUNCH_UI_GEOMETRY`）；鼠标 move → hover → click 后放大镜接管按钮，按钮 hover/pressed 语义状态由 `useInteractionMaybe()` 驱动。改文案/坐标时保持 `beats.tsx` 的几何常量与 `template/ProjectVideo.tsx` 的 StagePlan 同步；场景可经 `stagePlan` prop 关闭（null）或替换。此镜头只在浏览器/导出 Chromium 支持 HTML-in-Canvas 时可用，不支持时硬阻断，不降级。
+
 ## 四、组件策略
 
 - **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。

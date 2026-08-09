@@ -1,49 +1,51 @@
 /**
- * [INPUT]: 依赖 Remotion 时间轴、Brief/MediaMap 数据与 @recut/remotion-kit 的场景模板
+ * [INPUT]: 依赖 Remotion 时间轴、Brief 数据与 preview/props.json；可选媒体素材经 media prop 注入
  * [OUTPUT]: 对外提供 ProjectVideo、getProjectMetadata
- * [POS]: remotion-skeleton 的主成片编排器：按 brief.template 路由到对应场景模板。
- *        每个场景模板自带内置视觉（palette）+ beat 渲染器 + 默认 20~30s SCENES
- *        （导演视角见场景 SKILL.md）；视觉风格内敛进场景，不依赖全局设计系统。
+ * [POS]: remotion-skeleton 的主成片入口。默认项目是「接近空白」的标题页：只渲染一个
+ *        通用的居中占位标题，供 AI 在此之上按所选模板（@recut/remotion-kit
+ *        的 src/scenarios/<id>/template/ProjectVideo.tsx 作为完整参考）重建整支视频，
+ *        不再预置长模板的默认 SCENES，避免 AI 先花时间删内容。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
- *
- * 模板（brief.template）路由到 @recut/remotion-kit 的 src/scenarios/<id>/；
- * ProductLaunchVideo / FacelessExplainerVideo / DoodleExplainerVideo 各自携带
- * palette、beats 与默认 SCENES，是视觉与叙事的完整选择，不再叠加独立风格层。
  */
 import React from "react";
-import { DOODLE_EXPLAINER_DURATION_SEC, DoodleExplainerVideo, FACELESS_EXPLAINER_DURATION_SEC, FacelessExplainerVideo, PRODUCT_LAUNCH_DURATION_SEC, ProductLaunchVideo } from "@recut/remotion-kit";
-import { resolveMediaUrl } from "../runtime/media";
-import type { MediaMap, ProjectVideoProps } from "../types";
+import { AbsoluteFill } from "remotion";
+import type { ProjectVideoProps } from "../types";
 
-export const SCENARIO_DURATION_SEC: Record<string, number> = {
-  "product-launch": PRODUCT_LAUNCH_DURATION_SEC,
-  "faceless-explainer": FACELESS_EXPLAINER_DURATION_SEC,
-  "doodle-explainer": DOODLE_EXPLAINER_DURATION_SEC,
-};
+/** 默认空项目时长（秒）：只有一页标题，AI 重建时会改写。 */
+export const BLANK_PROJECT_DURATION_SEC = 10;
 
 export const getProjectMetadata = (props: ProjectVideoProps) => {
   const fps = props.settings?.fps ?? 30;
   const width = props.settings?.width ?? 1920;
   const height = props.settings?.height ?? 1080;
-  const scenario = props.brief?.template || "faceless-explainer";
-  const durationInFrames = Math.max(1, Math.round((SCENARIO_DURATION_SEC[scenario] || FACELESS_EXPLAINER_DURATION_SEC) * fps));
+  const durationInFrames = Math.max(1, Math.round(BLANK_PROJECT_DURATION_SEC * fps));
   return { durationInFrames, fps, width, height };
 };
 
-export const ProjectVideo: React.FC<ProjectVideoProps> = ({ brief, media }) => {
-  const scenario = brief?.template || "faceless-explainer";
-  const mediaMap = media as MediaMap | undefined;
-  const mediaResolver = (assetId: string) => resolveMediaUrl(assetId, mediaMap);
-  const common = {
-    topic: brief?.topic,
-    resolveMediaUrl: mediaResolver,
-    bgmAssetId: brief?.materialAssetIds?.[0] ? undefined : null,
-  };
-  if (scenario === "product-launch") {
-    return <ProductLaunchVideo {...common} productName={brief?.details} />;
-  }
-  if (scenario === "doodle-explainer") {
-    return <DoodleExplainerVideo {...common} />;
-  }
-  return <FacelessExplainerVideo {...common} />;
+export const ProjectVideo: React.FC<ProjectVideoProps> = () => {
+  const topic = "你的视频标题";
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#ffffff",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 80,
+      }}
+    >
+      <h1
+        style={{
+          margin: 0,
+          color: "#111111",
+          fontSize: 96,
+          fontWeight: 700,
+          lineHeight: 1.15,
+          textAlign: "center",
+          maxWidth: 1600,
+        }}
+      >
+        {topic}
+      </h1>
+    </AbsoluteFill>
+  );
 };

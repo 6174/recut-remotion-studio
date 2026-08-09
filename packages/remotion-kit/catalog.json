@@ -14,7 +14,7 @@
       ],
       "implemented": true,
       "motion": "荧光绿纸面新闻钩子 → 大字号事实/影响拆解 → 三条信号 → 一句结论；网格纸、marker、箭头与眼睛建立强风格表达。",
-      "skillBody": "# 科技新闻解读（faceless-explainer）\n\n> 场景技能：这是「科技新闻解读」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：每日 AI、芯片、软件、硬件和产品发布新闻；把一条消息讲成“发生了什么、为什么重要、接下来该看什么”。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、纯人物采访、没有明确新闻事件的泛知识课。\n- **叙事承诺**：不复述新闻稿，不制造焦虑；每个镜头替观众完成一次更清楚的判断。\n\n## 二、默认视觉：荧光绿科技报纸\n\n这是一个高风格化的科技媒体视觉模板，借鉴“网格纸 + 黑色大字 + 荧光 marker + 手绘箭头”的强传播海报语言：\n\n- **纸面秩序**：暖白底与细黑网格是全片底色，像一张可被标记的新闻草稿；网格只做背景，绝不承载内容。\n- **焦点色**：荧光绿（`FACELESS_EXPLAINER_PALETTE.accent`）只用来圈住一个主张、箭头、标签或数字；黑字永远是阅读主角。\n- **情绪符号**：不规则 marker 色块、粗笔曲线箭头和夸张眼睛都来自 `primitives.tsx` 的确定性 SVG，不用随机数、外部贴图或装饰性小字。\n- **大字纪律**：标题使用 76–126px；正文 ≥56px，逐词字幕 ≥40px，标签、编号、统计和 CTA ≥32px。字幕是无底框的下三分之一旁白层，采用白字黑描边、克制逐词放大，不能遮住正文或新闻卡。读不到的字必须删除，绝不能缩小塞进画面。\n- **内容密度**：一个 beat 只有一个新闻判断，文本过多时删减或拆镜头；不要用“新闻列表”和小字装出信息量。\n\n## 三、导演视角：一条新闻，三问读懂\n\n开场三秒先给新闻钩子，中段依次把标题拆为事实、影响与信号，结尾给观众一条可带走的判断。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 抓住今天值得读的一条消息 | 荧光 marker 上的超大新闻标题 + 眼睛 | 标题上浮、箭头推出 | 5s |\n| ② | `concept` | 给出阅读新闻的独特视角 | 居中大主张 + 三枚粗体判断标签 | 色块/标签错峰落定 | 6s |\n| ③ | `evidence` | 拆出标题背后的事实 | 三条大字号问题 + `WHY?` 新闻卡 | 步骤逐项落下 | 6s |\n| ④ | `example` | 让抽象判断落在一类真实事件 | 案件卡 + 一句具体追问 | 新闻卡从 marker 色块前弹入 | 5s |\n| ⑤ | `analogy` | 纠正观众的观看角度 | “看起来像 / 其实要看”箭头对照 | 曲线箭头推进 | 5s |\n| ⑥ | `data` | 给出值得持续追踪的信号 | 超大 `3` + 三个判断问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压缩成每日清单 | 三张黑框新闻便签 | 便签错峰落下 | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 荧光 marker 上的结论大字 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `Grid`、`MarkerBlob`、`DoodleArrow`、`DoodleEyes`、`MarkerChip`、`PaperCard`、`StepList` 与 `DataBars`。这些原语已经固化了对比度、字号和确定性。\n- `DigitRoll` 只用于已确认的数字，`DataBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由程序化图形构成；不得伪造新闻截图、采访画面、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 evidence/example，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用荧光绿纸面 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一句新闻钩子、事实、影响、三条信号和结论；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildFacelessExplainerScenes` 的文案和真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：新闻钩子 → 阅读视角 → 事实 → 影响 → 信号 → 结论；每段只带来一个新判断。\n- 视觉：暖白网格、荧光绿 marker、黑色超大字、箭头和眼睛形成统一的科技媒体个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 55s（5/6/6/6/5/5/5/6/6/5）；按具体新闻删减到 20–55s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
+      "skillBody": "# 科技新闻解读（faceless-explainer）\n\n> 场景技能：这是「科技新闻解读」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：每日 AI、芯片、软件、硬件和产品发布新闻；把一条消息讲成“发生了什么、为什么重要、接下来该看什么”。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、纯人物采访、没有明确新闻事件的泛知识课。\n- **叙事承诺**：不复述新闻稿，不制造焦虑；每个镜头替观众完成一次更清楚的判断。\n\n## 二、默认视觉：渐变荧光绿科技报纸\n\n这是一个高风格化的科技媒体视觉模板，借鉴“网格纸 + 黑色大字 + 荧光 marker + 手绘箭头”的强传播海报语言：\n\n- **纸面秩序**：暖白底与细黑网格是全片底色，像一张可被标记的新闻草稿；网格只做背景，绝不承载内容。\n- **层次渐变**：场景大底必须同时使用暖白到冷青的底色渐变、两处径向光晕和 marker 多 stop 渐变；大色块不能是单一纯色。渐变只属于本场景，不上升为平台默认。\n- **焦点色**：荧光绿（`FACELESS_EXPLAINER_PALETTE.accent`）与青绿、浅蓝组成 marker 和标题渐变；黑字永远保留清晰轮廓，渐变只增加视觉层次，不牺牲对比度。\n- **情绪符号**：不规则 marker 色块、粗笔曲线箭头和夸张眼睛都来自 `primitives.tsx` 的确定性 SVG，不用随机数、外部贴图或装饰性小字。\n- **大字纪律**：标题使用 88–126px；正文 ≥48px，逐词字幕 ≥40px，编号和 CTA ≥44px。字幕是无底框的下三分之一旁白层，采用白字黑描边、克制逐词放大，不能遮住正文或新闻卡。读不到的字必须删除，绝不能缩小塞进画面。\n- **反标签纪律**：`kicker` 只能作为 54px 以上的构图文字，不能做成 tag、chip 或胶囊；没有叙事价值的编号和元数据直接删除。\n- **内容密度**：一个 beat 只有一个新闻判断，文本过多时删减或拆镜头；不要用“新闻列表”和小字装出信息量。\n\n## 三、导演视角：一条新闻，三问读懂\n\n开场三秒先给新闻钩子，中段依次把标题拆为事实、影响与信号，结尾给观众一条可带走的判断。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 抓住今天值得读的一条消息 | 荧光 marker 上的超大新闻标题 + 眼睛 | 标题上浮、箭头推出 | 5s |\n| ② | `concept` | 给出阅读新闻的独特视角 | 居中大主张 + 三枚粗体判断标签 | 色块/标签错峰落定 | 6s |\n| ③ | `evidence` | 拆出标题背后的事实 | 三条大字号问题 + `WHY?` 新闻卡 | 步骤逐项落下 | 6s |\n| ④ | `example` | 让抽象判断落在一类真实事件 | 案件卡 + 一句具体追问 | 新闻卡从 marker 色块前弹入 | 5s |\n| ⑤ | `analogy` | 纠正观众的观看角度 | “看起来像 / 其实要看”箭头对照 | 曲线箭头推进 | 5s |\n| ⑥ | `data` | 给出值得持续追踪的信号 | 超大 `3` + 三个判断问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压缩成每日清单 | 三张黑框新闻便签 | 便签错峰落下 | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 荧光 marker 上的结论大字 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。\n\n**HTML-in-Canvas 表达镜头（默认开启，`FACELESS_EXPLAINER_STAGE_PLAN`）**：concept beat 上做 hover → text-selection（对 `claim` 标题与定义逐行荧光 reveal），data beat 上做 click → focus-spotlight（聚焦三个判断问题）。鼠标轨迹与语义状态由同一 `InteractionScript` 推导；改文案/坐标时保持 `template/ProjectVideo.tsx` 的 StagePlan 目标几何与 `beats.tsx` 排版同步。场景可经 `stagePlan` prop 关闭（null）或替换；此镜头只在浏览器/导出 Chromium 支持 HTML-in-Canvas 时可用，不支持时硬阻断，不降级。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `Grid`、`MarkerBlob`、`DoodleArrow`、`DoodleEyes`、`PaperCard`、`StepList` 与 `DataBars`。这些原语已经固化了渐变、对比度、字号和确定性；`MarkerChip` 仅为旧 workspace 保留，不得用于新镜头。\n- `DigitRoll` 只用于已确认的数字，`DataBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由程序化图形构成；不得伪造新闻截图、采访画面、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 evidence/example，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用荧光绿纸面 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一句新闻钩子、事实、影响、三条信号和结论；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildFacelessExplainerScenes` 的文案和真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：新闻钩子 → 阅读视角 → 事实 → 影响 → 信号 → 结论；每段只带来一个新判断。\n- 视觉：暖白到冷青的渐变网格、荧光绿多 stop marker、渐变黑字、箭头和眼睛形成统一的科技媒体个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 55s（5/6/6/6/5/5/5/6/6/5）；按具体新闻删减到 20–55s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
     },
     "product-launch": {
       "id": "product-launch",
@@ -30,7 +30,7 @@
       ],
       "implemented": true,
       "motion": "结果承诺 → 痛点 → 功能证据 → 收束 CTA；每个功能只用一个可读的证据镜头。",
-      "skillBody": "# 产品发布片（product-launch）\n\n> 场景技能：这是「产品发布片」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、组件策略与动画语法来改写 composition。模板代码在 `scenarios/product-launch/template/ProjectVideo.tsx`，渲染器在 `beats.tsx`，两者必须与本手册一致。\n\n## 一、本场景适用什么\n\n- **适合**：产品发布、新功能介绍、产品更新、SaaS/App/硬件的 launch promo；有明确卖点、功能清单或可验证指标。\n- **不适合**：抽象知识讲解（用 `faceless-explainer`）、图文故事、口播重剪。\n- 上游参考：[HyperFrames product-launch-video](https://github.com/heygen-com/hyperframes/tree/main/skills/product-launch-video)。\n\n## 二、本场景内置视觉\n\n- 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。\n- **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。\n- 模板是完整视觉方案；需要改变表达时应选择更匹配的成片模板，或在具体镜头要求中描述变化，不提供独立设计系统迭代。\n\n## 三、导演视角：分镜画面与动画展示过程\n\n产品发布是「说服」叙事，节奏是**主张先落版，每个功能一个证据镜头，最后 CTA 收束**。全程一个节拍一个信息变化（约 5–6s），落定后呼吸（hold ≥ 0.5s），不堆叠。\n\n**铁律：每个 beat 有一个唯一视觉主角（eye-catch），全片不重复同一种表达方式**——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 / 超大数据 / 引述扫光 / 路线进度 / 发光 CTA，每种只出现一次。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` 结果承诺 | 开场三秒砸出结果 | 霓虹渐变 + 双旋转光环 + 超大主张 | 标题缩放弹出（scale 0.84→1），发光 Pill 错峰入场 | 5s |\n| ② | `pain` 痛点 | 数字冲击让人看清成本 | 超大成本数字飞入（140px+），左标题压小 | 数字放大落定（from 1.4），要点菱形错峰 | 5s |\n| ③ | `contrast` 对比 | 现状 vs 愿景此消彼长 | 左右分屏宽度动画（0.5→0.32/0.68） | 两栏宽度推移，AFTER 侧发光 | 6s |\n| ④ | `feature` 功能证据 | 每个功能一张可读证据 | 玻璃证据卡 + 产品截图 | 要点逐条滑入（每 6f 一条），产品画面稳定 | 6s |\n| ⑤ | `metric` 数据 | 用数字证明 | 超大 DigitRoll 翻牌 + 光晕 | 数字逐位滚入，细线延展 | 5s |\n| ⑥ | `testimonial` 证言 | 让客户替你说话 | 超大引号 + 一句证言 + 扫光掠过 | 引述卡缩放落定，扫光从左到右 | 5s |\n| ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |\n| ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |\n\n## 四、组件策略\n\n- **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。\n- 需要更强表达时，从 `{paths.appKitPath}/catalog.json` 的 `components` 选：`spotlight-reveal`（产品特写）、`card-flip`（功能卡正反面）、`end-card`（收尾）、`lower-third`（术语条）、`progress-steps`（步骤进度）。\n- 原则：**一种动画手法全片只当一次主角**；产品画面稳定优先于炫技运镜。\n\n## 五、素材纪律与登记\n\n- 有真实截图/录屏时用 `resolveMediaUrl(assetId, media)` 放进 feature 的证据卡，不手绘仿冒 UI；无素材时保留干净的程序化玻璃占位卡，并说明建议生成/上传哪些画面。\n- 改完代码后 `composition.assets({assetIds})` 登记所有 assetId。\n\n## 六、执行步骤\n\n1. `workflow.context` 拿路径，`workspace.ensure` 就绪。\n2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；保持模板的视觉语言，不引入独立设计系统。\n3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。\n4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。\n5. 保存后等待 Player 预览，用户逐帧评审后停下。\n\n## 七、验收\n\n- 结构：承诺 → 痛点 → 功能证据（可多段）→ 数据 → CTA；每段只证明一个卖点。\n- 视觉：每 beat 有独立布局与动效，颜色/字体吃 palette；不出现手写裸 div 排版。\n- 素材：真实截图完整可读；数字只强调已确认指标；assetId 已登记。\n- 时长：默认 31s（hook 5 / pain 5 / feature 6 / feature 6 / metric 5 / cta 4），落在 20–30s 量级。\n"
+      "skillBody": "# 产品发布片（product-launch）\n\n> 场景技能：这是「产品发布片」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、组件策略与动画语法来改写 composition。模板代码在 `scenarios/product-launch/template/ProjectVideo.tsx`，渲染器在 `beats.tsx`，两者必须与本手册一致。\n\n## 一、本场景适用什么\n\n- **适合**：产品发布、新功能介绍、产品更新、SaaS/App/硬件的 launch promo；有明确卖点、功能清单或可验证指标。\n- **不适合**：抽象知识讲解（用 `faceless-explainer`）、图文故事、口播重剪。\n- 上游参考：[HyperFrames product-launch-video](https://github.com/heygen-com/hyperframes/tree/main/skills/product-launch-video)。\n\n## 二、本场景内置视觉\n\n- 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。\n- **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。\n- 模板是完整视觉方案；需要改变表达时应选择更匹配的成片模板，或在具体镜头要求中描述变化，不提供独立设计系统迭代。\n\n## 三、导演视角：分镜画面与动画展示过程\n\n产品发布是「说服」叙事，节奏是**主张先落版，每个功能一个证据镜头，最后 CTA 收束**。全程一个节拍一个信息变化（约 5–6s），落定后呼吸（hold ≥ 0.5s），不堆叠。\n\n**铁律：每个 beat 有一个唯一视觉主角（eye-catch），全片不重复同一种表达方式**——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 / 超大数据 / 引述扫光 / 路线进度 / 发光 CTA，每种只出现一次。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` 结果承诺 | 开场三秒砸出结果 | 霓虹渐变 + 双旋转光环 + 超大主张 | 标题缩放弹出（scale 0.84→1），发光 Pill 错峰入场 | 5s |\n| ② | `pain` 痛点 | 数字冲击让人看清成本 | 超大成本数字飞入（140px+），左标题压小 | 数字放大落定（from 1.4），要点菱形错峰 | 5s |\n| ③ | `contrast` 对比 | 现状 vs 愿景此消彼长 | 左右分屏宽度动画（0.5→0.32/0.68） | 两栏宽度推移，AFTER 侧发光 | 6s |\n| ④ | `feature` 功能证据 | 每个功能一张可读证据 | 玻璃证据卡 + 产品截图 | 要点逐条滑入（每 6f 一条），产品画面稳定 | 6s |\n| ⑤ | `metric` 数据 | 用数字证明 | 超大 DigitRoll 翻牌 + 光晕 | 数字逐位滚入，细线延展 | 5s |\n| ⑥ | `testimonial` 证言 | 让客户替你说话 | 超大引号 + 一句证言 + 扫光掠过 | 引述卡缩放落定，扫光从左到右 | 5s |\n| ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |\n| ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |\n\n**HTML-in-Canvas UI 特写（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮，舞台计划 `buildProductLaunchStagePlan` 提供 cursor + magnifier 效果轨与按钮几何（`PRODUCT_LAUNCH_UI_GEOMETRY`）；鼠标 move → hover → click 后放大镜接管按钮，按钮 hover/pressed 语义状态由 `useInteractionMaybe()` 驱动。改文案/坐标时保持 `beats.tsx` 的几何常量与 `template/ProjectVideo.tsx` 的 StagePlan 同步；场景可经 `stagePlan` prop 关闭（null）或替换。此镜头只在浏览器/导出 Chromium 支持 HTML-in-Canvas 时可用，不支持时硬阻断，不降级。\n\n## 四、组件策略\n\n- **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。\n- 需要更强表达时，从 `{paths.appKitPath}/catalog.json` 的 `components` 选：`spotlight-reveal`（产品特写）、`card-flip`（功能卡正反面）、`end-card`（收尾）、`lower-third`（术语条）、`progress-steps`（步骤进度）。\n- 原则：**一种动画手法全片只当一次主角**；产品画面稳定优先于炫技运镜。\n\n## 五、素材纪律与登记\n\n- 有真实截图/录屏时用 `resolveMediaUrl(assetId, media)` 放进 feature 的证据卡，不手绘仿冒 UI；无素材时保留干净的程序化玻璃占位卡，并说明建议生成/上传哪些画面。\n- 改完代码后 `composition.assets({assetIds})` 登记所有 assetId。\n\n## 六、执行步骤\n\n1. `workflow.context` 拿路径，`workspace.ensure` 就绪。\n2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；保持模板的视觉语言，不引入独立设计系统。\n3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。\n4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。\n5. 保存后等待 Player 预览，用户逐帧评审后停下。\n\n## 七、验收\n\n- 结构：承诺 → 痛点 → 功能证据（可多段）→ 数据 → CTA；每段只证明一个卖点。\n- 视觉：每 beat 有独立布局与动效，颜色/字体吃 palette；不出现手写裸 div 排版。\n- 素材：真实截图完整可读；数字只强调已确认指标；assetId 已登记。\n- 时长：默认 31s（hook 5 / pain 5 / feature 6 / feature 6 / metric 5 / cta 4），落在 20–30s 量级。\n"
     },
     "doodle-explainer": {
       "id": "doodle-explainer",
@@ -912,6 +912,214 @@
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/FlatPanel.tsx",
       "workspacePath": "src/components/FlatPanel.tsx"
+    }
+  ],
+  "effects": [
+    {
+      "id": "cursor",
+      "label": "Cursor Director",
+      "description": "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail。",
+      "engine": "html-canvas",
+      "layer": "interaction",
+      "intent": "guide",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "scene-play",
+        "target",
+        "video-background"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "cursor"
+        }
+      },
+      "source": {
+        "exportName": "cursorEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/cursor.tsx",
+        "workspacePath": "src/html-canvas/effects/cursor.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "互动脚本先于 JSX",
+          "真实 pointer 事件不进入 render"
+        ],
+        "recommendedDurationFrames": 180
+      }
+    },
+    {
+      "id": "focus-spotlight",
+      "label": "Focus Spotlight",
+      "description": "聚焦引导：内容纹理外压暗、目标区域清晰，带羽化与边缘光；可由 hover/click 接管 target。",
+      "engine": "html-canvas",
+      "layer": "content",
+      "intent": "emphasize",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "focus-spotlight"
+        }
+      },
+      "source": {
+        "exportName": "focusSpotlightEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/focus-spotlight.tsx",
+        "workspacePath": "src/html-canvas/effects/focus-spotlight.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "target 使用设计像素",
+          "一个 target 起步"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "text-selection",
+      "label": "Text Selection",
+      "description": "文本选择与荧光笔：按 token Rect[] 逐词/逐行 reveal，可选扫读光；文本保留在 source HTML。",
+      "engine": "html-canvas",
+      "layer": "content",
+      "intent": "emphasize",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "text-selection"
+        }
+      },
+      "source": {
+        "exportName": "textSelectionEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/text-selection.tsx",
+        "workspacePath": "src/html-canvas/effects/text-selection.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "输入 token Rect[]",
+          "不做 DOM 文本搜索"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "magnifier",
+      "label": "Magnifier",
+      "description": "细节放大镜：对 cursor 或关键帧目标二次采样 HTML 纹理，绘制透镜、HUD 与可选色差。",
+      "engine": "html-canvas",
+      "layer": "content",
+      "intent": "inspect",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "magnifier"
+        }
+      },
+      "source": {
+        "exportName": "magnifierEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/magnifier.tsx",
+        "workspacePath": "src/html-canvas/effects/magnifier.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "一个 lens",
+          "折射强度受预算限制"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "scene-transition",
+      "label": "Scene Transition",
+      "description": "场景进出：enter 时前一幕失焦淡出，exit 时下一幕由模糊聚焦。",
+      "engine": "html-canvas",
+      "layer": "transition",
+      "intent": "connect",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "scene-enter",
+        "scene-exit",
+        "between-scenes"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "scene-transition"
+        }
+      },
+      "source": {
+        "exportName": "sceneTransitionEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/scene-transition.tsx",
+        "workspacePath": "src/html-canvas/effects/scene-transition.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "单舞台内",
+          "不嵌套 HtmlInCanvas"
+        ],
+        "recommendedDurationFrames": 30
+      }
+    },
+    {
+      "id": "ambient",
+      "label": "Ambient Canvas FX",
+      "description": "轻量背景材质：确定性 grain、vignette 与冷色调；默认不与强透镜叠加。",
+      "engine": "html-canvas",
+      "layer": "background",
+      "intent": "atmosphere",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "video-background",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "ambient"
+        }
+      },
+      "source": {
+        "exportName": "ambientEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/ambient.tsx",
+        "workspacePath": "src/html-canvas/effects/ambient.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "每场景最多一个",
+          "默认关闭"
+        ],
+        "recommendedDurationFrames": 240
+      }
     }
   ],
   "directives": [
@@ -2023,5 +2231,5 @@
       "motion": ""
     }
   },
-  "kitVersion": "0.4.0"
+  "kitVersion": "0.5.0"
 }

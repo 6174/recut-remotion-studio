@@ -1,15 +1,19 @@
 {
   "name": "@recut/remotion-kit",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Shared Remotion base components for Recut Remotion Studio: 13 caption themes, 81 vendored remotion-templates, shotcraft components, effects and bundled scenario solutions.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "scripts": {
+    "test": "node --import ./scripts/ts-resolve-hooks.mjs scripts/html-canvas-tests.mjs"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./captions": "./src/captions/index.ts",
     "./effects": "./src/effects/index.ts",
+    "./html-canvas": "./src/html-canvas/index.ts",
     "./styles": "./src/styles/index.ts",
     "./shotcraft": "./src/components/index.ts",
     "./templates": "./src/components/index.ts",

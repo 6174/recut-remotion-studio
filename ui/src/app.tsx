@@ -30,6 +30,19 @@ export interface Catalog {
   captionThemes: Array<{ id: string; label: string; description: string }>;
   canvasSizes: Array<{ id: string; label: string; width: number; height: number; fps: number }>;
   components: Array<{ id: string; label: string; description: string; kind: string; category?: string; path: string; workspacePath: string }>;
+  effects: Array<{
+    id: string;
+    label: string;
+    description: string;
+    engine: string;
+    layer: string;
+    intent: string;
+    requires: string[];
+    placement: string[];
+    preview: { compositionId: string; durationInFrames: number; defaultProps: Record<string, unknown> };
+    source: { exportName: string; path: string; workspacePath: string };
+    prompt: { constraints: string[]; recommendedDurationFrames: number };
+  }>;
   directives: Array<{ id: string; label: string; description: string; prompt: string }>;
 }
 
@@ -58,6 +71,7 @@ function normalizeCatalog(value: unknown): Catalog {
     captionThemes: catalog.captionThemes ?? [],
     canvasSizes: catalog.canvasSizes ?? [],
     components: catalog.components ?? [],
+    effects: catalog.effects ?? [],
     directives: catalog.directives ?? [],
   };
 }
@@ -138,7 +152,7 @@ export default function App() {
     const materialText = input.materialAssetIds.length
       ? `\n已选用素材（assetId）：\n${input.materialAssetIds.join("\n")}\n`
       : "";
-    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}${materialText}\n\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（模板视觉原语）。\n3. 用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx 的当前代码，直接改写 SCENES 与渲染层。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，shotcraft 组件经 @recut/remotion-kit/shotcraft 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
+    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}${materialText}\n\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，shotcraft 组件经 @recut/remotion-kit/shotcraft 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
     const composedPrompt = `${prompt}\n\n${VIDEO_EXPRESSION_CONSTRAINT}`;
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(composedPrompt);

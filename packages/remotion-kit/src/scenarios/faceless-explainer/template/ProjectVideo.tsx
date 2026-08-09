@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖共享 SceneEngine、faceless-explainer 的科技新闻 beat 渲染器与内置调色板
- * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE（荧光绿纸面视觉）、buildFacelessExplainerScenes 与 FacelessExplainerVideo
+ * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE（渐变荧光绿纸面视觉）、buildFacelessExplainerScenes 与 FacelessExplainerVideo
  * [POS]: scenarios/faceless-explainer 的科技新闻模板代码。场景自带 palette + beats + 默认 SCENES，
  *        用网格纸、荧光 marker、黑色超大排版与手绘 SVG 图形讲科技新闻；替换新闻内容不替换视觉语法。
  *        叙事序列：hook（新闻钩子）→ concept（阅读视角）→ evidence（拆标题）→ example（案例）→ conclusion（回收）。
@@ -9,10 +9,12 @@
 import React from "react";
 import { SceneEngine } from "../../_shared/SceneEngine";
 import { FACELESS_EXPLAINER_BEATS } from "../beats";
+import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
+import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
 
-/** 科技新闻解读的内置调色板：暖白网格纸 + 荧光绿 marker + 黑色超大字。 */
+/** 科技新闻解读的内置调色板：暖白到冷青渐变网格纸 + 荧光绿 marker + 渐变超大字。 */
 export const FACELESS_EXPLAINER_PALETTE: Palette = {
   background: "#fffdf7",
   primary: "#111111",
@@ -30,6 +32,8 @@ export interface FacelessExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
+  /** HTML-in-Canvas 舞台计划；undefined = 启用内置 hover→selection 用例，null = 关闭。 */
+  stagePlan?: StagePlan | null;
 }
 
 /** 无真人解说的默认 SCENES 全长（秒）：hook 5 + concept 6 + evidence 6 + evidence 6 + example 5 + analogy 5 + example 5 + data 6 + recap 6 + conclusion 5 = 55s。 */
@@ -49,12 +53,53 @@ export const buildFacelessExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "科技新闻的价值，在于它改变了什么", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId }) => (
-  <SceneEngine
-    palette={FACELESS_EXPLAINER_PALETTE}
-    scenes={scenes && scenes.length ? scenes : buildFacelessExplainerScenes(topic)}
-    beats={FACELESS_EXPLAINER_BEATS}
-    resolveMediaUrl={resolveMediaUrl}
-    bgmAssetId={bgmAssetId}
-  />
-);
+/** 科技新闻默认 SCENES 全长（帧，30fps）：hook 0–150 / concept 150–330 / evidence×2 330–510·510–690 / example-1 690–840 / analogy 840–990 / example-2 990–1140 / data 1140–1320 / recap 1320–1500 / conclusion 1500–1650。 */
+export const FACELESS_EXPLAINER_STAGE_PLAN: StagePlan = {
+  targets: {
+    claim: { kind: "rect", rect: { x: 260, y: 320, width: 1400, height: 300 }, radius: 40 },
+    "data-3": { kind: "rect", rect: { x: 720, y: 330, width: 480, height: 360 }, radius: 60 },
+  },
+  interaction: [
+    { kind: "move", frame: 40, x: 240, y: 900 },
+    { kind: "move", frame: 195, x: 960, y: 440, easing: "easeInOut" },
+    { kind: "hover", frame: 210, targetId: "claim" },
+    { kind: "move", frame: 430, x: 1560, y: 200, easing: "easeInOut" },
+    { kind: "move", frame: 1170, x: 960, y: 500, easing: "easeInOut" },
+    { kind: "hover", frame: 1185, targetId: "data-3" },
+    { kind: "click", frame: 1200, targetId: "data-3" },
+  ],
+  effects: [
+    { id: "cursor-director", scope: "video", effect: "cursor", timing: { startFrame: 0, enterFrames: 8, holdFrames: 1630, exitFrames: 12 }, zIndex: 30 },
+    {
+      id: "select-claim",
+      scope: "scene",
+      effect: "text-selection",
+      targetId: "claim",
+      timing: { startFrame: 205, enterFrames: 55, holdFrames: 45, exitFrames: 20 },
+      options: {
+        color: "rgba(85, 244, 54, 0.28)",
+        scan: true,
+        tokens: [
+          { x: 300, y: 335, width: 1320, height: 115 },
+          { x: 330, y: 478, width: 1260, height: 88 },
+        ],
+      },
+      zIndex: 12,
+    },
+    { id: "focus-data", scope: "scene", effect: "focus-spotlight", targetId: "data-3", timing: { startFrame: 1190, enterFrames: 20, holdFrames: 60, exitFrames: 20 }, options: { dim: 0.6, edge: true }, zIndex: 10 },
+  ],
+};
+
+export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
+  const scene = (
+    <SceneEngine
+      palette={FACELESS_EXPLAINER_PALETTE}
+      scenes={scenes && scenes.length ? scenes : buildFacelessExplainerScenes(topic)}
+      beats={FACELESS_EXPLAINER_BEATS}
+      resolveMediaUrl={resolveMediaUrl}
+      bgmAssetId={bgmAssetId}
+    />
+  );
+  const plan = stagePlan === undefined ? FACELESS_EXPLAINER_STAGE_PLAN : stagePlan;
+  return plan ? <HtmlCanvasVideoStage plan={plan}>{scene}</HtmlCanvasVideoStage> : scene;
+};

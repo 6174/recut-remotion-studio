@@ -10,6 +10,8 @@
 import React from "react";
 import { SceneEngine } from "../../_shared/SceneEngine";
 import { DOODLE_EXPLAINER_BEATS } from "../beats";
+import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
+import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
 
@@ -31,6 +33,8 @@ export interface DoodleExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
+  /** HTML-in-Canvas 舞台计划；undefined = 启用内置 cursor+focus 用例，null = 关闭。 */
+  stagePlan?: StagePlan | null;
 }
 
 /** 默认 SCENES 全长（秒）：hook 5 + concept 6 + sketch 6 + example 5 + analogy 5 + data 6 + recap 6 + conclusion 5 = 44s。 */
@@ -48,12 +52,34 @@ export const buildDoodleExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "复杂的事，一笔一笔画清楚", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId }) => (
-  <SceneEngine
-    palette={DOODLE_EXPLAINER_PALETTE}
-    scenes={scenes && scenes.length ? scenes : buildDoodleExplainerScenes(topic)}
-    beats={DOODLE_EXPLAINER_BEATS}
-    resolveMediaUrl={resolveMediaUrl}
-    bgmAssetId={bgmAssetId}
-  />
-);
+/** 白板涂鸦默认 SCENES 全长（帧，30fps）：hook 0–150 / concept 150–330 / sketch 330–510 / example 510–660 / analogy 660–810 / data 810–990 / recap 990–1170 / conclusion 1170–1320。 */
+export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
+  targets: {
+    "conclusion-title": { kind: "rect", rect: { x: 260, y: 380, width: 1400, height: 320 }, radius: 40 },
+  },
+  interaction: [
+    { kind: "move", frame: 36, x: 240, y: 900 },
+    { kind: "move", frame: 1195, x: 960, y: 520, easing: "easeInOut" },
+    { kind: "hover", frame: 1210, targetId: "conclusion-title" },
+    { kind: "click", frame: 1224, targetId: "conclusion-title" },
+  ],
+  effects: [
+    { id: "cursor-director", scope: "video", effect: "cursor", timing: { startFrame: 0, enterFrames: 8, holdFrames: 1300, exitFrames: 12 }, zIndex: 30 },
+    { id: "focus-conclusion", scope: "scene", effect: "focus-spotlight", targetId: "conclusion-title", timing: { startFrame: 1214, enterFrames: 20, holdFrames: 50, exitFrames: 20 }, options: { dim: 0.55, edge: true }, zIndex: 10 },
+    { id: "paper-grain", scope: "video", effect: "ambient", timing: { startFrame: 0, enterFrames: 20, holdFrames: 1280, exitFrames: 20 }, options: { grain: 0.035, vignette: 0.12 }, zIndex: 5 },
+  ],
+};
+
+export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
+  const scene = (
+    <SceneEngine
+      palette={DOODLE_EXPLAINER_PALETTE}
+      scenes={scenes && scenes.length ? scenes : buildDoodleExplainerScenes(topic)}
+      beats={DOODLE_EXPLAINER_BEATS}
+      resolveMediaUrl={resolveMediaUrl}
+      bgmAssetId={bgmAssetId}
+    />
+  );
+  const plan = stagePlan === undefined ? DOODLE_EXPLAINER_STAGE_PLAN : stagePlan;
+  return plan ? <HtmlCanvasVideoStage plan={plan}>{scene}</HtmlCanvasVideoStage> : scene;
+};

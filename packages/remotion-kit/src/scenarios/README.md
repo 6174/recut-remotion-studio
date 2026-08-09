@@ -4,7 +4,7 @@
 
 成员清单
 _shared/: 场景共用的时序、字幕与 beat 分发引擎。
-faceless-explainer/: 科技新闻解读模板；荧光绿纸面、黑色超大排版与手绘 SVG 图形。
+faceless-explainer/: 科技新闻解读模板；暖白到冷青的渐变纸面、荧光绿 marker、渐变超大排版与手绘 SVG 图形。
 doodle-explainer/: 白板涂鸦讲解模板；roughjs 手绘速写本、墨色大字与橙色 marker。
 product-launch/: 产品发布片模板；霓虹玻璃与产品证据镜头。
 index.ts: 场景模板的稳定导出入口。

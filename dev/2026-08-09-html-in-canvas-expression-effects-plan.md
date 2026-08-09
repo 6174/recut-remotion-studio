@@ -3,8 +3,17 @@
 > 目标：把 HTML-in-Canvas 设为 Remotion Studio 的浏览器硬能力，并以它把实时 HTML 内容转化为可编排的“表达镜头”——由鼠标驱动的模拟交互、聚焦、文本选择、放大镜、场景进出与背景特效——同时保持逐帧确定性和预览/导出一致。
 
 日期：2026-08-09
-状态：计划，尚未开始实现
+状态：第一批（A + B 最小闭环）已实施，后续批次按计划推进
 范围：`apps/remotion-studio/` 的 `@recut/remotion-kit`、项目骨架、组件目录与 Agent 创作入口。
+
+## 实施记录（第一批）
+
+- Phase 0 + Phase 1 已落地：`packages/remotion-kit/src/html-canvas/`（types/timeline/targets/interaction/InteractionScript/EffectTimeline/BrowserCapabilityGate/HtmlCanvasVideoStage/CanvasEffect/registry），纯函数单测 `scripts/html-canvas-tests.mjs`（14 项通过）。
+- Phase 2 第一批：CursorDirector、FocusSpotlight 已完成；TextSelection、Magnifier、SceneTransition、AmbientCanvasFX 作为同一 adapter 的 paint renderer 一并提供。
+- Phase 3：`catalog.json` 新增 `effects` 目录（6 项，含 engine/layer/placement/source/prompt），UI 新增 `EffectsFineTune`（真实 Player 预览 + 位置编辑器 + 可编辑 Prompt），`preview/compositions.tsx` 新增 `effect` 预览 kind；`ProjectVideo` 支持可选 `stagePlan` 并在唯一捕获面路由场景。
+- 叙事实例：`demos/product-ui-demo.tsx`（产品 UI click → focus 演示，含 move → hover → click → pause 手势）。
+- 三个场景模板自带可开关的 StagePlan（`stagePlan` prop：undefined = 启用内置用例 / null = 关闭）：product-launch 两处 click → magnify（数据时刻）、faceless-explainer 的 concept hover → selection + data 焦点、doodle-explainer 的 conclusion focus + ambient。模板自身创建唯一捕获面，骨架 ProjectVideo 只透传不再包裹。
+- kit 版本 0.4.0 → 0.5.0；`./html-canvas` subpath 导出与 skeleton vite 别名已就绪。
 
 ## 结论先行
 

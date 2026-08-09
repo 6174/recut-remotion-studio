@@ -33,7 +33,7 @@ export const ShortVideoTheme: React.FC<InternalThemeProps & { theme: string }> =
     const start = item.words[0]?.start ?? Infinity;
     const end = item.words.at(-1)?.end ?? -Infinity;
     return time >= start && time <= end;
-  }) ?? data.lines.find((item) => item.words.length);
+  });
 
   if (!line?.words.length) return null;
 

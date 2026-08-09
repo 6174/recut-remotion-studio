@@ -11,6 +11,7 @@ import {
   Clapperboard,
   Expand,
   ImagePlus,
+  MousePointer2,
   Sparkles,
 } from "lucide-react";
 import { Button } from "./components/ui/button";
@@ -27,6 +28,7 @@ import { CaptionsFineTune } from "./fine-tunes/CaptionsFineTune";
 import { CanvasFineTune } from "./fine-tunes/CanvasFineTune";
 import { ComponentFineTune } from "./fine-tunes/ComponentFineTune";
 import { DirectFineTune } from "./fine-tunes/DirectFineTune";
+import { EffectsFineTune } from "./fine-tunes/EffectsFineTune";
 import { SrtFineTune } from "./fine-tunes/SrtFineTune";
 import { MaterialsFineTune } from "./fine-tunes/MaterialsFineTune";
 import type { FineTuneProps } from "./fine-tunes/FineTuneProps";
@@ -50,7 +52,7 @@ export interface WorkspaceActions {
   resetWorkspace: () => void;
 }
 
-type FineTuneKind = "srt" | "template" | "captions" | "canvas" | "component" | "direct" | "materials";
+type FineTuneKind = "srt" | "template" | "captions" | "canvas" | "component" | "direct" | "materials" | "effects";
 
 interface FineTuneConfig {
   kind: FineTuneKind;
@@ -90,6 +92,13 @@ const FINE_TUNES: FineTuneConfig[] = [
     Icon: Sparkles,
   },
   {
+    kind: "effects" as const,
+    title: "镜头层特效",
+    description: "模拟交互 / 聚焦内容：鼠标、聚焦、选择与放大镜。",
+    basePrompt: "请把当前视频的表达增强为我选择的 HTML-in-Canvas 镜头层效果。组件回答“画面里有什么”，特效回答“观众如何感受、注意和理解它”。",
+    Icon: MousePointer2,
+  },
+  {
     kind: "direct" as const,
     title: "重组镜头表达",
     description: "为现有内容重做镜头和转场。",
@@ -125,6 +134,7 @@ const FINE_TUNE_MODULES: Partial<Record<FineTuneKind, React.FC<FineTuneProps>>> 
   captions: CaptionsFineTune,
   canvas: CanvasFineTune,
   component: ComponentFineTune,
+  effects: EffectsFineTune,
   direct: DirectFineTune,
   materials: MaterialsFineTune,
 };
