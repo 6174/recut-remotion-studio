@@ -14,6 +14,7 @@ export type MediaMap = Record<string, MediaRef>;
 export interface Brief {
   id: string;
   template: string;
+  style: string;
   topic: string;
   details?: string;
   expectedDurationSec: number;

@@ -23,6 +23,7 @@ const nodeModulesReal = path.dirname(path.dirname(fs.realpathSync(path.join(work
 // @recut/remotion-kit 在 seed 时以拷贝模式放进 workspace/remotion-kit/（冻结副本）；
 // 用别名把 bare import 指向本地副本，保证预览/渲染与项目冻结版本一致，
 // 而不是 resolve 到 node_modules 里的 app 最新包（引用模式会随迭代漂移）。
+// 设计系统在全局 recut-design-system skill，不随项目拷贝、不参与本工作区别名。
 const kitAlias = (rel) => path.join(workspace, "remotion-kit", rel);
 
 export default defineConfig({

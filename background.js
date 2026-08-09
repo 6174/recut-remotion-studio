@@ -18,13 +18,14 @@ function scope(ctx) {
 const WORKSPACE = "workspace";
 
 function ensureSchema(ctx) {
-  ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
+  ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, style text not null default 'clean-editorial', topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
   ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists composition_assets (project_id text not null, asset_id text not null, created_at text not null, primary key (project_id, asset_id))");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
   for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"], ["exports", "brief_id"]]) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
   }
+  try { ctx.sqlite.execute("alter table briefs add column style text not null default 'clean-editorial'"); } catch (_) { /* 新库已含该列。 */ }
   const exportsCols = ctx.sqlite.query("pragma table_info(exports)").map((row) => String(row.name));
   if (exportsCols.includes("design_id")) {
     // 旧版 schema 曾写入 design_id（NOT NULL 无默认），重构后代码不再维护该列；
@@ -71,7 +72,7 @@ function readCatalog(ctx) {
   try {
     return JSON.parse(ctx.files.readText("workspace/remotion-kit/catalog.json"));
   } catch (_) { /* 尚未 seed */ }
-  return { styleTemplates: {}, captionThemes: [], canvasSizes: [], components: [], kitVersion: "0.0.0" };
+  return { designSystems: {}, scenarios: {}, captionThemes: [], canvasSizes: [], components: [], kitVersion: "0.0.0" };
 }
 
 // 项目侧只记录 seed 时的 kit 版本；版本差异交给 Agent/UI 的提示，不做逐组件比对。
@@ -94,8 +95,11 @@ function catalog(_, ctx) {
 function createBrief(input, ctx) {
   ensureSchema(ctx);
   const template = String(input.template || "").trim();
+  const style = String(input.style || "").trim();
   const topic = String(input.topic || "").trim();
-  if (!template || !readCatalog(ctx).styleTemplates[template]) throw new Error("template 必须选择一个有效的风格模板");
+  const catalog = readCatalog(ctx);
+  if (!template || !catalog.scenarios[template]) throw new Error("template 必须选择一个有效的成片场景（模板 = 场景 × 风格）");
+  if (!style || !catalog.designSystems[style]) throw new Error("style 必须选择一个有效的设计系统");
   if (!topic) throw new Error("topic 是必填项");
   const details = String(input.details ?? "").trim();
   const expectedDurationSec = input.expectedDurationSec === undefined ? 60 : Number(input.expectedDurationSec);
@@ -104,22 +108,23 @@ function createBrief(input, ctx) {
   const brief = {
     id: id(),
     template,
+    style,
     topic,
     details,
     expectedDurationSec,
     materialAssetIds,
     createdAt: new Date().toISOString(),
   };
-  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), brief.createdAt]);
+  ctx.sqlite.execute("insert into briefs (id, project_id, template, style, topic, details, expected_duration_sec, material_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, style, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), brief.createdAt]);
   return ctx.artifacts.publish({ type: "recut.remotion-studio.brief@1", value: brief });
 }
 
 function latestBrief(_, ctx) {
   ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
+  const rows = ctx.sqlite.query("select id, template, style, topic, details, expected_duration_sec, material_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
   if (!rows.length) return null;
   const row = rows[0];
-  return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), createdAt: row.created_at };
+  return { id: row.id, template: row.template, style: row.style || "clean-editorial", topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), createdAt: row.created_at };
 }
 
 function workspaceSeeded(ctx) {

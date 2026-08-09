@@ -11,10 +11,6 @@ import {
   Clapperboard,
   Expand,
   ImagePlus,
-  Mic2,
-  MessageCircle,
-  Music2,
-  PanelTop,
   Sparkles,
 } from "lucide-react";
 import { Button } from "./components/ui/button";
@@ -27,14 +23,13 @@ import { LogPanel } from "./log-panel";
 import { TerminalPanel } from "./terminal-panel";
 import { ExportPanel } from "./export-panel";
 import { TemplateScenario } from "./scenarios/TemplateScenario";
+import { StyleScenario } from "./scenarios/StyleScenario";
 import { CaptionsScenario } from "./scenarios/CaptionsScenario";
 import { CanvasScenario } from "./scenarios/CanvasScenario";
 import { ComponentScenario } from "./scenarios/ComponentScenario";
 import { DirectScenario } from "./scenarios/DirectScenario";
 import { SrtScenario } from "./scenarios/SrtScenario";
 import { MaterialsScenario } from "./scenarios/MaterialsScenario";
-import { CreationScenario } from "./scenarios/CreationScenario";
-import { SCENE_MODES, type SceneMode } from "./scenarios/scene-modes";
 import type { ScenarioProps } from "./scenarios/types";
 import type { Brief, Catalog, KitState, MediaAsset, MediaMap } from "./app";
 
@@ -55,7 +50,7 @@ export interface WorkspaceActions {
   resetWorkspace: () => void;
 }
 
-type ScenarioKind = "creation" | "srt" | "template" | "captions" | "canvas" | "component" | "direct" | "materials";
+type ScenarioKind = "srt" | "template" | "style" | "captions" | "canvas" | "component" | "direct" | "materials";
 
 interface ScenarioConfig {
   kind: ScenarioKind;
@@ -63,31 +58,21 @@ interface ScenarioConfig {
   description: string;
   basePrompt: string;
   Icon: React.FC<{ className?: string }>;
-  sceneMode?: SceneMode;
 }
-
-const FINISHED_VIDEO_SCENARIOS: ScenarioConfig[] = [
-  { kind: "creation", title: SCENE_MODES["faceless-explainer"].title, description: SCENE_MODES["faceless-explainer"].description, basePrompt: SCENE_MODES["faceless-explainer"].basePrompt, Icon: Sparkles, sceneMode: SCENE_MODES["faceless-explainer"] },
-  { kind: "creation", title: SCENE_MODES["product-launch"].title, description: SCENE_MODES["product-launch"].description, basePrompt: SCENE_MODES["product-launch"].basePrompt, Icon: PanelTop, sceneMode: SCENE_MODES["product-launch"] },
-  { kind: "creation", title: SCENE_MODES.slideshow.title, description: SCENE_MODES.slideshow.description, basePrompt: SCENE_MODES.slideshow.basePrompt, Icon: ImagePlus, sceneMode: SCENE_MODES.slideshow },
-  { kind: "creation", title: SCENE_MODES["talking-head-recut"].title, description: SCENE_MODES["talking-head-recut"].description, basePrompt: SCENE_MODES["talking-head-recut"].basePrompt, Icon: Mic2, sceneMode: SCENE_MODES["talking-head-recut"] },
-  { kind: "creation", title: SCENE_MODES["music-visual"].title, description: SCENE_MODES["music-visual"].description, basePrompt: SCENE_MODES["music-visual"].basePrompt, Icon: Music2, sceneMode: SCENE_MODES["music-visual"] },
-  { kind: "creation", title: SCENE_MODES["captioned-clip"].title, description: SCENE_MODES["captioned-clip"].description, basePrompt: SCENE_MODES["captioned-clip"].basePrompt, Icon: Captions, sceneMode: SCENE_MODES["captioned-clip"] },
-];
 
 const EDITING_SCENARIOS: ScenarioConfig[] = [
   {
-    kind: "srt" as const,
-    title: "从 SRT 生成视频",
-    description: "上传字幕，选择模板和字幕风格。",
-    basePrompt: "请根据我上传的 SRT 字幕生成一支完整的 Remotion 视频：按字幕时间轴拆分自然段，为每段设计匹配的镜头和画面节奏，并使用我选择的视觉模板与字幕风格。",
-    Icon: Captions,
+    kind: "template" as const,
+    title: "选择成片模板",
+    description: "重组镜头结构与底层组件组合。",
+    basePrompt: "请将当前视频改造成我选择的 Remotion 成片模板，更新场景结构、镜头顺序和组件组合。保留当前设计系统的色彩、字体和形状语法。",
+    Icon: Clapperboard,
   },
   {
-    kind: "template" as const,
-    title: "选择视觉模板",
-    description: "换一套色彩、排版和动效语言。",
-    basePrompt: "请将当前视频改造成我选择的 Remotion 视觉模板，并统一更新色彩、字体层级、背景特效和转场。保留当前内容与时间轴。",
+    kind: "style" as const,
+    title: "选择设计风格",
+    description: "独立更新色彩、字形、形状与动效语法。",
+    basePrompt: "请将当前视频应用为我选择的设计系统。保留当前成片模板的叙事结构和组件组合，只更新色彩、字体、间距、形状、背景和动效语法。",
     Icon: Sparkles,
   },
   {
@@ -132,12 +117,19 @@ const EDITING_SCENARIOS: ScenarioConfig[] = [
     basePrompt: "请围绕我选择的素材重剪这支视频：先审视每段素材最有价值的信息，再把它们安排到最能支撑叙事的场景。使用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记所有 assetId；没有合适素材的位置保留干净的程序化视觉。",
     Icon: ImagePlus,
   },
+  {
+    kind: "srt" as const,
+    title: "从 SRT 生成视频",
+    description: "上传字幕，选择模板和字幕风格。",
+    basePrompt: "请根据我上传的 SRT 字幕生成一支完整的 Remotion 视频：按字幕时间轴拆分自然段，为每段设计匹配的镜头和画面节奏，并使用我选择的视觉模板与字幕风格。",
+    Icon: Captions,
+  },
 ];
 
 const SCENARIO_MODULES: Partial<Record<ScenarioKind, React.FC<ScenarioProps>>> = {
-  creation: CreationScenario,
   srt: SrtScenario,
   template: TemplateScenario,
+  style: StyleScenario,
   captions: CaptionsScenario,
   canvas: CanvasScenario,
   component: ComponentScenario,
@@ -261,32 +253,25 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
 
       <aside className="flex w-96 min-h-0 shrink-0 flex-col border-l border-border bg-background max-[1100px]:w-full max-[1100px]:min-h-[30rem] max-[1100px]:border-l-0 max-[1100px]:border-t">
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-          <section className="rounded-sm border border-border bg-card p-3">
+          <section className="rounded-sm border border-primary/25 bg-primary/5 p-3">
             <div className="flex items-start justify-between gap-3">
-              <div><p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-primary">CREATE</p><h2 className="mt-1 text-sm font-semibold">从一个创作场景开始</h2></div>
+              <div><p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-primary">TEMPLATE</p><h2 className="mt-1 text-sm font-semibold">选择成片模板</h2></div>
               <span className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="size-1.5 rounded-full bg-primary" />预览已连接</span>
             </div>
-            <Button className="mt-3 w-full" onClick={() => onRedesign("请先阅读当前 workspace 代码，然后询问我希望如何调整这支视频。不要改动代码，直到我给出明确的编辑要求。")} type="button"><MessageCircle className="size-3.5" />自由创作</Button>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">模板 = 场景 × 风格。选择一个场景，Agent 会按它的导演视角重写这支视频的结构、镜头与组件组合。</p>
+            <Button className="mt-3 w-full" onClick={() => openScenario(EDITING_SCENARIOS.find((item) => item.kind === "template")!)} type="button"><Clapperboard className="size-3.5" />从模板开始</Button>
+          </section>
+
+          <section className="rounded-sm border border-border bg-card p-3">
+            <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">EDIT CURRENT VIDEO</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {FINISHED_VIDEO_SCENARIOS.map((item) => (
+              {EDITING_SCENARIOS.filter((item) => item.kind !== "template").map((item) => (
                 <button className="min-h-24 rounded-xs border border-border bg-muted/20 p-2.5 text-left outline-none transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring/30" key={item.title} onClick={() => openScenario(item)} type="button">
                   <span className="grid size-6 place-items-center rounded-xs bg-primary/10 text-primary"><item.Icon className="size-3.5" /></span>
                   <span className="mt-2 block text-xs font-semibold leading-4">{item.title}</span>
                   <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground">{item.description}</span>
                 </button>
               ))}
-            </div>
-            <div className="mt-4 border-t border-border pt-3">
-              <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">EDIT CURRENT VIDEO</p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {EDITING_SCENARIOS.map((item) => (
-                  <button className="min-h-24 rounded-xs border border-border bg-muted/20 p-2.5 text-left outline-none transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring/30" key={item.title} onClick={() => openScenario(item)} type="button">
-                    <span className="grid size-6 place-items-center rounded-xs bg-primary/10 text-primary"><item.Icon className="size-3.5" /></span>
-                    <span className="mt-2 block text-xs font-semibold leading-4">{item.title}</span>
-                    <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground">{item.description}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </section>
 
@@ -332,7 +317,6 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
               onPrompt={setScenarioPrompt}
               onReady={setScenarioReady}
               onStatus={setStatus}
-              sceneMode={scenario.sceneMode}
             />;
           })()}
           <div className="border-t border-border pt-3">

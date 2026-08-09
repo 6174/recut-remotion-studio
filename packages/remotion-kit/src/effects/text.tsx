@@ -1,6 +1,6 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { Palette } from "./registry";
+import type { Palette } from "../palette";
 
 export interface TextFXProps {
   text: string;

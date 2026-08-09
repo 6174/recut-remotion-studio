@@ -22,6 +22,7 @@ const skeleton = path.join(__dirname, "remotion-skeleton");
 // 共享组件库 @recut/remotion-kit：seed 时「整包拷贝」进 workspace/remotion-kit/（冻结副本）。
 // workspace 的 vite/render 用别名把 `@recut/remotion-kit` 指向该副本；组件规范源仍只在
 // packages/remotion-kit，app 迭代不影响历史项目（kitVersion 记录在 .recut-workspace）。
+// 设计系统在全局 recut-design-system skill（~/.recut/skills/recut-design-system），不随项目拷贝。
 const kitSrc = path.join(__dirname, "packages", "remotion-kit");
 const manifestPath = path.join(kitSrc, "manifest.json");
 const skip = new Set(["node_modules", ".remotion", "package-lock.json", ".git"]);

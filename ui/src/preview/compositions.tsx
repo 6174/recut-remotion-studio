@@ -12,12 +12,13 @@ import {
   CaptionTheme,
   DigitRoll,
   FlashCut,
+  FacelessExplainerVideo,
+  ProductLaunchVideo,
   resolvePalette,
   VerticalTicker,
 } from "@recut/remotion-kit";
 import * as Templates from "@recut/remotion-kit/templates";
 import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
-import { RichTemplateDemo, richTemplateIds } from "./rich-templates";
 
 export const PREVIEW_WIDTH = 1920;
 export const PREVIEW_HEIGHT = 1080;
@@ -26,15 +27,22 @@ export const PREVIEW_HEIGHT = 1080;
  * `style` 是 Studio 的视觉风格样板；`template` 是可直接运行的 Remotion 模板。
  * 两者不能共用一个名称，否则组件目录里的模板会被错误派发到风格样板预览。
  */
-export type PreviewKind = "caption" | "style" | "template" | "component";
+export type PreviewKind = "caption" | "style" | "composition" | "template" | "component";
 
 export interface PreviewSpec {
   kind: PreviewKind;
   id: string;
 }
 
-export const previewDurationFrames = (kind: PreviewKind): number =>
-  kind === "caption" ? Math.round((CAPTION_DURATION_SEC + 1.5) * PREVIEW_FPS) : Math.round(5 * PREVIEW_FPS);
+export const previewDurationFrames = (spec: PreviewSpec): number => {
+  if (spec.kind === "caption") return Math.round((CAPTION_DURATION_SEC + 1.5) * PREVIEW_FPS);
+  if (spec.kind === "composition") {
+    // 场景预览跟随真实成片时长：product-launch 60s / faceless-explainer 55s。
+    const seconds = spec.id === "product-launch" ? 60 : spec.id === "faceless-explainer" ? 55 : 14;
+    return Math.round(seconds * PREVIEW_FPS);
+  }
+  return Math.round(5 * PREVIEW_FPS);
+};
 
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
@@ -93,7 +101,6 @@ export const CaptionDemo: React.FC<{ theme: string }> = ({ theme }) => {
 export const TemplateDemo: React.FC<{ template: string }> = ({ template }) => {
   const palette = resolvePalette(template);
   const { width, height } = useVideoConfig();
-  if (richTemplateIds.has(template)) return <RichTemplateDemo template={template} />;
   return (
     <AbsoluteFill style={{ background: palette.background }}>
       <BackgroundFX effectId={palette.effectId} palette={palette} />
@@ -206,9 +213,19 @@ export const ComponentDemo: React.FC<{ kind?: string; id: string }> = ({ kind, i
   }
 };
 
+/** 场景真实预览：渲染 kit 里的真实场景组件（beats + 模板内置 60s 完整 SCENES），
+ *  展示这支模板真正的成片视觉，预览时长跟随场景真实成片时长。 */
+const ScenarioDemo: React.FC<{ id: string }> = ({ id }) => {
+  if (id === "product-launch") {
+    return <ProductLaunchVideo />;
+  }
+  return <FacelessExplainerVideo />;
+};
+
 /** 按 kind+id 分发到真实组件的演示合成（PreviewCard / PreviewPicker 复用）。 */
 export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id }) => {
   if (kind === "caption") return <CaptionDemo theme={id} />;
   if (kind === "style") return <TemplateDemo template={id} />;
+  if (kind === "composition") return <ScenarioDemo id={id} />;
   return <ComponentDemo id={id} kind={kind} />;
 };

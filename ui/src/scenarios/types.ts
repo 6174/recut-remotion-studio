@@ -5,14 +5,12 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { Brief, Catalog, MediaAsset } from "../app";
-import type { SceneMode } from "./scene-modes";
 
 export interface ScenarioProps {
   brief: Brief;
   catalog: Catalog;
   completedAssets: MediaAsset[];
   basePrompt: string;
-  sceneMode?: SceneMode;
   kitVersionHint?: string;
   onPrompt: (prompt: string) => void;
   onReady: (ready: boolean) => void;

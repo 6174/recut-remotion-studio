@@ -1,74 +1,1097 @@
 {
-  "styleTemplates": {
-    "paper-collage": {
-      "label": "纸拼贴编辑风",
-      "description": "纸质拼贴、编辑杂志感；适合解说、知识与观点内容",
-      "motion": "低能量、缓慢推进、落定后呼吸；像一篇会动的杂志文章"
+  "designSystems": {
+    "agentic": {
+      "label": "Design System Inspired by Agentic",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
     },
-    "cinematic-dark": {
-      "label": "电影感深色",
-      "description": "深色背景、星空与粒子光效；适合产品、故事与情绪化内容",
-      "motion": "聚光→推进→悬浮；单一主角完整动作弧"
+    "airbnb": {
+      "label": "Design System Inspired by Airbnb",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
     },
-    "clean-editorial": {
-      "label": "简洁杂志排版",
-      "description": "几何背景、大字排版；适合新闻、教育、报告类内容",
-      "motion": "直线滑动、克制的过冲；信息先于装饰"
+    "airtable": {
+      "label": "Design System Inspired by Airtable",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
     },
-    "vibrant-tech": {
-      "label": "科技活力风",
-      "description": "渐变色块、高能量运动；适合产品发布、演示与社交媒体",
-      "motion": "高能量入场、轻微过冲；批量元素靠运动本身表达"
+    "ant": {
+      "label": "Design System Inspired by Ant",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
     },
-    "motion-explainer": {
-      "label": "Remotion 知识讲解",
-      "description": "代码窗口转为播放器的深色讲解模板；适合技术原理、产品机制与教程",
-      "motion": "提问钩子 → 代码逐行显现 → 播放器完成收束；用代码卡、进度条和光晕组成完整叙事"
+    "apple": {
+      "label": "Design System Inspired by Apple",
+      "category": "a precision editorial language built around white-space discipline,",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "application": {
+      "label": "Design System Inspired by Application",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "arc": {
+      "label": "Design System Inspired by Arc Browser",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "artistic": {
+      "label": "Design System Inspired by Artistic",
+      "category": "artistic gallery language with warm paper, rich accent, and expressive composition",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "atelier-zero": {
+      "label": "Atelier Zero",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "bento": {
+      "label": "Design System Inspired by Bento",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "binance": {
+      "label": "Design System Inspired by Binance.US",
+      "category": "define the entire crypto-trading visual language Binding the",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "bmw": {
+      "label": "Design System Inspired by BMW",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "bmw-m": {
+      "label": "Design System Inspired by BMW M",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "bold": {
+      "label": "Design System Inspired by Bold",
+      "category": "bold campaign language with hard contrast, oversized type, and assertive actions",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "brutalism": {
+      "label": "Design System Inspired by Brutalism",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "bugatti": {
+      "label": "Design System Inspired by Bugatti",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cafe": {
+      "label": "Design System Inspired by Cafe",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cal": {
+      "label": "Design System Inspired by Cal.com",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "canva": {
+      "label": "Design System Inspired by Canva",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cisco": {
+      "label": "Design System Inspired by Cisco",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "claude": {
+      "label": "Design System Inspired by Claude (Anthropic)",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "clay": {
+      "label": "Design System Inspired by Clay",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "claymorphism": {
+      "label": "Design System Inspired by Claymorphism",
+      "category": "claymorphism visual language with rounded molded panels and soft relief",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "clean": {
+      "label": "Design System Inspired by Clean",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "clickhouse": {
+      "label": "Design System Inspired by ClickHouse",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cohere": {
+      "label": "Design System Inspired by Cohere",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "coinbase": {
+      "label": "Design System Inspired by Coinbase",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "colorful": {
+      "label": "Design System Inspired by Colorful",
+      "category": "colorful product language with warm bright canvas and saturated action color",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "composio": {
+      "label": "Design System Inspired by Composio",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "contemporary": {
+      "label": "Design System Inspired by Contemporary",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "corporate": {
+      "label": "Design System Inspired by Corporate",
+      "category": "corporate communication language with conservative blue, white panels, and trust-first hierarchy",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cosmic": {
+      "label": "Design System Inspired by Cosmic",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "creative": {
+      "label": "Design System Inspired by Creative",
+      "category": "creative workspace language with warm bright panels, rounded controls, and energetic accent states",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "cursor": {
+      "label": "Design System Inspired by Cursor",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "dashboard": {
+      "label": "Design System Inspired by Dashboard",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "default": {
+      "label": "Neutral Modern",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "discord": {
+      "label": "Design System Inspired by Discord",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "dithered": {
+      "label": "Design System Inspired by Dithered",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "doodle": {
+      "label": "Design System Inspired by Doodle",
+      "category": "doodle visual language with sketchbook warmth, soft cards, and informal orange accents",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "dramatic": {
+      "label": "Design System Inspired by Dramatic",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "duolingo": {
+      "label": "Design System Inspired by Duolingo",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "editorial": {
+      "label": "Design System Inspired by Editorial",
+      "category": "editorial publishing language with warm paper surfaces, serif display type, and composed story cards",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "elegant": {
+      "label": "Design System Inspired by Elegant",
+      "category": "elegant interface language with warm neutrals, serif display type, and quiet premium controls",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "elevenlabs": {
+      "label": "Design System Inspired by ElevenLabs",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "energetic": {
+      "label": "Design System Inspired by Energetic",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "enterprise": {
+      "label": "Design System Inspired by Enterprise",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "expo": {
+      "label": "Design System Inspired by Expo",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "expressive": {
+      "label": "Design System Inspired by Expressive",
+      "category": "expressive design language with vibrant accents, roomy sections, and characterful cards",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "fantasy": {
+      "label": "Design System Inspired by Fantasy",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "ferrari": {
+      "label": "Design System Inspired by Ferrari",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "figma": {
+      "label": "Design System Inspired by Figma",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "flat": {
+      "label": "Design System Inspired by Flat",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "framer": {
+      "label": "Design System Inspired by Framer",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "friendly": {
+      "label": "Design System Inspired by Friendly",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "futuristic": {
+      "label": "Design System Inspired by Futuristic",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "github": {
+      "label": "Design System Inspired by GitHub",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "glassmorphism": {
+      "label": "Design System Inspired by Glassmorphism",
+      "category": "glass interface language with translucent panels, airy borders, and luminous cyan-violet action",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "gradient": {
+      "label": "Design System Inspired by Gradient",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "hashicorp": {
+      "label": "Design System Inspired by HashiCorp",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "hud": {
+      "label": "HUD Design System",
+      "category": "HUD interface language with dark transparent panels, cyan telemetry, and compact status readouts",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "huggingface": {
+      "label": "Design System Inspired by Hugging Face",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "ibm": {
+      "label": "Design System Inspired by IBM",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "intercom": {
+      "label": "Design System Inspired by Intercom",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "kami": {
+      "label": "Design System Inspired by kami (紙 / 纸)",
+      "category": "regardless of the document language",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "kraken": {
+      "label": "Design System Inspired by Kraken",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "lamborghini": {
+      "label": "Design System Inspired by Lamborghini",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "levels": {
+      "label": "Design System Inspired by Levels",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "linear-app": {
+      "label": "Design System Inspired by Linear",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "lingo": {
+      "label": "Design System Inspired by Lingo",
+      "category": "global localization product language, soft violet action, warm white surfaces, and readable content rows",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "loom": {
+      "label": "Loom Design System",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "lovable": {
+      "label": "Design System Inspired by Lovable",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "luxury": {
+      "label": "Design System Inspired by Luxury",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mastercard": {
+      "label": "Design System Inspired by Mastercard",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "material": {
+      "label": "Design System Inspired by Material",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "meta": {
+      "label": "Design System Inspired by Meta (Store)",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "minimal": {
+      "label": "Design System Inspired by Minimal",
+      "category": "minimal product language with white space, black text, hairline borders, and quiet interaction",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "minimax": {
+      "label": "Design System Inspired by MiniMax",
+      "category": "AI lab behind Hailuo  video and Conch text The visual language",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mintlify": {
+      "label": "Design System Inspired by Mintlify",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "miro": {
+      "label": "Design System Inspired by Miro",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mission-control": {
+      "label": "Mission Control Design System",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mistral-ai": {
+      "label": "Design System Inspired by Mistral AI",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "modern": {
+      "label": "Design System Inspired by Modern",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mongodb": {
+      "label": "Design System Inspired by MongoDB",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "mono": {
+      "label": "Design System Inspired by Mono",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "neobrutalism": {
+      "label": "Design System Inspired by Neobrutalism",
+      "category": "neo-brutalist design language with hard borders, offset shadows, and loud yellow emphasis",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "neon": {
+      "label": "Design System Inspired by Neon",
+      "category": "neon visual language with dark backgrounds, glowing accents, and high-energy controls",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "neumorphism": {
+      "label": "Design System Inspired by Neumorphism",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "nike": {
+      "label": "Design System Inspired by Nike",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "notion": {
+      "label": "Design System Inspired by Notion",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "nvidia": {
+      "label": "Design System Inspired by NVIDIA",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "ollama": {
+      "label": "Design System Inspired by Ollama",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "openai": {
+      "label": "Design System Inspired by OpenAI",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "opencode-ai": {
+      "label": "Design System Inspired by OpenCode",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "pacman": {
+      "label": "Design System Inspired by Pacman",
+      "category": "classic arcade maze language with black board, yellow signal, and rounded score capsules",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "paper": {
+      "label": "Design System Inspired by Paper",
+      "category": "paper design language with warm document surfaces, soft texture, and readable hierarchy",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "perplexity": {
+      "label": "Design System Inspired by Perplexity AI",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "perspective": {
+      "label": "Design System Inspired by Perspective",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "pinterest": {
+      "label": "Design System Inspired by Pinterest",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "playstation": {
+      "label": "Design System Inspired by PlayStation",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "posthog": {
+      "label": "Design System Inspired by PostHog",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "premium": {
+      "label": "Design System Inspired by Premium",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "professional": {
+      "label": "Design System Inspired by Professional",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "publication": {
+      "label": "Design System Inspired by Publication",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "raycast": {
+      "label": "Design System Inspired by Raycast",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "refined": {
+      "label": "Design System Inspired by Refined",
+      "category": "refined interface language with warm neutrals, restrained accent, and composed spacing",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "renault": {
+      "label": "Design System Inspired by Renault",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "replicate": {
+      "label": "Design System Inspired by Replicate",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "resend": {
+      "label": "Design System Inspired by Resend",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "retro": {
+      "label": "Design System Inspired by Retro",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "revolut": {
+      "label": "Design System Inspired by Revolut",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "runwayml": {
+      "label": "Design System Inspired by Runway",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "sanity": {
+      "label": "Design System Inspired by Sanity",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "sentry": {
+      "label": "Design System Inspired by Sentry",
+      "category": "depth language is light-on-dark, not paper-on-paper",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "shadcn": {
+      "label": "Design System Inspired by Shadcn",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "shopify": {
+      "label": "Design System Inspired by Shopify",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "simple": {
+      "label": "Design System Inspired by Simple",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "skeumorphism": {
+      "label": "Design System Inspired by Skeumorphism",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "slack": {
+      "label": "Design System Inspired by Slack",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "sleek": {
+      "label": "Design System Inspired by Sleek",
+      "category": "sleek product language with polished panels, sharp typography, and confident blue accent",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "spacex": {
+      "label": "Design System Inspired by SpaceX",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "spacious": {
+      "label": "Design System Inspired by Spacious",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "spotify": {
+      "label": "Design System Inspired by Spotify",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "starbucks": {
+      "label": "Design System Inspired by Starbucks",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "storytelling": {
+      "label": "Design System Inspired by Storytelling",
+      "category": "storytelling design language with warm paper, narrative modules, and editorial pacing",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "stripe": {
+      "label": "Design System Inspired by Stripe",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "supabase": {
+      "label": "Design System Inspired by Supabase",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "superhuman": {
+      "label": "Design System Inspired by Superhuman",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "tesla": {
+      "label": "Design System Inspired by Tesla",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "tetris": {
+      "label": "Design System Inspired by Tetris",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "theverge": {
+      "label": "Design System Inspired by The Verge",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "together-ai": {
+      "label": "Design System Inspired by Together AI",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "tom-modern": {
+      "label": "Tom Modern Design",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "totality-festival": {
+      "label": "Design System Inspired by Totality Festival",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "trading-terminal": {
+      "label": "Trading Terminal Design System",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "uber": {
+      "label": "Design System Inspired by Uber",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "urdu": {
+      "label": "Urdu Modern (Indus Script System)",
+      "category": "Urdu editorial language with green cultural accent, warm paper, and composed reading surfaces",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "vercel": {
+      "label": "Design System Inspired by Vercel",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "vibrant": {
+      "label": "Design System Inspired by Vibrant",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "vintage": {
+      "label": "Design System Inspired by Vintage",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "vodafone": {
+      "label": "Design System Inspired by Vodafone",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "voltagent": {
+      "label": "Design System Inspired by VoltAgent",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "warm-editorial": {
+      "label": "Warm Editorial",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "warp": {
+      "label": "Design System Inspired by Warp",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "webex": {
+      "label": "Design System Inspired by Webex",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "webflow": {
+      "label": "Design System Inspired by Webflow",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "wechat": {
+      "label": "WeChat Design System",
+      "category": "social, payment, and mini-program super-app The visual language is",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "wired": {
+      "label": "Design System Inspired by WIRED",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "wise": {
+      "label": "Design System Inspired by Wise",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "x-ai": {
+      "label": "Design System Inspired by xAI",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "xiaohongshu": {
+      "label": "Design System Inspired by Xiaohongshu",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    },
+    "zapier": {
+      "label": "Design System Inspired by Zapier",
+      "category": "",
+      "source": "open-design",
+      "description": "",
+      "motion": ""
+    }
+  },
+  "scenarios": {
+    "faceless-explainer": {
+      "id": "faceless-explainer",
+      "label": "科技新闻解读",
+      "description": "把一条科技新闻拆成事实、影响与可验证的后续信号。",
+      "skill": "faceless-explainer",
+      "skillPath": "src/scenarios/faceless-explainer/SKILL.md",
+      "components": [
+        "AnimatedText",
+        "TitleSplit",
+        "LowerThird",
+        "StatCounter"
+      ],
+      "defaultStyle": "bold",
+      "implemented": true,
+      "motion": "荧光绿纸面新闻钩子 → 大字号事实/影响拆解 → 三条信号 → 一句结论；网格纸、marker、箭头与眼睛建立强风格表达。",
+      "skillBody": "# 科技新闻解读（faceless-explainer）\n\n> 场景技能：这是「科技新闻解读」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：每日 AI、芯片、软件、硬件和产品发布新闻；把一条消息讲成“发生了什么、为什么重要、接下来该看什么”。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、纯人物采访、没有明确新闻事件的泛知识课。\n- **叙事承诺**：不复述新闻稿，不制造焦虑；每个镜头替观众完成一次更清楚的判断。\n\n## 二、默认视觉：荧光绿科技报纸\n\n这是一个高风格化的科技媒体视觉模板，借鉴“网格纸 + 黑色大字 + 荧光 marker + 手绘箭头”的强传播海报语言：\n\n- **纸面秩序**：暖白底与细黑网格是全片底色，像一张可被标记的新闻草稿；网格只做背景，绝不承载内容。\n- **焦点色**：荧光绿（`FACELESS_EXPLAINER_PALETTE.accent`）只用来圈住一个主张、箭头、标签或数字；黑字永远是阅读主角。\n- **情绪符号**：不规则 marker 色块、粗笔曲线箭头和夸张眼睛都来自 `primitives.tsx` 的确定性 SVG，不用随机数、外部贴图或装饰性小字。\n- **大字纪律**：标题使用 76–126px；正文/叙事字幕的有效字高 ≥56px；标签、编号、统计和 CTA ≥32px。读不到的字必须删除，绝不能缩小塞进画面。\n- **内容密度**：一个 beat 只有一个新闻判断，文本过多时删减或拆镜头；不要用“新闻列表”和小字装出信息量。\n\n## 三、导演视角：一条新闻，三问读懂\n\n开场三秒先给新闻钩子，中段依次把标题拆为事实、影响与信号，结尾给观众一条可带走的判断。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 抓住今天值得读的一条消息 | 荧光 marker 上的超大新闻标题 + 眼睛 | 标题上浮、箭头推出 | 5s |\n| ② | `concept` | 给出阅读新闻的独特视角 | 居中大主张 + 三枚粗体判断标签 | 色块/标签错峰落定 | 6s |\n| ③ | `evidence` | 拆出标题背后的事实 | 三条大字号问题 + `WHY?` 新闻卡 | 步骤逐项落下 | 6s |\n| ④ | `example` | 让抽象判断落在一类真实事件 | 案件卡 + 一句具体追问 | 新闻卡从 marker 色块前弹入 | 5s |\n| ⑤ | `analogy` | 纠正观众的观看角度 | “看起来像 / 其实要看”箭头对照 | 曲线箭头推进 | 5s |\n| ⑥ | `data` | 给出值得持续追踪的信号 | 超大 `3` + 三个判断问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压缩成每日清单 | 三张黑框新闻便签 | 便签错峰落下 | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 荧光 marker 上的结论大字 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `Grid`、`MarkerBlob`、`DoodleArrow`、`DoodleEyes`、`MarkerChip`、`PaperCard`、`StepList` 与 `DataBars`。这些原语已经固化了对比度、字号和确定性。\n- `DigitRoll` 只用于已确认的数字，`DataBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由程序化图形构成；不得伪造新闻截图、采访画面、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 evidence/example，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用荧光绿纸面 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一句新闻钩子、事实、影响、三条信号和结论；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildFacelessExplainerScenes` 的文案和真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：新闻钩子 → 阅读视角 → 事实 → 影响 → 信号 → 结论；每段只带来一个新判断。\n- 视觉：暖白网格、荧光绿 marker、黑色超大字、箭头和眼睛形成统一的科技媒体个性；无默认蓝色信息卡回退。\n- 可读性：叙事字幕/正文有效字高 ≥56px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 55s（5/6/6/6/5/5/5/6/6/5）；按具体新闻删减到 20–55s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
     },
     "product-launch": {
+      "id": "product-launch",
       "label": "产品发布片",
-      "description": "霓虹渐变、浮层功能卡与大字卖点；适合新功能、SaaS 与品牌发布",
-      "motion": "主张先落版，再由三张功能卡依次推进，底部标签收束；高能但每个动作只服务一个卖点"
-    },
-    "data-briefing": {
-      "label": "数据叙事报告",
-      "description": "编辑数据页、数字翻牌和增长条；适合复盘、研究结论与业务汇报",
-      "motion": "结论标题 → 关键数字翻牌 → 三层数据条推进；克制留白，让数据本身成为动画"
-    },
-    "creator-collage": {
-      "label": "创作者拼贴板",
-      "description": "纸张纹理、便利贴与杂志式中文字排版；适合观点视频、创作过程与文化内容",
-      "motion": "标题先定调，四张拼贴卡错峰贴入，最后以一句旁白收束；像一面正在完成的灵感墙"
-    },
-    "biennale-yellow": {
-      "label": "太阳黄双年展",
-      "description": "暖羊皮纸、太阳黄光晕、衬线大标题和细线规则；适合文化、教育与有温度的讲解",
-      "motion": "黄光缓慢呼吸，标题落版，细线与短文完成收束；留白优先，让一个观点获得充足停留"
-    },
-    "blockframe": {
-      "label": "粗框新粗野主义",
-      "description": "粗黑边、硬阴影和糖果撞色的信息卡；适合高能教程、功能清单与年轻品牌",
-      "motion": "大字先砸入，三张厚边卡横向撞进；使用硬切和明确位移，不使用含糊的柔和过渡"
-    },
-    "cobalt-grid": {
-      "label": "钴蓝编辑网格",
-      "description": "纸张底、钴蓝网格、衬线标题与编号资料条；适合研究、报告和知识分解",
-      "motion": "主结论先显现，编号资料条按层级向右生长；网格固定不动，信息运动必须可追踪"
-    },
-    "bold-poster": {
-      "label": "红色大胆海报",
-      "description": "奶油纸、倾斜红色版块与极大号标题；适合单一强观点、活动预告和社交封面",
-      "motion": "斜切色块先定画面，大标题带旋转缩放打入，最后以三行短句压轴；一屏只讲一个主张"
-    },
-    "capsule-editorial": {
-      "label": "糖果胶囊编辑风",
-      "description": "圆角胶囊、珊瑚底和糖果色步骤标签；适合流程、方法论和轻量产品介绍",
-      "motion": "主题先落在大胶囊上，步骤胶囊错峰弹起并排成路径；圆润但节奏清楚，避免元素同时出现"
-    },
-    "editorial-forest": {
-      "label": "森林编辑风",
-      "description": "森林绿、粉色强调与米纸三色编辑系统；适合深度观点、品牌故事与创作随笔",
-      "motion": "标题由上向下生长，三个主题标签分层出现，暗绿圆形形成结尾空间；让层级像树冠一样展开"
+      "description": "展示产品价值、核心功能与明确行动号召。",
+      "skill": "product-launch",
+      "skillPath": "src/scenarios/product-launch/SKILL.md",
+      "components": [
+        "SpotlightReveal",
+        "CardFlip",
+        "EndCard",
+        "DigitRoll"
+      ],
+      "defaultStyle": "futuristic",
+      "implemented": true,
+      "motion": "结果承诺 → 痛点 → 功能证据 → 收束 CTA；每个功能只用一个可读的证据镜头。",
+      "skillBody": "# 产品发布片（product-launch）\n\n> 场景技能：这是「产品发布片」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、组件策略与动画语法来改写 composition。模板代码在 `scenarios/product-launch/template/ProjectVideo.tsx`，渲染器在 `beats.tsx`，两者必须与本手册一致。\n\n## 一、本场景适用什么\n\n- **适合**：产品发布、新功能介绍、产品更新、SaaS/App/硬件的 launch promo；有明确卖点、功能清单或可验证指标。\n- **不适合**：抽象知识讲解（用 `faceless-explainer`）、图文故事、口播重剪。\n- 上游参考：[HyperFrames product-launch-video](https://github.com/heygen-com/hyperframes/tree/main/skills/product-launch-video)。\n\n## 二、本场景内置视觉\n\n- 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。\n- **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。\n- 用户对当前风格不满意、想换风格时，走**外层 design-system 迭代**（改 `brief.style` / 换设计系统），不在本场景模板内解决。\n\n## 三、导演视角：分镜画面与动画展示过程\n\n产品发布是「说服」叙事，节奏是**主张先落版，每个功能一个证据镜头，最后 CTA 收束**。全程一个节拍一个信息变化（约 5–6s），落定后呼吸（hold ≥ 0.5s），不堆叠。\n\n**铁律：每个 beat 有一个唯一视觉主角（eye-catch），全片不重复同一种表达方式**——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 / 超大数据 / 引述扫光 / 路线进度 / 发光 CTA，每种只出现一次。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` 结果承诺 | 开场三秒砸出结果 | 霓虹渐变 + 双旋转光环 + 超大主张 | 标题缩放弹出（scale 0.84→1），发光 Pill 错峰入场 | 5s |\n| ② | `pain` 痛点 | 数字冲击让人看清成本 | 超大成本数字飞入（140px+），左标题压小 | 数字放大落定（from 1.4），要点菱形错峰 | 5s |\n| ③ | `contrast` 对比 | 现状 vs 愿景此消彼长 | 左右分屏宽度动画（0.5→0.32/0.68） | 两栏宽度推移，AFTER 侧发光 | 6s |\n| ④ | `feature` 功能证据 | 每个功能一张可读证据 | 玻璃证据卡 + 产品截图 | 要点逐条滑入（每 6f 一条），产品画面稳定 | 6s |\n| ⑤ | `metric` 数据 | 用数字证明 | 超大 DigitRoll 翻牌 + 光晕 | 数字逐位滚入，细线延展 | 5s |\n| ⑥ | `testimonial` 证言 | 让客户替你说话 | 超大引号 + 一句证言 + 扫光掠过 | 引述卡缩放落定，扫光从左到右 | 5s |\n| ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |\n| ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |\n\n## 四、组件策略\n\n- **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。\n- 需要更强表达时，从 `{paths.appKitPath}/catalog.json` 的 `components` 选：`spotlight-reveal`（产品特写）、`card-flip`（功能卡正反面）、`end-card`（收尾）、`lower-third`（术语条）、`progress-steps`（步骤进度）。\n- 原则：**一种动画手法全片只当一次主角**；产品画面稳定优先于炫技运镜。\n\n## 五、素材纪律与登记\n\n- 有真实截图/录屏时用 `resolveMediaUrl(assetId, media)` 放进 feature 的证据卡，不手绘仿冒 UI；无素材时保留干净的程序化玻璃占位卡，并说明建议生成/上传哪些画面。\n- 改完代码后 `composition.assets({assetIds})` 登记所有 assetId。\n\n## 六、执行步骤\n\n1. `workflow.context` 拿路径，`workspace.ensure` 就绪。\n2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；换风格由外层 design-system 迭代处理，不在本场景内。\n3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。\n4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。\n5. 保存后等待 Player 预览，用户逐帧评审后停下。\n\n## 七、验收\n\n- 结构：承诺 → 痛点 → 功能证据（可多段）→ 数据 → CTA；每段只证明一个卖点。\n- 视觉：每 beat 有独立布局与动效，颜色/字体吃 palette；不出现手写裸 div 排版。\n- 素材：真实截图完整可读；数字只强调已确认指标；assetId 已登记。\n- 时长：默认 31s（hook 5 / pain 5 / feature 6 / feature 6 / metric 5 / cta 4），落在 20–30s 量级。\n"
     }
   },
   "captionThemes": [
@@ -168,8 +1191,8 @@
       "description": "Animated SVG bar chart with staggered bar growth",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/chart-animation.tsx",
-      "workspacePath": "src/components/remotion-templates/chart-animation.tsx"
+      "path": "packages/remotion-kit/src/components/chart-animation.tsx",
+      "workspacePath": "src/components/chart-animation.tsx"
     },
     {
       "id": "line-chart",
@@ -177,8 +1200,8 @@
       "description": "SVG polyline drawing left-to-right with data points",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/line-chart.tsx",
-      "workspacePath": "src/components/remotion-templates/line-chart.tsx"
+      "path": "packages/remotion-kit/src/components/line-chart.tsx",
+      "workspacePath": "src/components/line-chart.tsx"
     },
     {
       "id": "pie-chart",
@@ -186,8 +1209,8 @@
       "description": "Segmented circle with sequential segment reveals",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/pie-chart.tsx",
-      "workspacePath": "src/components/remotion-templates/pie-chart.tsx"
+      "path": "packages/remotion-kit/src/components/pie-chart.tsx",
+      "workspacePath": "src/components/pie-chart.tsx"
     },
     {
       "id": "donut-chart",
@@ -195,8 +1218,8 @@
       "description": "Ring chart with animated segments and centre metric",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/donut-chart.tsx",
-      "workspacePath": "src/components/remotion-templates/donut-chart.tsx"
+      "path": "packages/remotion-kit/src/components/donut-chart.tsx",
+      "workspacePath": "src/components/donut-chart.tsx"
     },
     {
       "id": "area-chart",
@@ -204,8 +1227,8 @@
       "description": "Gradient-filled area under a line, revealing left to right",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/area-chart.tsx",
-      "workspacePath": "src/components/remotion-templates/area-chart.tsx"
+      "path": "packages/remotion-kit/src/components/area-chart.tsx",
+      "workspacePath": "src/components/area-chart.tsx"
     },
     {
       "id": "progress-bars",
@@ -213,8 +1236,8 @@
       "description": "Horizontal bars filling to different widths",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/progress-bars.tsx",
-      "workspacePath": "src/components/remotion-templates/progress-bars.tsx"
+      "path": "packages/remotion-kit/src/components/progress-bars.tsx",
+      "workspacePath": "src/components/progress-bars.tsx"
     },
     {
       "id": "stat-counter",
@@ -222,8 +1245,8 @@
       "description": "Large number counting up with comma formatting",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/stat-counter.tsx",
-      "workspacePath": "src/components/remotion-templates/stat-counter.tsx"
+      "path": "packages/remotion-kit/src/components/stat-counter.tsx",
+      "workspacePath": "src/components/stat-counter.tsx"
     },
     {
       "id": "comparison-chart",
@@ -231,8 +1254,8 @@
       "description": "Side-by-side before/after metric comparison",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/comparison-chart.tsx",
-      "workspacePath": "src/components/remotion-templates/comparison-chart.tsx"
+      "path": "packages/remotion-kit/src/components/comparison-chart.tsx",
+      "workspacePath": "src/components/comparison-chart.tsx"
     },
     {
       "id": "circular-progress",
@@ -240,8 +1263,8 @@
       "description": "Animated progress ring with percentage",
       "kind": "template",
       "category": "图表数据",
-      "path": "packages/remotion-kit/src/components/remotion-templates/circular-progress.tsx",
-      "workspacePath": "src/components/remotion-templates/circular-progress.tsx"
+      "path": "packages/remotion-kit/src/components/circular-progress.tsx",
+      "workspacePath": "src/components/circular-progress.tsx"
     },
     {
       "id": "animated-text",
@@ -249,8 +1272,8 @@
       "description": "Character-by-character text reveal",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/animated-text.tsx",
-      "workspacePath": "src/components/remotion-templates/animated-text.tsx"
+      "path": "packages/remotion-kit/src/components/animated-text.tsx",
+      "workspacePath": "src/components/animated-text.tsx"
     },
     {
       "id": "bounce-text",
@@ -258,8 +1281,8 @@
       "description": "Spring bounce entrance for titles",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/bounce-text.tsx",
-      "workspacePath": "src/components/remotion-templates/bounce-text.tsx"
+      "path": "packages/remotion-kit/src/components/bounce-text.tsx",
+      "workspacePath": "src/components/bounce-text.tsx"
     },
     {
       "id": "bubble-pop-text",
@@ -267,8 +1290,8 @@
       "description": "Characters pop in inside bubbles",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/bubble-pop-text.tsx",
-      "workspacePath": "src/components/remotion-templates/bubble-pop-text.tsx"
+      "path": "packages/remotion-kit/src/components/bubble-pop-text.tsx",
+      "workspacePath": "src/components/bubble-pop-text.tsx"
     },
     {
       "id": "floating-bubble-text",
@@ -276,8 +1299,8 @@
       "description": "Floating label with sine-wave wobble",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/floating-bubble-text.tsx",
-      "workspacePath": "src/components/remotion-templates/floating-bubble-text.tsx"
+      "path": "packages/remotion-kit/src/components/floating-bubble-text.tsx",
+      "workspacePath": "src/components/floating-bubble-text.tsx"
     },
     {
       "id": "glitch-text",
@@ -285,8 +1308,8 @@
       "description": "RGB split glitch with decay",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/glitch-text.tsx",
-      "workspacePath": "src/components/remotion-templates/glitch-text.tsx"
+      "path": "packages/remotion-kit/src/components/glitch-text.tsx",
+      "workspacePath": "src/components/glitch-text.tsx"
     },
     {
       "id": "popping-text",
@@ -294,8 +1317,8 @@
       "description": "Spring-based scale pop entrance",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/popping-text.tsx",
-      "workspacePath": "src/components/remotion-templates/popping-text.tsx"
+      "path": "packages/remotion-kit/src/components/popping-text.tsx",
+      "workspacePath": "src/components/popping-text.tsx"
     },
     {
       "id": "pulsing-text",
@@ -303,8 +1326,8 @@
       "description": "Continuous scale pulse for emphasis",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/pulsing-text.tsx",
-      "workspacePath": "src/components/remotion-templates/pulsing-text.tsx"
+      "path": "packages/remotion-kit/src/components/pulsing-text.tsx",
+      "workspacePath": "src/components/pulsing-text.tsx"
     },
     {
       "id": "slide-text",
@@ -312,8 +1335,8 @@
       "description": "Directional slide-in text",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/slide-text.tsx",
-      "workspacePath": "src/components/remotion-templates/slide-text.tsx"
+      "path": "packages/remotion-kit/src/components/slide-text.tsx",
+      "workspacePath": "src/components/slide-text.tsx"
     },
     {
       "id": "typewriter-subtitle",
@@ -321,8 +1344,8 @@
       "description": "Character-by-character typing with cursor",
       "kind": "template",
       "category": "文字动效",
-      "path": "packages/remotion-kit/src/components/remotion-templates/typewriter-subtitle.tsx",
-      "workspacePath": "src/components/remotion-templates/typewriter-subtitle.tsx"
+      "path": "packages/remotion-kit/src/components/typewriter-subtitle.tsx",
+      "workspacePath": "src/components/typewriter-subtitle.tsx"
     },
     {
       "id": "animated-list",
@@ -330,8 +1353,8 @@
       "description": "Staggered list item entrance",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/animated-list.tsx",
-      "workspacePath": "src/components/remotion-templates/animated-list.tsx"
+      "path": "packages/remotion-kit/src/components/animated-list.tsx",
+      "workspacePath": "src/components/animated-list.tsx"
     },
     {
       "id": "card-flip",
@@ -339,8 +1362,8 @@
       "description": "3D card flip with front/back content",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/card-flip.tsx",
-      "workspacePath": "src/components/remotion-templates/card-flip.tsx"
+      "path": "packages/remotion-kit/src/components/card-flip.tsx",
+      "workspacePath": "src/components/card-flip.tsx"
     },
     {
       "id": "countdown-timer",
@@ -348,8 +1371,8 @@
       "description": "5-4-3-2-1-GO with spring scale",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/countdown-timer.tsx",
-      "workspacePath": "src/components/remotion-templates/countdown-timer.tsx"
+      "path": "packages/remotion-kit/src/components/countdown-timer.tsx",
+      "workspacePath": "src/components/countdown-timer.tsx"
     },
     {
       "id": "notification-pop",
@@ -357,8 +1380,8 @@
       "description": "Stacking notification toasts",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/notification-pop.tsx",
-      "workspacePath": "src/components/remotion-templates/notification-pop.tsx"
+      "path": "packages/remotion-kit/src/components/notification-pop.tsx",
+      "workspacePath": "src/components/notification-pop.tsx"
     },
     {
       "id": "particle-explosion",
@@ -366,8 +1389,8 @@
       "description": "Burst particles from centre",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/particle-explosion.tsx",
-      "workspacePath": "src/components/remotion-templates/particle-explosion.tsx"
+      "path": "packages/remotion-kit/src/components/particle-explosion.tsx",
+      "workspacePath": "src/components/particle-explosion.tsx"
     },
     {
       "id": "progress-steps",
@@ -375,8 +1398,8 @@
       "description": "Step indicator filling in sequence",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/progress-steps.tsx",
-      "workspacePath": "src/components/remotion-templates/progress-steps.tsx"
+      "path": "packages/remotion-kit/src/components/progress-steps.tsx",
+      "workspacePath": "src/components/progress-steps.tsx"
     },
     {
       "id": "rotating-carousel",
@@ -384,8 +1407,8 @@
       "description": "3D rotating card carousel",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/rotating-carousel.tsx",
-      "workspacePath": "src/components/remotion-templates/rotating-carousel.tsx"
+      "path": "packages/remotion-kit/src/components/rotating-carousel.tsx",
+      "workspacePath": "src/components/rotating-carousel.tsx"
     },
     {
       "id": "sound-wave",
@@ -393,8 +1416,8 @@
       "description": "Audio waveform bar visualiser",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/sound-wave.tsx",
-      "workspacePath": "src/components/remotion-templates/sound-wave.tsx"
+      "path": "packages/remotion-kit/src/components/sound-wave.tsx",
+      "workspacePath": "src/components/sound-wave.tsx"
     },
     {
       "id": "text-highlight",
@@ -402,8 +1425,8 @@
       "description": "Sequential word highlighting",
       "kind": "template",
       "category": "内容动画",
-      "path": "packages/remotion-kit/src/components/remotion-templates/text-highlight.tsx",
-      "workspacePath": "src/components/remotion-templates/text-highlight.tsx"
+      "path": "packages/remotion-kit/src/components/text-highlight.tsx",
+      "workspacePath": "src/components/text-highlight.tsx"
     },
     {
       "id": "bokeh-circles",
@@ -411,8 +1434,8 @@
       "description": "Floating soft circles with drift",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/bokeh-circles.tsx",
-      "workspacePath": "src/components/remotion-templates/bokeh-circles.tsx"
+      "path": "packages/remotion-kit/src/components/bokeh-circles.tsx",
+      "workspacePath": "src/components/bokeh-circles.tsx"
     },
     {
       "id": "geometric-patterns",
@@ -420,8 +1443,8 @@
       "description": "Rotating/scaling geometric shapes",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/geometric-patterns.tsx",
-      "workspacePath": "src/components/remotion-templates/geometric-patterns.tsx"
+      "path": "packages/remotion-kit/src/components/geometric-patterns.tsx",
+      "workspacePath": "src/components/geometric-patterns.tsx"
     },
     {
       "id": "gradient-shift",
@@ -429,8 +1452,8 @@
       "description": "Slowly shifting ambient gradient",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/gradient-shift.tsx",
-      "workspacePath": "src/components/remotion-templates/gradient-shift.tsx"
+      "path": "packages/remotion-kit/src/components/gradient-shift.tsx",
+      "workspacePath": "src/components/gradient-shift.tsx"
     },
     {
       "id": "grid-pulse",
@@ -438,8 +1461,8 @@
       "description": "Dot grid with ripple wave pulse",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/grid-pulse.tsx",
-      "workspacePath": "src/components/remotion-templates/grid-pulse.tsx"
+      "path": "packages/remotion-kit/src/components/grid-pulse.tsx",
+      "workspacePath": "src/components/grid-pulse.tsx"
     },
     {
       "id": "liquid-wave",
@@ -447,8 +1470,8 @@
       "description": "Flowing SVG wave shapes",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/liquid-wave.tsx",
-      "workspacePath": "src/components/remotion-templates/liquid-wave.tsx"
+      "path": "packages/remotion-kit/src/components/liquid-wave.tsx",
+      "workspacePath": "src/components/liquid-wave.tsx"
     },
     {
       "id": "matrix-rain",
@@ -456,8 +1479,8 @@
       "description": "Falling code rain columns",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/matrix-rain.tsx",
-      "workspacePath": "src/components/remotion-templates/matrix-rain.tsx"
+      "path": "packages/remotion-kit/src/components/matrix-rain.tsx",
+      "workspacePath": "src/components/matrix-rain.tsx"
     },
     {
       "id": "noise-grain",
@@ -465,8 +1488,8 @@
       "description": "Subtle film grain overlay",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/noise-grain.tsx",
-      "workspacePath": "src/components/remotion-templates/noise-grain.tsx"
+      "path": "packages/remotion-kit/src/components/noise-grain.tsx",
+      "workspacePath": "src/components/noise-grain.tsx"
     },
     {
       "id": "pixel-transition",
@@ -474,8 +1497,8 @@
       "description": "Pixelated grid reveal",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/pixel-transition.tsx",
-      "workspacePath": "src/components/remotion-templates/pixel-transition.tsx"
+      "path": "packages/remotion-kit/src/components/pixel-transition.tsx",
+      "workspacePath": "src/components/pixel-transition.tsx"
     },
     {
       "id": "starfield",
@@ -483,8 +1506,8 @@
       "description": "Flying-through-space star effect",
       "kind": "template",
       "category": "背景效果",
-      "path": "packages/remotion-kit/src/components/remotion-templates/starfield.tsx",
-      "workspacePath": "src/components/remotion-templates/starfield.tsx"
+      "path": "packages/remotion-kit/src/components/starfield.tsx",
+      "workspacePath": "src/components/starfield.tsx"
     },
     {
       "id": "camera-shake",
@@ -492,8 +1515,8 @@
       "description": "Decaying shake for impact moments",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/camera-shake.tsx",
-      "workspacePath": "src/components/remotion-templates/camera-shake.tsx"
+      "path": "packages/remotion-kit/src/components/camera-shake.tsx",
+      "workspacePath": "src/components/camera-shake.tsx"
     },
     {
       "id": "film-burn",
@@ -501,8 +1524,8 @@
       "description": "Warm light leak overlay",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/film-burn.tsx",
-      "workspacePath": "src/components/remotion-templates/film-burn.tsx"
+      "path": "packages/remotion-kit/src/components/film-burn.tsx",
+      "workspacePath": "src/components/film-burn.tsx"
     },
     {
       "id": "ken-burns",
@@ -510,8 +1533,8 @@
       "description": "Pan and zoom for images",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/ken-burns.tsx",
-      "workspacePath": "src/components/remotion-templates/ken-burns.tsx"
+      "path": "packages/remotion-kit/src/components/ken-burns.tsx",
+      "workspacePath": "src/components/ken-burns.tsx"
     },
     {
       "id": "letterbox-reveal",
@@ -519,8 +1542,8 @@
       "description": "Black bars retracting to reveal",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/letterbox-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/letterbox-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/letterbox-reveal.tsx",
+      "workspacePath": "src/components/letterbox-reveal.tsx"
     },
     {
       "id": "parallax-pan",
@@ -528,8 +1551,8 @@
       "description": "Multi-layer parallax scrolling",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/parallax-pan.tsx",
-      "workspacePath": "src/components/remotion-templates/parallax-pan.tsx"
+      "path": "packages/remotion-kit/src/components/parallax-pan.tsx",
+      "workspacePath": "src/components/parallax-pan.tsx"
     },
     {
       "id": "spotlight-reveal",
@@ -537,8 +1560,8 @@
       "description": "Expanding circle clip-path reveal",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/spotlight-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/spotlight-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/spotlight-reveal.tsx",
+      "workspacePath": "src/components/spotlight-reveal.tsx"
     },
     {
       "id": "vignette-pulse",
@@ -546,8 +1569,8 @@
       "description": "Pulsing darkened edges overlay",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/vignette-pulse.tsx",
-      "workspacePath": "src/components/remotion-templates/vignette-pulse.tsx"
+      "path": "packages/remotion-kit/src/components/vignette-pulse.tsx",
+      "workspacePath": "src/components/vignette-pulse.tsx"
     },
     {
       "id": "whip-pan",
@@ -555,8 +1578,8 @@
       "description": "Fast horizontal pan with motion blur",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/whip-pan.tsx",
-      "workspacePath": "src/components/remotion-templates/whip-pan.tsx"
+      "path": "packages/remotion-kit/src/components/whip-pan.tsx",
+      "workspacePath": "src/components/whip-pan.tsx"
     },
     {
       "id": "zoom-pulse",
@@ -564,8 +1587,8 @@
       "description": "Rhythmic zoom in/out pulse",
       "kind": "template",
       "category": "电影感",
-      "path": "packages/remotion-kit/src/components/remotion-templates/zoom-pulse.tsx",
-      "workspacePath": "src/components/remotion-templates/zoom-pulse.tsx"
+      "path": "packages/remotion-kit/src/components/zoom-pulse.tsx",
+      "workspacePath": "src/components/zoom-pulse.tsx"
     },
     {
       "id": "blinds-transition",
@@ -573,8 +1596,8 @@
       "description": "Horizontal blinds opening",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/blinds-transition.tsx",
-      "workspacePath": "src/components/remotion-templates/blinds-transition.tsx"
+      "path": "packages/remotion-kit/src/components/blinds-transition.tsx",
+      "workspacePath": "src/components/blinds-transition.tsx"
     },
     {
       "id": "clock-wipe",
@@ -582,8 +1605,8 @@
       "description": "Radial clock-hand sweep",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/clock-wipe.tsx",
-      "workspacePath": "src/components/remotion-templates/clock-wipe.tsx"
+      "path": "packages/remotion-kit/src/components/clock-wipe.tsx",
+      "workspacePath": "src/components/clock-wipe.tsx"
     },
     {
       "id": "cross-dissolve",
@@ -591,8 +1614,8 @@
       "description": "Classic cross-fade between scenes",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/cross-dissolve.tsx",
-      "workspacePath": "src/components/remotion-templates/cross-dissolve.tsx"
+      "path": "packages/remotion-kit/src/components/cross-dissolve.tsx",
+      "workspacePath": "src/components/cross-dissolve.tsx"
     },
     {
       "id": "fade-through-black",
@@ -600,8 +1623,8 @@
       "description": "Dip to black between scenes",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/fade-through-black.tsx",
-      "workspacePath": "src/components/remotion-templates/fade-through-black.tsx"
+      "path": "packages/remotion-kit/src/components/fade-through-black.tsx",
+      "workspacePath": "src/components/fade-through-black.tsx"
     },
     {
       "id": "iris-transition",
@@ -609,8 +1632,8 @@
       "description": "Circular iris close/open",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/iris-transition.tsx",
-      "workspacePath": "src/components/remotion-templates/iris-transition.tsx"
+      "path": "packages/remotion-kit/src/components/iris-transition.tsx",
+      "workspacePath": "src/components/iris-transition.tsx"
     },
     {
       "id": "morph-transition",
@@ -618,8 +1641,8 @@
       "description": "Scale-and-fade morph",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/morph-transition.tsx",
-      "workspacePath": "src/components/remotion-templates/morph-transition.tsx"
+      "path": "packages/remotion-kit/src/components/morph-transition.tsx",
+      "workspacePath": "src/components/morph-transition.tsx"
     },
     {
       "id": "push-transition",
@@ -627,8 +1650,8 @@
       "description": "New scene pushes old off-screen",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/push-transition.tsx",
-      "workspacePath": "src/components/remotion-templates/push-transition.tsx"
+      "path": "packages/remotion-kit/src/components/push-transition.tsx",
+      "workspacePath": "src/components/push-transition.tsx"
     },
     {
       "id": "slide-wipe",
@@ -636,8 +1659,8 @@
       "description": "Spring-driven panel slide",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/slide-wipe.tsx",
-      "workspacePath": "src/components/remotion-templates/slide-wipe.tsx"
+      "path": "packages/remotion-kit/src/components/slide-wipe.tsx",
+      "workspacePath": "src/components/slide-wipe.tsx"
     },
     {
       "id": "zoom-through",
@@ -645,8 +1668,8 @@
       "description": "Zoom in then zoom out reveal",
       "kind": "template",
       "category": "转场",
-      "path": "packages/remotion-kit/src/components/remotion-templates/zoom-through.tsx",
-      "workspacePath": "src/components/remotion-templates/zoom-through.tsx"
+      "path": "packages/remotion-kit/src/components/zoom-through.tsx",
+      "workspacePath": "src/components/zoom-through.tsx"
     },
     {
       "id": "logo-blur-reveal",
@@ -654,8 +1677,8 @@
       "description": "Focus-pull blur to sharp",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-blur-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-blur-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/logo-blur-reveal.tsx",
+      "workspacePath": "src/components/logo-blur-reveal.tsx"
     },
     {
       "id": "logo-bounce-drop",
@@ -663,8 +1686,8 @@
       "description": "Drop from above with bounce",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-bounce-drop.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-bounce-drop.tsx"
+      "path": "packages/remotion-kit/src/components/logo-bounce-drop.tsx",
+      "workspacePath": "src/components/logo-bounce-drop.tsx"
     },
     {
       "id": "logo-fade-reveal",
@@ -672,8 +1695,8 @@
       "description": "Fade in with subtle scale-up",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-fade-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-fade-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/logo-fade-reveal.tsx",
+      "workspacePath": "src/components/logo-fade-reveal.tsx"
     },
     {
       "id": "logo-glitch-reveal",
@@ -681,8 +1704,8 @@
       "description": "RGB split glitch decaying to clean",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-glitch-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-glitch-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/logo-glitch-reveal.tsx",
+      "workspacePath": "src/components/logo-glitch-reveal.tsx"
     },
     {
       "id": "logo-scale-rotate",
@@ -690,8 +1713,8 @@
       "description": "Spinning scale entrance",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-scale-rotate.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-scale-rotate.tsx"
+      "path": "packages/remotion-kit/src/components/logo-scale-rotate.tsx",
+      "workspacePath": "src/components/logo-scale-rotate.tsx"
     },
     {
       "id": "logo-spin-reveal",
@@ -699,8 +1722,8 @@
       "description": "3D Y-axis spin reveal",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-spin-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-spin-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/logo-spin-reveal.tsx",
+      "workspacePath": "src/components/logo-spin-reveal.tsx"
     },
     {
       "id": "logo-split-reveal",
@@ -708,8 +1731,8 @@
       "description": "Left/right halves expanding",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-split-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-split-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/logo-split-reveal.tsx",
+      "workspacePath": "src/components/logo-split-reveal.tsx"
     },
     {
       "id": "logo-stroke-draw",
@@ -717,8 +1740,8 @@
       "description": "SVG stroke drawing animation",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-stroke-draw.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-stroke-draw.tsx"
+      "path": "packages/remotion-kit/src/components/logo-stroke-draw.tsx",
+      "workspacePath": "src/components/logo-stroke-draw.tsx"
     },
     {
       "id": "logo-typewriter",
@@ -726,8 +1749,8 @@
       "description": "Icon + typed company name",
       "kind": "template",
       "category": "标志品牌",
-      "path": "packages/remotion-kit/src/components/remotion-templates/logo-typewriter.tsx",
-      "workspacePath": "src/components/remotion-templates/logo-typewriter.tsx"
+      "path": "packages/remotion-kit/src/components/logo-typewriter.tsx",
+      "workspacePath": "src/components/logo-typewriter.tsx"
     },
     {
       "id": "chapter-title",
@@ -735,8 +1758,8 @@
       "description": "Chapter number with extending lines",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/chapter-title.tsx",
-      "workspacePath": "src/components/remotion-templates/chapter-title.tsx"
+      "path": "packages/remotion-kit/src/components/chapter-title.tsx",
+      "workspacePath": "src/components/chapter-title.tsx"
     },
     {
       "id": "cinematic-title-intro",
@@ -744,8 +1767,8 @@
       "description": "Title spring-in with growing underline",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/cinematic-title-intro.tsx",
-      "workspacePath": "src/components/remotion-templates/cinematic-title-intro.tsx"
+      "path": "packages/remotion-kit/src/components/cinematic-title-intro.tsx",
+      "workspacePath": "src/components/cinematic-title-intro.tsx"
     },
     {
       "id": "countdown-intro",
@@ -753,8 +1776,8 @@
       "description": "Ring countdown 3-2-1-GO",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/countdown-intro.tsx",
-      "workspacePath": "src/components/remotion-templates/countdown-intro.tsx"
+      "path": "packages/remotion-kit/src/components/countdown-intro.tsx",
+      "workspacePath": "src/components/countdown-intro.tsx"
     },
     {
       "id": "credits-roll",
@@ -762,8 +1785,8 @@
       "description": "Scrolling movie-style credits",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/credits-roll.tsx",
-      "workspacePath": "src/components/remotion-templates/credits-roll.tsx"
+      "path": "packages/remotion-kit/src/components/credits-roll.tsx",
+      "workspacePath": "src/components/credits-roll.tsx"
     },
     {
       "id": "end-card",
@@ -771,8 +1794,8 @@
       "description": "Outro with subscribe CTA",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/end-card.tsx",
-      "workspacePath": "src/components/remotion-templates/end-card.tsx"
+      "path": "packages/remotion-kit/src/components/end-card.tsx",
+      "workspacePath": "src/components/end-card.tsx"
     },
     {
       "id": "lower-third",
@@ -780,8 +1803,8 @@
       "description": "News-style name/title bar",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/lower-third.tsx",
-      "workspacePath": "src/components/remotion-templates/lower-third.tsx"
+      "path": "packages/remotion-kit/src/components/lower-third.tsx",
+      "workspacePath": "src/components/lower-third.tsx"
     },
     {
       "id": "quote-card",
@@ -789,8 +1812,8 @@
       "description": "Animated quotation with attribution",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/quote-card.tsx",
-      "workspacePath": "src/components/remotion-templates/quote-card.tsx"
+      "path": "packages/remotion-kit/src/components/quote-card.tsx",
+      "workspacePath": "src/components/quote-card.tsx"
     },
     {
       "id": "subscribe-reminder",
@@ -798,8 +1821,8 @@
       "description": "Floating subscribe overlay",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/subscribe-reminder.tsx",
-      "workspacePath": "src/components/remotion-templates/subscribe-reminder.tsx"
+      "path": "packages/remotion-kit/src/components/subscribe-reminder.tsx",
+      "workspacePath": "src/components/subscribe-reminder.tsx"
     },
     {
       "id": "title-split",
@@ -807,8 +1830,8 @@
       "description": "Split text meeting in centre",
       "kind": "template",
       "category": "片头片尾",
-      "path": "packages/remotion-kit/src/components/remotion-templates/title-split.tsx",
-      "workspacePath": "src/components/remotion-templates/title-split.tsx"
+      "path": "packages/remotion-kit/src/components/title-split.tsx",
+      "workspacePath": "src/components/title-split.tsx"
     },
     {
       "id": "gallery-grid",
@@ -816,8 +1839,8 @@
       "description": "Staggered 2x3 grid reveal",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/gallery-grid.tsx",
-      "workspacePath": "src/components/remotion-templates/gallery-grid.tsx"
+      "path": "packages/remotion-kit/src/components/gallery-grid.tsx",
+      "workspacePath": "src/components/gallery-grid.tsx"
     },
     {
       "id": "image-carousel",
@@ -825,8 +1848,8 @@
       "description": "Horizontal sliding with centre focus",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/image-carousel.tsx",
-      "workspacePath": "src/components/remotion-templates/image-carousel.tsx"
+      "path": "packages/remotion-kit/src/components/image-carousel.tsx",
+      "workspacePath": "src/components/image-carousel.tsx"
     },
     {
       "id": "image-comparison-slider",
@@ -834,8 +1857,8 @@
       "description": "Before/after sliding divider",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/image-comparison-slider.tsx",
-      "workspacePath": "src/components/remotion-templates/image-comparison-slider.tsx"
+      "path": "packages/remotion-kit/src/components/image-comparison-slider.tsx",
+      "workspacePath": "src/components/image-comparison-slider.tsx"
     },
     {
       "id": "image-zoom-reveal",
@@ -843,8 +1866,8 @@
       "description": "Zoom-out focus-pull reveal",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/image-zoom-reveal.tsx",
-      "workspacePath": "src/components/remotion-templates/image-zoom-reveal.tsx"
+      "path": "packages/remotion-kit/src/components/image-zoom-reveal.tsx",
+      "workspacePath": "src/components/image-zoom-reveal.tsx"
     },
     {
       "id": "masonry-gallery",
@@ -852,8 +1875,8 @@
       "description": "Pinterest-style staggered grid",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/masonry-gallery.tsx",
-      "workspacePath": "src/components/remotion-templates/masonry-gallery.tsx"
+      "path": "packages/remotion-kit/src/components/masonry-gallery.tsx",
+      "workspacePath": "src/components/masonry-gallery.tsx"
     },
     {
       "id": "photo-stack",
@@ -861,8 +1884,8 @@
       "description": "Overlapping frames with rotation",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/photo-stack.tsx",
-      "workspacePath": "src/components/remotion-templates/photo-stack.tsx"
+      "path": "packages/remotion-kit/src/components/photo-stack.tsx",
+      "workspacePath": "src/components/photo-stack.tsx"
     },
     {
       "id": "picture-in-picture",
@@ -870,8 +1893,8 @@
       "description": "PiP overlay layout",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/picture-in-picture.tsx",
-      "workspacePath": "src/components/remotion-templates/picture-in-picture.tsx"
+      "path": "packages/remotion-kit/src/components/picture-in-picture.tsx",
+      "workspacePath": "src/components/picture-in-picture.tsx"
     },
     {
       "id": "polaroid-frame",
@@ -879,8 +1902,8 @@
       "description": "Polaroid-style photo with drop-in",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/polaroid-frame.tsx",
-      "workspacePath": "src/components/remotion-templates/polaroid-frame.tsx"
+      "path": "packages/remotion-kit/src/components/polaroid-frame.tsx",
+      "workspacePath": "src/components/polaroid-frame.tsx"
     },
     {
       "id": "split-screen",
@@ -888,8 +1911,8 @@
       "description": "Two panels sliding to meet",
       "kind": "template",
       "category": "图片媒体",
-      "path": "packages/remotion-kit/src/components/remotion-templates/split-screen.tsx",
-      "workspacePath": "src/components/remotion-templates/split-screen.tsx"
+      "path": "packages/remotion-kit/src/components/split-screen.tsx",
+      "workspacePath": "src/components/split-screen.tsx"
     },
     {
       "id": "PageCam",

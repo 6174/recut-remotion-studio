@@ -28,8 +28,8 @@
     {
       "name": "project.create",
       "surfaces": ["api", "mcp"],
-      "description": "保存项目 Brief：风格模板、选题、细节描述、预期时长与可选素材 assetId 列表。仅在尚未有 Brief 或用户明确要求重做时调用。",
-      "inputSchema": { "type": "object", "required": ["topic", "template"], "properties": { "template": { "type": "string", "enum": ["paper-collage", "cinematic-dark", "clean-editorial", "vibrant-tech"] }, "topic": { "type": "string", "minLength": 1 }, "details": { "type": "string" }, "expectedDurationSec": { "type": "number" }, "materialAssetIds": { "type": "array", "items": { "type": "string" } } } }
+      "description": "保存项目 Brief：成片场景（template，做什么样的视频）、设计系统（style，什么风格表达）、选题、细节描述、预期时长与可选素材 assetId 列表。仅在尚未有 Brief 或用户明确要求重做时调用。",
+      "inputSchema": { "type": "object", "required": ["topic", "template"], "properties": { "template": { "type": "string", "enum": ["faceless-explainer", "product-launch"] }, "style": { "type": "string", "enum": ["clean", "futuristic", "modern", "contemporary", "editorial", "minimal", "neon", "bold", "neobrutalism", "glassmorphism", "luxury", "elegant", "mono", "gradient"] }, "topic": { "type": "string", "minLength": 1 }, "details": { "type": "string" }, "expectedDurationSec": { "type": "number" }, "materialAssetIds": { "type": "array", "items": { "type": "string" } } } }
     },
     {
       "name": "brief.latest",

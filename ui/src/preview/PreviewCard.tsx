@@ -19,7 +19,7 @@ export const LivePreview: React.FC<{ spec: PreviewSpec; aspectRatio?: string | n
         compositionHeight={1080}
         compositionWidth={1920}
         controls={showControls}
-        durationInFrames={previewDurationFrames(spec.kind)}
+        durationInFrames={previewDurationFrames(spec)}
         fps={PREVIEW_FPS}
         initialFrame={initialFrame}
         inputProps={spec}

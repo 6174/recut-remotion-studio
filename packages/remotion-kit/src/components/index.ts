@@ -85,3 +85,11 @@ export { default as VignettePulse } from "./vignette-pulse";
 export { default as WhipPan } from "./whip-pan";
 export { default as ZoomThrough } from "./zoom-through";
 export { default as ZoomPulse } from "./zoom-pulse";
+
+export { Caption } from "./Caption";
+export { DigitRoll } from "./DigitRoll";
+export { FlashCut } from "./FlashCut";
+export { PageCam } from "./PageCam";
+export type { CamKey } from "./PageCam";
+export { VerticalTicker } from "./VerticalTicker";
+export type { TickerColumn, VerticalTickerProps } from "./VerticalTicker";

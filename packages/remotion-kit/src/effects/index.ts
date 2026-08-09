@@ -5,6 +5,6 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 export { BackgroundFX, GrainOverlay, useImageMotion } from "./registry";
-export type { Palette } from "./registry";
+export type { Palette } from "../palette";
 export { TextFX } from "./text";
 export type { TextFXProps } from "./text";

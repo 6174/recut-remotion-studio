@@ -4,9 +4,8 @@
 
 成员清单
 types.ts: 所有创作场景共享的输入与回调契约。
-scene-modes.ts: 成片场景的单一真相源；定义 UI 文案、素材门槛与可发现的 Agent skill id。
-CreationScenario.tsx: 成片场景参数入口；组合模板、字幕、画幅和真实素材并生成可执行 Prompt。
-TemplateScenario.tsx: Studio 视觉风格选择与 Prompt 组装。
+TemplateScenario.tsx: 成片模板选择（模板 = 场景，对应 catalog.scenarios）；只输出镜头结构与底层组件组合，是创作主入口。
+StyleScenario.tsx: 设计系统选择；读取全局 recut-design-system skill（recut.design_system.get）并输出色彩、字形、间距、形状与动效语法约束。
 CaptionsScenario.tsx: 字幕主题选择与 Prompt 组装。
 CanvasScenario.tsx: 画布尺寸选择与 Prompt 组装。
 ComponentScenario.tsx: 左侧组件目录选择器与右侧可播放预览；按 template/shotcraft 类型派发真实组件，窄屏自动改为上下布局。
@@ -16,6 +15,6 @@ DirectScenario.tsx: 无参数的直接创作指令入口。
 AssetPicker.tsx: 可复用项目素材选择器。
 
 依赖边界
-场景分两层：`CreationScenario` 先按交付目标路由到可发现的 `remotion-scenes` skill；其余模块用于编辑当前成片。两层都只维护用户选择并输出 Prompt；播放与真实组件渲染由 `../preview/` 统一处理。
+每个模块只维护用户选择并输出 Prompt；播放与真实组件渲染由 `../preview/` 统一处理。成片模板（TemplateScenario）是主入口——模板 = 场景（catalog.scenarios，如 product-launch / faceless-explainer），Agent 读取对应场景技能与模板代码后重写这支视频的结构。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

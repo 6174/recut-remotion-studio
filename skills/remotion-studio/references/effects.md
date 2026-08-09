@@ -1,6 +1,6 @@
 # 表达特效目录（复用自 reactvideoeditor.com/remotion-templates）
 
-> 用户从下面选择想要的效果，你把它写进 `workspace/` 的 composition 代码。**全部 81 个模板组件是 seed 时从 `@recut/remotion-kit` 整包拷贝进 `workspace/remotion-kit/` 的冻结副本**（含 `README.md` 目录表），项目直接复用副本或按需复制，不要从零手写动画。组件规范源在 `packages/remotion-kit/src/components/remotion-templates/`（版本见 `{paths.appKitPath}/package.json`）。全部确定性渲染（无 Math.random/Date.now）；含 CSS 动画/`<style jsx>`/随机数的模板复制后必须先改成 frame 驱动。
+> 用户从下面选择想要的效果，你把它写进 `workspace/` 的 composition 代码。**全部 81 个模板组件是 seed 时从 `@recut/remotion-kit` 整包拷贝进 `workspace/remotion-kit/` 的冻结副本**（含 `README.md` 目录表），项目直接复用副本或按需复制，不要从零手写动画。组件规范源在 `packages/remotion-kit/src/components/`（版本见 `{paths.appKitPath}/package.json`）。全部确定性渲染（无 Math.random/Date.now）；含 CSS 动画/`<style jsx>`/随机数的模板复制后必须先改成 frame 驱动。
 
 ## 背景特效（全屏背景，`@recut/remotion-kit` 的 `BackgroundFX`，源自 `workspace/remotion-kit/src/effects/registry.tsx`）
 
@@ -45,8 +45,8 @@
 
 ## 扩展方式（全库复用）
 
-1. 直接看 `workspace/remotion-kit/src/components/remotion-templates/README.md` 的分类目录（Charts / Text / Content Animation / Transitions / Effects / Logos / Social / Camera / Layout / 等），选中想要的单文件模板；
-2. 用原生文件工具读 `workspace/remotion-kit/src/components/remotion-templates/<name>.tsx`（最新规范源在 `paths.appKitPath/src/`），把它复制/改写进你的成片代码或 `src/compositions/` 下的子组件；
+1. 直接看 `workspace/remotion-kit/src/components/README.md` 的分类目录（Charts / Text / Content Animation / Transitions / Effects / Logos / Social / Camera / Layout / 等），选中想要的单文件模板；
+2. 用原生文件工具读 `workspace/remotion-kit/src/components/<name>.tsx`（最新规范源在 `paths.appKitPath/src/`），把它复制/改写进你的成片代码或 `src/compositions/` 下的子组件；
 3. 若它含 CSS 动画/`<style jsx>`/`Math.random`，改写为 frame 驱动（用 `useCurrentFrame`/`interpolate`/`spring`），保持确定性；
 4. 需要文字/颜色参数化时，按 `@recut/remotion-kit` `TextFX` 的方式接受 `{ text, subtitle?, palette }`；
 5. 保持原头注释（Credit）。

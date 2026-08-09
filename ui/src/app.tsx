@@ -14,6 +14,7 @@ import { recut, apiBase, projectId, mediaContentURL } from "./recut-sdk";
 export interface Brief {
   id: string;
   template: string;
+  style: string;
   topic: string;
   details: string;
   expectedDurationSec: number;
@@ -22,7 +23,8 @@ export interface Brief {
 }
 
 export interface Catalog {
-  styleTemplates: Record<string, { label: string; description: string; motion: string }>;
+  designSystems: Record<string, { label: string; description: string; motion: string; category?: string; source?: string }>;
+  scenarios: Record<string, { label: string; description: string; motion: string; components: string[]; defaultStyle?: string; skillBody?: string }>;
   captionThemes: Array<{ id: string; label: string; description: string }>;
   canvasSizes: Array<{ id: string; label: string; width: number; height: number; fps: number }>;
   components: Array<{ id: string; label: string; description: string; kind: string; category?: string; path: string; workspacePath: string }>;
@@ -115,19 +117,20 @@ export default function App() {
     return () => { window.removeEventListener("recut-sdk-ready", () => void refresh()); unsubscribe(); };
   }, []);
 
-  const startDesign = async (input: { template: string; topic: string; details: string; expectedDurationSec: number; materialAssetIds: string[] }) => {
+  const startDesign = async (input: { template: string; style: string; topic: string; details: string; expectedDurationSec: number; materialAssetIds: string[] }) => {
     setStatus("正在保存项目 Brief…");
     const saved = await recut.background.call("project.create", input);
     setBrief(saved.value ?? saved);
-    const template = catalog?.styleTemplates[input.template];
+    const template = catalog?.scenarios[input.template];
     const materialText = input.materialAssetIds.length
       ? `\n已选用素材（assetId）：\n${input.materialAssetIds.join("\n")}\n`
       : "";
-    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 风格模板：${input.template}（${template?.label ?? ""}；${template?.motion ?? ""}）\n- 选题：${input.topic}\n- 详细描述：${input.details || "无额外补充"}\n- 预期时长：${input.expectedDurationSec} 秒${materialText}\n\n开始前先做这些事：\n1. 调用 recut.skills.read 读本 App 的 remotion-studio skill，并读它的 references（effects.md / captions.md / directing.md），让用户确认想用的表达特效与字幕主题。\n2. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n3. 用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx 的当前代码。\n4. 用原生文件工具直接改写 SCENES 与渲染层。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData } from "@recut/remotion-kit"，效果 import { BackgroundFX, TextFX } from "@recut/remotion-kit"，模板经 @recut/remotion-kit/templates/<name> 引用，预览/渲染都解析到该冻结副本（旧项目组件在 workspace/src/captions 等，沿用其现有相对引用）。组件目录与版本读 {paths.appKitPath}/catalog.json；若用户选择的组件与项目不一致，用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/，写回 workspace/remotion-kit/src/<workspacePath> 按需升级（只动被选组件）；媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n5. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n6. 不要调用 render.export。`;
+    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief（模板 = 场景 × 风格）：\n- 成片场景：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}\n- 详细描述：${input.details || "无额外补充"}\n- 预期时长：${input.expectedDurationSec} 秒${materialText}\n\n该场景是用户端到端的参考：它自带内置视觉、自己的组件与视觉原语、导演视角的分镜规划。请先完整阅读下面这个场景的 SKILL.md（导演手册），再据此实现。\n\n## 场景导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置调色板 PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（场景视觉原语）。\n3. 用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx 的当前代码，直接改写 SCENES 与渲染层。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，shotcraft 组件经 @recut/remotion-kit/shotcraft 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
+    const composedPrompt = prompt;
     try {
-      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(prompt);
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(composedPrompt);
     } catch { /* 剪贴板不可用不影响 compose */ }
-    await recut.agent.compose({ prompt });
+    await recut.agent.compose({ prompt: composedPrompt });
     setStatus("设计任务已交给 AI。提示词已写入右侧 Agent 面板并复制到剪贴板；发送后 Player 预览会自动刷新。");
   };
 
@@ -151,7 +154,7 @@ export default function App() {
         <div className="flex min-w-0 items-center gap-3">
           <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION STUDIO</p>
           <h1 className="truncate text-sm font-semibold">Remotion Studio</h1>
-          {brief ? <span className="truncate rounded-xs bg-muted px-2 py-1 text-[11px] text-muted-foreground">{brief.topic} · {catalog.styleTemplates[brief.template]?.label ?? brief.template}</span> : null}
+          {brief ? <span className="truncate rounded-xs bg-muted px-2 py-1 text-[11px] text-muted-foreground">{brief.topic} · {catalog.scenarios[brief.template]?.label ?? brief.template} · {catalog.designSystems[brief.style]?.label ?? brief.style}</span> : null}
         </div>
         {brief && workspaceActions ? <div className="flex shrink-0 items-center gap-1"><Button className="px-2 text-[11px]" onClick={workspaceActions.openExport} type="button" variant="ghost"><Download className="size-3.5" />导出</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.buildPreview} type="button" variant="ghost"><RefreshCcw className="size-3.5" />构建</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.restartPreview} type="button" variant="ghost"><RotateCcw className="size-3.5" />重启</Button><Button className="px-2 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={workspaceActions.resetWorkspace} type="button" variant="ghost"><AlertTriangle className="size-3.5" />重置</Button></div> : null}
       </header>

@@ -6,23 +6,12 @@
  */
 import React from "react";
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import Starfield from "../components/remotion-templates/starfield";
-import BokehCircles from "../components/remotion-templates/bokeh-circles";
-import LiquidWave from "../components/remotion-templates/liquid-wave";
-import GradientShift from "../components/remotion-templates/gradient-shift";
-import MatrixRain from "../components/remotion-templates/matrix-rain";
-
-export interface Palette {
-  background: string;
-  primary: string;
-  accent: string;
-  text: string;
-  fontFamily?: string;
-  captionTheme?: string;
-  captionPrimary?: string;
-  captionSecondary?: string;
-  effectId?: string;
-}
+import Starfield from "../components/starfield";
+import BokehCircles from "../components/bokeh-circles";
+import LiquidWave from "../components/liquid-wave";
+import GradientShift from "../components/gradient-shift";
+import MatrixRain from "../components/matrix-rain";
+import type { Palette } from "../palette";
 
 /**
  * Background effects. Visuals come from the vendored remotion-templates

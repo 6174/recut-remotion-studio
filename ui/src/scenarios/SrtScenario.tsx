@@ -14,7 +14,7 @@ import { AssetPicker } from "./AssetPicker";
 import type { ScenarioProps } from "./types";
 
 export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
-  const [template, setTemplate] = useState(Object.keys(catalog.styleTemplates)[0] || "");
+  const [template, setTemplate] = useState(Object.keys(catalog.designSystems)[0] || "");
   const [caption, setCaption] = useState(catalog.captionThemes[0]?.id || "");
   const [file, setFile] = useState<File | null>(null);
   const [text, setText] = useState("");
@@ -24,7 +24,7 @@ export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets,
   useEffect(() => { onReady(ready); }, [onReady, ready]);
 
   const prompt = useMemo(() => {
-    const selectedTemplate = catalog.styleTemplates[template];
+    const selectedTemplate = catalog.designSystems[template];
     const selectedCaption = catalog.captionThemes.find((item) => item.id === caption);
     const sourceText = sourceAsset
       ? `\n字幕来源素材：${sourceAsset.name}（${sourceAsset.kind}，assetId: ${sourceAsset.id}）\n请先从该素材转录生成 SRT，再按时间轴构建视频，并在 composition.assets 中登记它。`
@@ -53,10 +53,10 @@ export const SrtScenario: React.FC<ScenarioProps> = ({ catalog, completedAssets,
   return (
     <div className="space-y-4">
       <div>
-        <span className="mb-1.5 block text-xs font-medium">视觉模板</span>
+        <span className="mb-1.5 block text-xs font-medium">设计系统</span>
         <PreviewPicker
           layout="side"
-          items={Object.entries(catalog.styleTemplates).map(([id, item]) => ({ id, label: item.label, description: `${item.description} · ${item.motion}` }))}
+          items={Object.entries(catalog.designSystems).map(([id, item]) => ({ id, label: item.label, description: `${item.description} · ${item.motion}` }))}
           kind="style"
           onChange={setTemplate}
           value={template}

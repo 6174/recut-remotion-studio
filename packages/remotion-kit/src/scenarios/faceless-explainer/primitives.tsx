@@ -1,0 +1,130 @@
+/**
+ * [INPUT]: 依赖 Remotion 帧时钟、视频尺寸与 faceless-explainer 的荧光绿 palette
+ * [OUTPUT]: 对外提供科技新闻解读的确定性视觉原语：网格纸、marker 色块、手绘箭头、卡通眼睛、
+ *           大字号标题/标签、步骤和数据条。
+ * [POS]: scenarios/faceless-explainer 的视觉源语层。beats 只组合本文件原语，不重造风格细节；
+ *        全部可读文字遵守 1080p 正文 ≥56px、辅助信息 ≥32px 的全局约束。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
+import React from "react";
+import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type { Palette } from "../../palette";
+
+export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+export const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+
+export const enter = (frame: number, fps: number, delay = 0, damping = 16, stiffness = 140) =>
+  spring({ frame: Math.max(0, frame - delay), fps, config: { damping, mass: 0.8, stiffness } });
+
+/** 网格纸：参考图的秩序底，不承载任何阅读信息。 */
+export const Grid: React.FC<{ color: string; opacity?: number; size?: number }> = ({ color, opacity = 0.08, size = 38 }) => (
+  <div style={{ position: "absolute", inset: 0, opacity, backgroundImage: `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`, backgroundSize: `${size}px ${size}px` }} />
+);
+
+/** 荧光笔不规则色块：用 SVG 而不是随机路径，确保预览与导出逐帧一致。 */
+export const MarkerBlob: React.FC<{ color: string; style?: React.CSSProperties; opacity?: number }> = ({ color, style, opacity = 1 }) => (
+  <svg viewBox="0 0 1000 640" preserveAspectRatio="none" style={{ position: "absolute", overflow: "visible", ...style }}>
+    <path d="M69 111C172 10 330 33 467 59c150 28 344-29 435 87 80 101 89 307-19 398-98 83-292 50-427 73-136 22-342 43-404-73-61-115-72-325 17-433Z" fill={color} opacity={opacity} />
+  </svg>
+);
+
+/** 夸张眼睛：只承担情绪，不以小字假装信息。 */
+export const DoodleEyes: React.FC<{ style?: React.CSSProperties; pupilOffset?: number }> = ({ style, pupilOffset = 0 }) => (
+  <svg viewBox="0 0 320 180" style={{ position: "absolute", overflow: "visible", ...style }}>
+    <path d="M35 103C35 49 70 18 111 26c39 8 58 50 43 99-14 44-45 57-76 42-28-13-43-34-43-64Z" fill="#fff" stroke="#111" strokeWidth="8" />
+    <path d="M166 94c3-55 42-85 83-73 39 12 53 58 30 103-21 41-55 50-83 30-24-17-32-38-30-60Z" fill="#fff" stroke="#111" strokeWidth="8" />
+    <ellipse cx={105 + pupilOffset} cy="79" rx="26" ry="37" fill="#111" transform={`rotate(20 ${105 + pupilOffset} 79)`} />
+    <ellipse cx={231 + pupilOffset} cy="74" rx="27" ry="38" fill="#111" transform={`rotate(20 ${231 + pupilOffset} 74)`} />
+    <path d="M64 27c22-20 49-19 67 0" fill="none" stroke="#111" strokeWidth="9" strokeLinecap="round" />
+    <path d="M196 22c22-20 49-19 67 0" fill="none" stroke="#111" strokeWidth="9" strokeLinecap="round" />
+    <path d="M147 143c17 2 30 10 39 24" fill="none" stroke="#111" strokeWidth="7" strokeLinecap="round" />
+  </svg>
+);
+
+/** 手绘曲线箭头：用来把眼线从标题带向结论。 */
+export const DoodleArrow: React.FC<{ color: string; style?: React.CSSProperties; flip?: boolean }> = ({ color, style, flip = false }) => (
+  <svg viewBox="0 0 780 250" preserveAspectRatio="none" style={{ position: "absolute", overflow: "visible", transform: flip ? "scaleX(-1)" : undefined, ...style }}>
+    <path d="M20 198C196 220 267 113 399 157c94 31 148 53 284-61" fill="none" stroke={color} strokeWidth="29" strokeLinecap="round" />
+    <path d="m628 67 69 33-27 76" fill="none" stroke={color} strokeWidth="29" strokeLinecap="square" strokeLinejoin="miter" />
+  </svg>
+);
+
+/** 黑底荧光标签：最小 32px，标签也应能被读到。 */
+export const MarkerChip: React.FC<{ children: React.ReactNode; color: string; dark?: boolean; style?: React.CSSProperties }> = ({ children, color, dark = true, style }) => (
+  <div style={{ display: "inline-flex", alignItems: "center", padding: "12px 20px", borderRadius: 999, background: dark ? "#111" : color, color: dark ? color : "#111", fontSize: 32, lineHeight: 1, letterSpacing: "-0.03em", fontWeight: 900, fontFamily: "'Arial Black', 'PingFang SC', 'Noto Sans SC', sans-serif", ...style }}>
+    {children}
+  </div>
+);
+
+/** 画面标题：第一眼就读到的唯一主张。 */
+export const DiagramTitle: React.FC<{ children: React.ReactNode; color: string; fontFamily?: string; fontSize?: number; delay?: number; lineHeight?: number }> = ({ children, color, fontFamily, fontSize = 112, delay = 8, lineHeight = 0.94 }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const reveal = enter(frame, fps, delay, 15);
+  return (
+    <div style={{ fontSize, lineHeight, fontWeight: 950, letterSpacing: "-0.08em", color, fontFamily, transform: `translateY(${(1 - reveal) * 48}px)`, opacity: reveal }}>
+      {children}
+    </div>
+  );
+};
+
+/** 大字号步骤：每个步骤是可以在手机上读完的一条新闻判断。 */
+export const StepList: React.FC<{ steps: string[]; accent: string; text: string; fontFamily?: string; fontSize?: number }> = ({ steps, accent, text, fontFamily, fontSize = 40 }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      {steps.map((step, i) => {
+        const d = 14 + i * 7;
+        const opacity = interpolate(frame, [d, d + 14], [0, 1], clamp);
+        const y = interpolate(frame, [d, d + 14], [28, 0], clamp);
+        return (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 20, opacity, transform: `translateY(${y}px)` }}>
+            <span style={{ width: 62, height: 62, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: "50%", background: "#111", color: accent, fontSize: 32, fontWeight: 900, fontFamily: MONO }}>{i + 1}</span>
+            <span style={{ color: text, fontSize, lineHeight: 1.15, fontWeight: 900, fontFamily }}>{step}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/** 数据条：数据标签与百分比均保持大字号；只接收上游确认过的数据。 */
+export const DataBars: React.FC<{ rows: { label: string; value: number; color: string }[]; track: string; startFrame?: number }> = ({ rows, track, startFrame = 30 }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div>
+      {rows.map((row, index) => {
+        const progress = interpolate(frame, [startFrame + index * 14, startFrame + 50 + index * 14], [0, row.value], clamp);
+        return (
+          <div key={row.label} style={{ marginTop: index === 0 ? 0 : 28 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginBottom: 12, fontSize: 32, lineHeight: 1, fontWeight: 900 }}><span>{row.label}</span><span style={{ color: row.color }}>{Math.round(row.value * 100)}%</span></div>
+            <div style={{ height: 20, borderRadius: 99, background: track, overflow: "hidden" }}><div style={{ height: "100%", width: `${progress * 100}%`, borderRadius: 99, background: row.color }} /></div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/** 新闻便签：白纸、黑字、绿色边缘，作为例子与回看的可读容器。 */
+export const PaperCard: React.FC<{ p: Palette; children: React.ReactNode; width?: number | string; delay?: number; rotation?: number; style?: React.CSSProperties }> = ({ p, children, width, delay = 0, rotation = -1, style }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const progress = enter(frame, fps, delay, 15);
+  return (
+    <div style={{ width, padding: "38px 40px", border: "7px solid #111", borderRadius: 28, background: "#fffdf7", boxShadow: `16px 18px 0 ${p.accent}`, transform: `translateY(${(1 - progress) * 60}px) rotate(${rotation}deg)`, opacity: progress, ...style }}>
+      {children}
+    </div>
+  );
+};
+
+/** 结论进度条：只作为动势，不承载需要阅读的小字。 */
+export const GlowProgress: React.FC<{ color: string; width?: number; delay?: number }> = ({ color, width = 520, delay = 20 }) => {
+  const frame = useCurrentFrame();
+  const bar = interpolate(frame, [delay, delay + 50], [0, 1], { ...clamp, easing: Easing.bezier(0.25, 0.8, 0.25, 1) });
+  return (
+    <div style={{ width, height: 26, borderRadius: 99, border: "5px solid #111", background: "#fffdf7", marginTop: 44, overflow: "hidden" }}>
+      <div style={{ height: "100%", width: `${bar * 100}%`, background: color }} />
+    </div>
+  );
+};
