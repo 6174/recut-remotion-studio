@@ -1,5 +1,7 @@
 # composition-graph/
 
+> **状态**：dev fixture（实验台）。生产合成已统一到 `@recut/remotion-kit/three` + `@recut/remotion-kit/materials`；本目录保留为回归采样与材料移植来源。
+
 > L2 | 父级: /apps/remotion-studio/remotion-skeleton/src/README.md
 
 成员清单
@@ -7,7 +9,7 @@ graph.ts: Composition Node 的声明式图模型，定义 root、HTML、media �
 timeline.ts: 120 秒实验片的纯时序表，定义 24 个五秒 shot ID 和基于 Remotion frame 的镜头选择。
 shots/: 镜头叙事层；每个独立 React scene 自行定义内容和构图，registry 为需聚焦的镜头声明 lens、扫描距离与出现时点。
 html-texture.ts: SVG foreignObject 基线 adapter；将章节化 HTML/CSS 光栅化为 GPU 纹理，每个 Remotion frame 重建一次并回报耗时。
-html-in-canvas-texture.ts: HTML-in-Canvas 对照 adapter；支持时以 `layoutSubtree` canvas 的 `paint -> drawElementImage(DIV)` 捕获真实 DOM subtree，读回 HTML sentinel 像素后才上报 verified 和耗时；不支持时明确上报 unavailable。
+html-in-canvas-texture.ts: HTML-in-Canvas 对照 adapter；支持时以 `layoutSubtree` canvas 的 `paint -> drawElementImage(DIV)` 捕获真实 DOM subtree，首帧读回 HTML sentinel 像素后才上报 verified 和耗时；不支持时明确上报 unavailable。
 magnify-material.tsx: CanvasUI Magnify 原始像素光学模型的 Three adapter，保留 8 向 ticks、crosshair、bracket、haze、AA 与色散，只适配全屏 texture UV。
 glass-material.tsx: CanvasUI Glass 原始 SDF 光学模型的 Three adapter，保留 rounded-SDF、rim normal、六波长折射、fresnel 与 GGX 反射，只适配全屏 source-plane 混合。
 glitch-material.tsx: CanvasUI Glitch 的确定性 shader adapter，在 HTML texture 内完成 tearing、RGB split 与噪声 burst。

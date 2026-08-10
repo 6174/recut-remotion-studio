@@ -43,6 +43,8 @@ export default defineConfig({
       { find: "@recut/remotion-kit/captions", replacement: kitAlias("src/captions/index.ts") },
       { find: "@recut/remotion-kit/effects", replacement: kitAlias("src/effects/index.ts") },
       { find: "@recut/remotion-kit/html-canvas", replacement: kitAlias("src/html-canvas/index.ts") },
+      { find: "@recut/remotion-kit/materials", replacement: kitAlias("src/materials/index.ts") },
+      { find: "@recut/remotion-kit/three", replacement: kitAlias("src/three/index.ts") },
       { find: "@recut/remotion-kit", replacement: kitAlias("src/index.ts") },
     ],
   },

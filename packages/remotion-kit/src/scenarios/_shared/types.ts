@@ -7,6 +7,7 @@
  */
 import type React from "react";
 import type { Palette } from "../../palette";
+import type { InteractionState } from "../../html-canvas/types";
 
 /** 场景的一个节拍（beat）：一个信息变化，通常约 5 秒。kind 由场景自定义。 */
 export interface Scene {
@@ -30,6 +31,8 @@ export interface BeatContext {
   width: number;
   height: number;
   resolveMediaUrl?: (assetId: string) => string | undefined;
+  /** 帧驱动的互动语义状态（Three-first 内容表面注入；无互动脚本时为 undefined）。 */
+  interaction?: InteractionState;
 }
 
 export type BeatRenderer = React.FC<BeatContext>;

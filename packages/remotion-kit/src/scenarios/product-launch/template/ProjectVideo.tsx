@@ -1,17 +1,19 @@
 /**
- * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、product-launch 的 beat 渲染器、内置调色板与 HTML-in-Canvas 舞台
- * [OUTPUT]: 对外提供 PRODUCT_LAUNCH_PALETTE、buildProductLaunchScenes、buildProductLaunchStagePlan 与 ProductLaunchVideo
- * [POS]: scenarios/product-launch 的模板代码。场景自带一套内置视觉（palette + beats + 默认 SCENES），
- *        AI 直接参考本文件实现；本模板是视觉与叙事的完整选择，不依赖独立设计系统。
- *        叙事序列：hook → pain → contrast → feature×2 → metric → ui-detail（HTML-in-Canvas
- *        click → magnify 特写）→ feature → testimonial → metric → roadmap → cta。
+ * [INPUT]: 依赖 Three-first GPU 合成（ThreeVideoCanvas/ShotGraph）、共享 GpuSceneEngine、
+ *          product-launch 的 beat 渲染器、内置调色板与帧驱动互动脚本
+ * [OUTPUT]: 对外提供 PRODUCT_LAUNCH_PALETTE、buildProductLaunchScenes、buildProductLaunchStagePlan、
+ *           buildProductLaunchGpuPlan 与 ProductLaunchVideo
+ * [POS]: scenarios/product-launch 的模板代码（Three-first 模式）。内容层（beats/primitives/排版）
+ *        经 HtmlSurface 光栅化为 GPU 纹理；ui-detail 的放大镜由 ShotGraph lens（magnify 材质）执行；
+ *        交互（hover/pressed/cursor）由帧驱动互动脚本注入内容表面，与排版同帧栅格化。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
-import { SceneEngine } from "../../_shared/SceneEngine";
+import { AbsoluteFill, Audio, useVideoConfig } from "remotion";
+import { ShotGraph } from "../../../three";
+import type { ShotGraphPlan } from "../../../three/types";
+import { buildGpuScenePlan, createSceneContent, SceneCaptionOverlay } from "../../_shared/GpuSceneEngine";
 import { PRODUCT_LAUNCH_BEATS, PRODUCT_LAUNCH_UI_GEOMETRY } from "../beats";
-import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
 import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
@@ -35,7 +37,7 @@ export interface ProductLaunchVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
-  /** HTML-in-Canvas 舞台计划；undefined = 启用内置 click→magnify 用例，null = 关闭。 */
+  /** 帧驱动互动脚本 + 目标几何；undefined = 启用内置 click→magnify 用例，null = 关闭。 */
   stagePlan?: StagePlan | null;
 }
 
@@ -62,8 +64,8 @@ export const buildProductLaunchScenes = (props?: { topic?: string; productName?:
   ];
 };
 
-/** 按场景时间轴计算 ui-detail beat 的 HTML-in-Canvas 舞台计划（产品 UI 特写 click → magnify）；
- *  无 ui-detail 场景时返回 null（关闭舞台）。坐标来自 beats 的 PRODUCT_LAUNCH_UI_GEOMETRY。 */
+/** 按场景时间轴计算 ui-detail beat 的帧驱动互动脚本（click → magnify 的鼠标轨迹与目标几何）；
+ *  无 ui-detail 场景时返回 null（关闭互动）。坐标来自 beats 的 PRODUCT_LAUNCH_UI_GEOMETRY。 */
 export const buildProductLaunchStagePlan = (scenes: Scene[], fps: number): StagePlan | null => {
   const list = scenes && scenes.length ? scenes : buildProductLaunchScenes();
   const uiIndex = list.findIndex((scene) => scene.kind === "ui-detail");
@@ -87,41 +89,54 @@ export const buildProductLaunchStagePlan = (scenes: Scene[], fps: number): Stage
       { kind: "click", frame: start + 70, targetId: "export-button" },
       { kind: "move", frame: start + 105, x: cx, y: cy, easing: "easeInOut" },
     ],
-    effects: [
-      {
-        id: "cursor-director",
-        scope: "video",
-        effect: "cursor",
-        timing: { startFrame: start, enterFrames: 8, holdFrames: Math.max(0, beatFrames - 20), exitFrames: 12 },
-        zIndex: 30,
-      },
-      {
-        id: "magnify-export",
-        scope: "scene",
-        effect: "magnifier",
-        targetId: "export-button",
-        timing: { startFrame: start + 66, enterFrames: 18, holdFrames: Math.max(0, beatFrames - 66 - 18 - 16), exitFrames: 16 },
-        options: { radius: 150, zoom: 2.2, chromatic: true },
-        zIndex: 10,
-      },
-    ],
   };
 };
 
+/** ui-detail 导出按钮中心（设计像素 → 归一化 UV）。 */
+const EXPORT_BUTTON_UV: readonly [number, number] = [
+  (PRODUCT_LAUNCH_UI_GEOMETRY["export-button"].x + PRODUCT_LAUNCH_UI_GEOMETRY["export-button"].width / 2) / 1920,
+  (PRODUCT_LAUNCH_UI_GEOMETRY["export-button"].y + PRODUCT_LAUNCH_UI_GEOMETRY["export-button"].height / 2) / 1080,
+];
+
+/** 产品发布 GPU 镜头图：ui-detail 挂 magnify 材质 + 扫描镜头，CTA/特写入场用 store-peel 卷页转场。 */
+export const buildProductLaunchGpuPlan = (scenes: Scene[], fps: number): ShotGraphPlan =>
+  buildGpuScenePlan({ scenes }, fps, {
+    transitionDurationFrames: 20,
+    effectFor: (scene) => (scene.kind === "ui-detail" ? "magnify" : undefined),
+    lensFor: (scene) =>
+      scene.kind === "ui-detail"
+        ? { anchor: EXPORT_BUTTON_UV, start: 0.12, travel: 0.08 }
+        : undefined,
+    optionsFor: (scene) =>
+      scene.kind === "ui-detail" ? { zoom: 1.7, radius: 130 } : undefined,
+    transitionFor: (scene) =>
+      scene.kind === "ui-detail" || scene.kind === "cta" ? "store-peel" : undefined,
+  });
+
 export const ProductLaunchVideo: React.FC<ProductLaunchVideoProps> = ({ topic, productName, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
-  const { fps } = useVideoConfig();
-  const frame = useCurrentFrame();
+  const { fps, width, height } = useVideoConfig();
   const resolvedScenes = scenes && scenes.length ? scenes : buildProductLaunchScenes({ topic, productName });
-  const scene = (
-    <SceneEngine
-      palette={PRODUCT_LAUNCH_PALETTE}
-      scenes={resolvedScenes}
-      beats={PRODUCT_LAUNCH_BEATS}
-      resolveMediaUrl={resolveMediaUrl}
-      bgmAssetId={bgmAssetId}
-    />
-  );
   const plan = stagePlan === undefined ? buildProductLaunchStagePlan(resolvedScenes, fps) : stagePlan;
-  // SceneEngine 本身逐帧变化，明确声明 sourceVersion；专用静态镜头 fixture 则不传这个值。
-  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
+  const gpuPlan = buildProductLaunchGpuPlan(resolvedScenes, fps);
+  const content = createSceneContent({
+    palette: PRODUCT_LAUNCH_PALETTE,
+    scenes: resolvedScenes,
+    beats: PRODUCT_LAUNCH_BEATS,
+    resolveMediaUrl,
+    interaction: plan?.interaction,
+    targets: plan?.targets,
+    width,
+    height,
+  });
+  return (
+    <AbsoluteFill>
+      <ShotGraph
+        background={PRODUCT_LAUNCH_PALETTE.background}
+        plan={gpuPlan}
+        renderContent={(shot) => content(shot.start + shot.frame, fps)}
+      />
+      <SceneCaptionOverlay scenes={resolvedScenes} palette={PRODUCT_LAUNCH_PALETTE} fps={fps} width={width} />
+      {bgmAssetId && resolveMediaUrl ? <Audio src={resolveMediaUrl(bgmAssetId) || ""} /> : null}
+    </AbsoluteFill>
+  );
 };

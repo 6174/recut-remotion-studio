@@ -1,16 +1,19 @@
 /**
- * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、faceless-explainer 的科技新闻 beat 渲染器与内置调色板
- * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE（渐变荧光绿纸面视觉）、buildFacelessExplainerScenes 与 FacelessExplainerVideo
- * [POS]: scenarios/faceless-explainer 的科技新闻模板代码。场景自带 palette + beats + 默认 SCENES，
- *        用网格纸、荧光 marker、黑色超大排版与手绘 SVG 图形讲科技新闻；替换新闻内容不替换视觉语法。
- *        叙事序列：hook（新闻钩子）→ concept（阅读视角）→ evidence（拆标题）→ example（案例）→ conclusion（回收）。
+ * [INPUT]: 依赖 Three-first GPU 合成（ThreeVideoCanvas/ShotGraph）、共享 GpuSceneEngine、
+ *          faceless-explainer 的 beat 渲染器与内置调色板
+ * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE、buildFacelessExplainerScenes、FACELESS_EXPLAINER_STAGE_PLAN、
+ *           buildFacelessExplainerGpuPlan 与 FacelessExplainerVideo
+ * [POS]: scenarios/faceless-explainer 的科技新闻模板代码（Three-first 模式）。内容层（纸面网格、
+ *        marker、大字）经 HtmlSurface 光栅化为 GPU 纹理；evidence 镜头用 article-highlight 材质保持中心
+ *        锐利；concept/data 入场用 bend 转场；hover/focus 交互作为内容表面的 React overlay 与排版同帧。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
-import { SceneEngine } from "../../_shared/SceneEngine";
+import { AbsoluteFill, Audio, useVideoConfig } from "remotion";
+import { ShotGraph } from "../../../three";
+import type { ShotGraphPlan } from "../../../three/types";
+import { buildGpuScenePlan, createSceneContent, SceneCaptionOverlay } from "../../_shared/GpuSceneEngine";
 import { FACELESS_EXPLAINER_BEATS } from "../beats";
-import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
 import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
@@ -33,7 +36,7 @@ export interface FacelessExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
-  /** HTML-in-Canvas 舞台计划；undefined = 启用内置 hover→selection 用例，null = 关闭。 */
+  /** 帧驱动互动脚本 + 目标几何；undefined = 启用内置 hover→focus 用例，null = 关闭。 */
   stagePlan?: StagePlan | null;
 }
 
@@ -54,7 +57,8 @@ export const buildFacelessExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "科技新闻的价值，在于它改变了什么", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-/** 科技新闻默认 SCENES 全长（帧，30fps）：hook 0–150 / concept 150–330 / evidence×2 330–510·510–690 / example-1 690–840 / analogy 840–990 / example-2 990–1140 / data 1140–1320 / recap 1320–1500 / conclusion 1500–1650。 */
+/** 科技新闻的帧驱动互动脚本（hover→focus）：claim 与 data-3 的轨迹与目标几何。
+ *  效果在 GPU 路径由内容表面 overlay（focus dim + accent ring）表达，不再走 GpuCompositor。 */
 export const FACELESS_EXPLAINER_STAGE_PLAN: StagePlan = {
   targets: {
     claim: { kind: "rect", rect: { x: 260, y: 320, width: 1400, height: 300 }, radius: 40 },
@@ -69,39 +73,40 @@ export const FACELESS_EXPLAINER_STAGE_PLAN: StagePlan = {
     { kind: "hover", frame: 1185, targetId: "data-3" },
     { kind: "click", frame: 1200, targetId: "data-3" },
   ],
-  effects: [
-    { id: "cursor-director", scope: "video", effect: "cursor", timing: { startFrame: 0, enterFrames: 8, holdFrames: 1630, exitFrames: 12 }, zIndex: 30 },
-    {
-      id: "select-claim",
-      scope: "scene",
-      effect: "text-selection",
-      targetId: "claim",
-      timing: { startFrame: 205, enterFrames: 55, holdFrames: 45, exitFrames: 20 },
-      options: {
-        color: "rgba(85, 244, 54, 0.28)",
-        scan: true,
-        tokens: [
-          { x: 300, y: 335, width: 1320, height: 115 },
-          { x: 330, y: 478, width: 1260, height: 88 },
-        ],
-      },
-      zIndex: 12,
-    },
-    { id: "focus-data", scope: "scene", effect: "focus-spotlight", targetId: "data-3", timing: { startFrame: 1190, enterFrames: 20, holdFrames: 60, exitFrames: 20 }, options: { dim: 0.6, edge: true }, zIndex: 10 },
-  ],
 };
 
+/** 科技新闻 GPU 镜头图：evidence 挂 article-highlight（中心锐利），concept/data 入场用 bend 转场。 */
+export const buildFacelessExplainerGpuPlan = (scenes: Scene[], fps: number): ShotGraphPlan =>
+  buildGpuScenePlan({ scenes }, fps, {
+    transitionDurationFrames: 16,
+    effectFor: (scene) => (scene.kind === "evidence" ? "article-highlight" : undefined),
+    transitionFor: (scene) => (scene.id === "concept" || scene.id === "data" ? "bend" : undefined),
+  });
+
 export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
-  const frame = useCurrentFrame();
-  const scene = (
-    <SceneEngine
-      palette={FACELESS_EXPLAINER_PALETTE}
-      scenes={scenes && scenes.length ? scenes : buildFacelessExplainerScenes(topic)}
-      beats={FACELESS_EXPLAINER_BEATS}
-      resolveMediaUrl={resolveMediaUrl}
-      bgmAssetId={bgmAssetId}
-    />
-  );
+  const { fps, width, height } = useVideoConfig();
+  const resolvedScenes = scenes && scenes.length ? scenes : buildFacelessExplainerScenes(topic);
   const plan = stagePlan === undefined ? FACELESS_EXPLAINER_STAGE_PLAN : stagePlan;
-  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
+  const gpuPlan = buildFacelessExplainerGpuPlan(resolvedScenes, fps);
+  const content = createSceneContent({
+    palette: FACELESS_EXPLAINER_PALETTE,
+    scenes: resolvedScenes,
+    beats: FACELESS_EXPLAINER_BEATS,
+    resolveMediaUrl,
+    interaction: plan?.interaction,
+    targets: plan?.targets,
+    width,
+    height,
+  });
+  return (
+    <AbsoluteFill>
+      <ShotGraph
+        background={FACELESS_EXPLAINER_PALETTE.background}
+        plan={gpuPlan}
+        renderContent={(shot) => content(shot.start + shot.frame, fps)}
+      />
+      <SceneCaptionOverlay scenes={resolvedScenes} palette={FACELESS_EXPLAINER_PALETTE} fps={fps} width={width} />
+      {bgmAssetId && resolveMediaUrl ? <Audio src={resolveMediaUrl(bgmAssetId) || ""} /> : null}
+    </AbsoluteFill>
+  );
 };

@@ -11,3 +11,5 @@ export * from "./components";
 export * from "./styles";
 export * from "./scenarios";
 export * from "./html-canvas";
+export * from "./materials";
+export * from "./three";

@@ -1,7 +1,7 @@
 ---
 name: remotion-studio
 description: 把一个选题做成可审阅、可实时预览、可导出的 Remotion 程序化视频：先按成片模板读取模板代码、场景技能与组件目录，AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。开始设计前先读 references 目录与所选模板 skill。
-references: references/effects.md, references/captions.md, references/directing.md, references/video-shotcraft/SKILL.md, references/video-shotcraft/references/pipeline.md, references/video-shotcraft/references/aesthetic-rules.md, references/video-shotcraft/references/sound-design.md, references/video-shotcraft/template/TEMPLATE.md
+references: references/effects.md, references/captions.md, references/directing.md, references/gpu-composition.md, references/video-shotcraft/SKILL.md, references/video-shotcraft/references/pipeline.md, references/video-shotcraft/references/aesthetic-rules.md, references/video-shotcraft/references/sound-design.md, references/video-shotcraft/template/TEMPLATE.md
 ---
 
 # Remotion Studio 创作指南
@@ -34,15 +34,24 @@ references: references/effects.md, references/captions.md, references/directing.
 2. **场景技能**：`{paths.appKitPath}/src/scenarios/<brief.template>/SKILL.md`（这种视频怎么表达更好：分镜结构、镜头语言、节奏、素材纪律、验收）。
 3. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `effects`（镜头层效果）+ `references/effects.md` / `references/captions.md`（表达特效、字幕主题、81 个 remotion-templates 与 shotcraft 组件）。按需 lazy 引用，不一次全读。需要计划门槛的模板先运行 `validate-scene-plan.mjs`。
 
-## HTML-in-Canvas 表达镜头（镜头层效果）
+## 帧驱动互动引导（内容表面 overlay）
 
-这是把**已经正确排版的 HTML**作为可被后处理的动态纹理的镜头能力：模拟交互（鼠标轨迹、点击波纹、拖拽尾迹）、聚焦引导、文本选择与放大镜。它只走原生 HTML-in-Canvas 渲染，是浏览器硬能力，**不支持时绝不降级为普通 DOM 画面**。
+互动引导（光标、focus 聚焦、hover 语义状态）走**帧驱动互动脚本**：`InteractionScript`（InteractionEvent[]）与目标几何（`FocusTarget`/`Rect[]`）由排版时产出，运行时用 `resolveInteractionState` 推导语义状态并作为内容表面的 React overlay 与排版同帧栅格化。
 
-- **优先复用 `@recut/remotion-kit/html-canvas`**：唯一 `HtmlCanvasVideoStage`（在 `src/compositions/ProjectVideo.tsx` 包住场景路由一次，接 `stagePlan` prop）、`BrowserCapabilityGate`、`useInteraction()`。
-- **先写 `InteractionScript`（InteractionEvent[]）与 `EffectClip`，再写 JSX**。坐标使用 composition 设计像素；时间用帧；禁止真实 pointer 事件回放、`Date.now()`/`Math.random()`/`requestAnimationFrame()`。
+- **坐标**一律使用 composition 设计像素；**时间**一律用帧；禁止真实 pointer 事件回放、`Date.now()`/`Math.random()`/`requestAnimationFrame()`。
 - **禁止粘贴 CanvasUI 等网页交互示例代码**；CanvasUI 当前许可证含 Commons Clause，只能作为视觉与架构参考，不能移植、再发布或把其源码/port 放入产品；效果内核必须独立实现。
-- 目标几何（`FocusTarget`/token `Rect[]`）由场景在排版时产出，效果只消费已知几何，不做 CSS selector 扫描或 DOM layout 读回。
-- 新增镜头层效果时只改 `StagePlan` 与必要场景代码；不创建第二个 `<HtmlInCanvas>`（嵌套在服务器导出尚不支持）。
+- 目标几何由场景在排版时产出，效果只消费已知几何，不做 CSS selector 扫描或 DOM layout 读回。
+- `@recut/remotion-kit/html-canvas` 只提供推导函数（`resolveInteractionState`/`resolvePointer`）与交互脚本类型；`HtmlCanvasVideoStage` 与 `GpuCompositor` 的 GPU pass 已退役，新镜头一律走 GPU 合成路径。
+
+## GPU 合成路径（Three-first，默认架构）
+
+成片默认走 Three-first GPU 合成：`@recut/remotion-kit/three` 的 `ThreeVideoCanvas` 是统一 GPU 根，HTML 内容经 `HtmlSurface` 光栅化为 `CanvasTexture`，效果全部由 `@recut/remotion-kit/materials` 的材质实现。**开始设计前必读 `references/gpu-composition.md`（架构契约）。**
+
+- **默认根**：`ProjectVideo` 包 `ThreeVideoCanvas`；内容镜头用 `ShotGraph` 的声明式 plan（`content`/`effect`/`transition`/`lens`/`ambient`）。
+- **内容层渲染在真实 React 树内**：`renderContent(shot)` 返回镜头内容，`ShotGraph` 用 `<Sequence from={shot.start}>` 提供镜头局部帧，因此内容内部可以正常用 Remotion hook（`useCurrentFrame`/`spring`/`interpolate`）。排版、字幕、palette、静态背景与交互引导都在 HTML surface 内。
+- **效果写材质，不写 DOM**：放大镜/玻璃/glitch/CRT/胶片/气泡/模糊走 `materials` post；页面卷曲/bend 转场走 transform；云/雾/粒子氛围走 ambient。参数只能取 `catalog.json` effects 里 `material.schema` 声明的语义参数。
+- **转场是镜头 descriptor 的 `transition`**，在镜头前 `durationFrames` 内激活；`lens` 驱动的光学镜头中心由 shot progress 派生，禁止写死。
+- 交互引导（cursor/focus/text-selection）作为 HTML surface 内的 React 层，与排版同帧栅格化，不产生额外 overlay/GPU pass。
 
 ## 工作流
 

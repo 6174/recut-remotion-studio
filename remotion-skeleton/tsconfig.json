@@ -14,5 +14,6 @@
     "noEmit": true,
     "preserveSymlinks": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/composition-graph/reference"]
 }

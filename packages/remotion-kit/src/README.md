@@ -10,6 +10,8 @@ captions/: 时间轴字幕主题与布局引擎。
 components/: vendored Remotion 模板与 shotcraft 动态组件。
 effects/: 背景与文字效果层。
 html-canvas/: 单 HtmlInCanvas capture、GPU texture compositor 与确定性镜头层效果。
+materials/: Three-first GPU 效果材质层（post/transform/ambient 三类）+ 注册表与 schema。
+three/: Three-first GPU 合成运行时桥：统一 GPU 根、HTML/media 纹理表面与镜头声明式模型。
 scenarios/: 场景模板：共享编排引擎与各自独立的默认视觉、内容序列和 beat 渲染器。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

@@ -14,6 +14,8 @@
     "./captions": "./src/captions/index.ts",
     "./effects": "./src/effects/index.ts",
     "./html-canvas": "./src/html-canvas/index.ts",
+    "./materials": "./src/materials/index.ts",
+    "./three": "./src/three/index.ts",
     "./styles": "./src/styles/index.ts",
     "./shotcraft": "./src/components/index.ts",
     "./templates": "./src/components/index.ts",
@@ -27,12 +29,17 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "remotion": "4.0.507",
-    "three": "*"
+    "three": "*",
+    "@react-three/fiber": "8.17.10",
+    "@remotion/three": "4.0.507"
   },
   "devDependencies": {
+    "@react-three/fiber": "8.17.10",
+    "@remotion/three": "4.0.507",
     "@tailwindcss/vite": "4.1.17",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
+    "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
@@ -40,6 +47,12 @@
   },
   "peerDependenciesMeta": {
     "three": {
+      "optional": true
+    },
+    "@react-three/fiber": {
+      "optional": true
+    },
+    "@remotion/three": {
       "optional": true
     }
   },

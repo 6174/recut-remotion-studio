@@ -9,7 +9,6 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { DigitRoll } from "../../components";
-import { useInteractionMaybe } from "../../html-canvas";
 import type { BeatRenderer, BeatContext } from "../_shared/types";
 import { AccentRule, ClaimTitle, clamp, CtaButton, EvidenceCard, Eyebrow, GlowPill, neonField, PointList, Ring } from "./primitives";
 
@@ -235,8 +234,7 @@ const SETTING_ROWS = ["自动保存", "云端同步", "深色主题"];
 
 /** ⑨ UI 特写：产品设置面板；「导出」按钮读同一互动脚本的语义状态（hover/pressed），
  *  放大镜镜头与点击目标由舞台计划提供，beat 只做排版与状态反馈。 */
-const UiDetailBeat: BeatRenderer = ({ scene, p, frame }) => {
-  const interaction = useInteractionMaybe();
+const UiDetailBeat: BeatRenderer = ({ scene, p, frame, interaction }) => {
   const exportHovered = interaction?.hoveredTargetId === "export-button";
   const exportPressed = interaction?.pressedTargetId === "export-button";
   const opacity = interpolate(frame, [0, 12], [0, 1], clamp);

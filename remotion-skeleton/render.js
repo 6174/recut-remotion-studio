@@ -61,7 +61,9 @@ function kitWebpackAlias(workspace) {
     { name: "@recut/remotion-kit/templates", alias: kit("src/components/remotion-templates") },
     { name: "@recut/remotion-kit/shotcraft", alias: kit("src/components") },
     { name: "@recut/remotion-kit/captions", alias: kit("src/captions/index.ts") },
-    { name: "@recut/remotion-kit/effects", alias: kit("src/effects/index.ts") },
+    { name: "@recut/remotion-kit/html-canvas", alias: kit("src/html-canvas/index.ts") },
+    { name: "@recut/remotion-kit/materials", alias: kit("src/materials/index.ts") },
+    { name: "@recut/remotion-kit/three", alias: kit("src/three/index.ts") },
     { name: "@recut/remotion-kit", alias: kit("src/index.ts") },
   ];
 }

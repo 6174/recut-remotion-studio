@@ -1,8 +1,13 @@
 {
   "name": "@recut/remotion-kit",
-  "version": "0.6.0",
-  "updatedAt": "2026-08-09",
+  "version": "0.7.0",
+  "updatedAt": "2026-08-10",
   "changelog": [
+    {
+      "version": "0.7.0",
+      "date": "2026-08-10",
+      "notes": "Three-first GPU 合成成为默认架构：新增 src/materials/（post/transform/ambient 三类材质 + 注册表 + schema + MaterialElement）与 src/three/（ThreeVideoCanvas 统一 GPU 根、HtmlSurface 双 adapter 内容纹理、ShotGraph 镜头声明式模型、MediaTexture）。composition-graph 实验的 9 个材质迁入 materials；GpuCompositor 与 HtmlCanvasVideoStage 的 GPU pass 退役，html-canvas 收窄为帧驱动互动脚本与交互 overlay。三个场景模板（product-launch/faceless-explainer/doodle-explainer）重构为 ThreeVideoCanvas + ShotGraph，效果改走材质（magnify lens / article-highlight / bend / store-peel），交互作为内容表面 overlay。catalog effects 增加 engine=three + material schema 条目。"
+    },
     {
       "version": "0.6.0",
       "date": "2026-08-09",

@@ -1,14 +1,14 @@
 /**
- * [INPUT]: 依赖 Remotion 时间轴、Brief 数据与 preview/props.json；可选媒体素材经 media prop 注入
+ * [INPUT]: 依赖 @recut/remotion-kit/three 的 ShotGraph、Remotion 帧时钟与 Brief 数据
  * [OUTPUT]: 对外提供 ProjectVideo、getProjectMetadata
- * [POS]: remotion-skeleton 的主成片入口。默认项目是「接近空白」的标题页：只渲染一个
- *        通用的居中占位标题，供 AI 在此之上按所选模板（@recut/remotion-kit
- *        的 src/scenarios/<id>/template/ProjectVideo.tsx 作为完整参考）重建整支视频，
- *        不再预置长模板的默认 SCENES，避免 AI 先花时间删内容。
+ * [POS]: remotion-skeleton 的主成片入口。默认项目是「接近空白」的标题页：走 Three-first GPU 根
+ *        （ShotGraph，内容经 HtmlSurfaceProvider 光栅化），供 AI 在此之上按所选模板重建整支视频。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { ShotGraph } from "@recut/remotion-kit/three";
+import type { ShotGraphPlan } from "@recut/remotion-kit/three";
 import type { ProjectVideoProps } from "../types";
 
 /** 默认空项目时长（秒）：只有一页标题，AI 重建时会改写。 */
@@ -22,30 +22,66 @@ export const getProjectMetadata = (props: ProjectVideoProps) => {
   return { durationInFrames, fps, width, height };
 };
 
-export const ProjectVideo: React.FC<ProjectVideoProps> = () => {
-  const topic = "你的视频标题";
+/** 空白标题内容：运行在真实 React 树内（hooks 可用），逐帧淡入。 */
+const BlankTitle: React.FC = () => {
+  const frame = useCurrentFrame();
+  const fade = Math.min(1, frame / 20);
   return (
-    <AbsoluteFill
+    <div
       style={{
-        backgroundColor: "#ffffff",
-        justifyContent: "center",
+        position: "absolute",
+        inset: 0,
+        display: "flex",
         alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#ffffff",
         padding: 80,
       }}
     >
-      <h1
+      <div
         style={{
-          margin: 0,
-          color: "#111111",
-          fontSize: 96,
-          fontWeight: 700,
-          lineHeight: 1.15,
-          textAlign: "center",
-          maxWidth: 1600,
+          opacity: fade,
+          transform: `scale(${1 - (1 - fade) * 0.04})`,
         }}
       >
-        {topic}
-      </h1>
+        <h1
+          style={{
+            margin: 0,
+            color: "#111111",
+            fontSize: 96,
+            fontWeight: 700,
+            lineHeight: 1.15,
+            textAlign: "center",
+            maxWidth: 1600,
+          }}
+        >
+          你的视频标题
+        </h1>
+        <p
+          style={{
+            margin: "24px 0 0",
+            color: "#666666",
+            fontSize: 32,
+            fontWeight: 500,
+            textAlign: "center",
+          }}
+        >
+          按所选模板重建整支视频（Three-first GPU 合成）
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export const ProjectVideo: React.FC<ProjectVideoProps> = () => {
+  const { fps } = useVideoConfig();
+  const plan: ShotGraphPlan = {
+    durationInFrames: BLANK_PROJECT_DURATION_SEC * fps,
+    shots: [{ id: "blank", content: "html" }],
+  };
+  return (
+    <AbsoluteFill>
+      <ShotGraph plan={plan} background="#ffffff" renderContent={() => <BlankTitle />} />
     </AbsoluteFill>
   );
 };

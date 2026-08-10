@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Chromium HTML-in-Canvas layoutSubtree/drawElementImage、Remotion frame 与 Three CanvasTexture
- * [OUTPUT]: 对外提供 useHtmlInCanvasTexture，以真实 DOM subtree 直接光栅化为 GPU texture，验证 sentinel 后报告能力/耗时
+ * [OUTPUT]: 对外提供 useHtmlInCanvasTexture，以真实 DOM subtree 直接光栅化为 GPU texture，首帧验证 sentinel 后报告能力/耗时
  * [POS]: composition-graph 的原生 HTML-in-Canvas 对照组；与 foreignObject adapter 共享同一份 HTML 内容和 texture 尺寸
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -62,6 +62,7 @@ export const useHtmlInCanvasTexture = ({
   const sampleFrame = animate ? frame : 0;
   const sampleFrameRef = useRef(sampleFrame);
   const paintCountRef = useRef(0);
+  const sentinelVerifiedRef = useRef(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const hostRef = useRef<CaptureCanvas | null>(null);
   const rootRef = useRef<Root | null>(null);
@@ -100,11 +101,14 @@ export const useHtmlInCanvasTexture = ({
       try {
         context.reset();
         context.drawElementImage(content, 0, 0);
-        const pixel = context.getImageData(0, 0, 1, 1).data;
-        const sentinelCaptured =
-          pixel[1] > 180 && pixel[0] > 70 && pixel[0] < 160 && pixel[2] > 130;
-        if (!sentinelCaptured) {
-          throw new Error(`HIC sentinel missing: rgba(${pixel.join(",")})`);
+        if (!sentinelVerifiedRef.current) {
+          const pixel = context.getImageData(0, 0, 1, 1).data;
+          const sentinelCaptured =
+            pixel[1] > 180 && pixel[0] > 70 && pixel[0] < 160 && pixel[2] > 130;
+          if (!sentinelCaptured) {
+            throw new Error(`HIC sentinel missing: rgba(${pixel.join(",")})`);
+          }
+          sentinelVerifiedRef.current = true;
         }
         paintCountRef.current += 1;
         setStatus("verified");
@@ -116,7 +120,7 @@ export const useHtmlInCanvasTexture = ({
               adapter: "html-in-canvas",
               duration: performance.now() - startedAt,
               frame: sampleFrameRef.current,
-              verified: true,
+              verified: sentinelVerifiedRef.current,
               paintCount: paintCountRef.current,
               engine: "paint -> drawElementImage(DIV) -> CanvasTexture",
             },
@@ -138,6 +142,7 @@ export const useHtmlInCanvasTexture = ({
     };
     return () => {
       host.onpaint = null;
+      sentinelVerifiedRef.current = false;
       hostRef.current = null;
       contentRef.current = null;
       rootRef.current?.unmount();

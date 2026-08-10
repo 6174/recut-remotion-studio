@@ -174,7 +174,9 @@ export const HtmlBubbleMaterial: React.FC<HtmlBubbleMaterialProps> = ({
 }) => {
   const material = useRef<THREE.ShaderMaterial>(null);
   const trail = useRef(
-    Array.from({ length: TRAIL_COUNT }, () => new THREE.Vector2()),
+    // Three uploads the declared GLSL array length, not uCount. Keep all
+    // MAX_TRAIL slots materialized; uCount only controls the ray-march loop.
+    Array.from({ length: MAX_TRAIL }, () => new THREE.Vector2()),
   );
   const uniforms = useMemo(
     () => ({

@@ -1,17 +1,19 @@
 /**
- * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、doodle-explainer 的 beat 渲染器与手绘速写本内置调色板
- * [OUTPUT]: 对外提供 DOODLE_EXPLAINER_PALETTE（速写本视觉）、buildDoodleExplainerScenes 与 DoodleExplainerVideo
- * [POS]: scenarios/doodle-explainer 的白板涂鸦讲解模板代码。场景自带内置 palette（来自全局
- *        doodle 设计系统的 token）+ beats + 默认 SCENES，用 roughjs 手绘原语把抽象概念画清楚；
- *        替换内容不替换视觉语法。叙事序列：hook（画出来）→ concept（核心定义）→ sketch（步骤拆解）
- *        → example（具体例子）→ analogy（类比）→ data（信号）→ recap（便签收束）→ conclusion（结论）。
+ * [INPUT]: 依赖 Three-first GPU 合成（ThreeVideoCanvas/ShotGraph）、共享 GpuSceneEngine、
+ *          doodle-explainer 的 beat 渲染器与手绘速写本内置调色板
+ * [OUTPUT]: 对外提供 DOODLE_EXPLAINER_PALETTE、buildDoodleExplainerScenes、DOODLE_EXPLAINER_STAGE_PLAN、
+ *           buildDoodleExplainerGpuPlan 与 DoodleExplainerVideo
+ * [POS]: scenarios/doodle-explainer 的白板涂鸦讲解模板代码（Three-first 模式）。内容层（roughjs
+ *        手绘速写本）经 HtmlSurface 光栅化为 GPU 纹理；镜头间用 store-peel 卷页转场（速写本翻页）；
+ *        conclusion 的 focus 交互作为内容表面 overlay 与排版同帧。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
-import { useCurrentFrame } from "remotion";
-import { SceneEngine } from "../../_shared/SceneEngine";
+import { AbsoluteFill, Audio, useVideoConfig } from "remotion";
+import { ShotGraph } from "../../../three";
+import type { ShotGraphPlan } from "../../../three/types";
+import { buildGpuScenePlan, createSceneContent, SceneCaptionOverlay } from "../../_shared/GpuSceneEngine";
 import { DOODLE_EXPLAINER_BEATS } from "../beats";
-import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
 import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
@@ -34,7 +36,7 @@ export interface DoodleExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
-  /** HTML-in-Canvas 舞台计划；undefined = 启用内置 cursor+focus 用例，null = 关闭。 */
+  /** 帧驱动互动脚本 + 目标几何；undefined = 启用内置 focus 用例，null = 关闭。 */
   stagePlan?: StagePlan | null;
 }
 
@@ -53,7 +55,7 @@ export const buildDoodleExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "复杂的事，一笔一笔画清楚", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-/** 白板涂鸦默认 SCENES 全长（帧，30fps）：hook 0–150 / concept 150–330 / sketch 330–510 / example 510–660 / analogy 660–810 / data 810–990 / recap 990–1170 / conclusion 1170–1320。 */
+/** 白板涂鸦的帧驱动互动脚本（conclusion focus）。paper-grain 由内容表面承载。 */
 export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
   targets: {
     "conclusion-title": { kind: "rect", rect: { x: 260, y: 380, width: 1400, height: 320 }, radius: 40 },
@@ -64,24 +66,39 @@ export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
     { kind: "hover", frame: 1210, targetId: "conclusion-title" },
     { kind: "click", frame: 1224, targetId: "conclusion-title" },
   ],
-  effects: [
-    { id: "cursor-director", scope: "video", effect: "cursor", timing: { startFrame: 0, enterFrames: 8, holdFrames: 1300, exitFrames: 12 }, zIndex: 30 },
-    { id: "focus-conclusion", scope: "scene", effect: "focus-spotlight", targetId: "conclusion-title", timing: { startFrame: 1214, enterFrames: 20, holdFrames: 50, exitFrames: 20 }, options: { dim: 0.55, edge: true }, zIndex: 10 },
-    { id: "paper-grain", scope: "video", effect: "ambient", timing: { startFrame: 0, enterFrames: 20, holdFrames: 1280, exitFrames: 20 }, options: { grain: 0.035, vignette: 0.12 }, zIndex: 5 },
-  ],
 };
 
+/** 白板涂鸦 GPU 镜头图：镜头间用 store-peel 卷页转场（速写本翻页）。 */
+export const buildDoodleExplainerGpuPlan = (scenes: Scene[], fps: number): ShotGraphPlan =>
+  buildGpuScenePlan({ scenes }, fps, {
+    transitionDurationFrames: 22,
+    transitionFor: () => "store-peel",
+  });
+
 export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
-  const frame = useCurrentFrame();
-  const scene = (
-    <SceneEngine
-      palette={DOODLE_EXPLAINER_PALETTE}
-      scenes={scenes && scenes.length ? scenes : buildDoodleExplainerScenes(topic)}
-      beats={DOODLE_EXPLAINER_BEATS}
-      resolveMediaUrl={resolveMediaUrl}
-      bgmAssetId={bgmAssetId}
-    />
-  );
+  const { fps, width, height } = useVideoConfig();
+  const resolvedScenes = scenes && scenes.length ? scenes : buildDoodleExplainerScenes(topic);
   const plan = stagePlan === undefined ? DOODLE_EXPLAINER_STAGE_PLAN : stagePlan;
-  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
+  const gpuPlan = buildDoodleExplainerGpuPlan(resolvedScenes, fps);
+  const content = createSceneContent({
+    palette: DOODLE_EXPLAINER_PALETTE,
+    scenes: resolvedScenes,
+    beats: DOODLE_EXPLAINER_BEATS,
+    resolveMediaUrl,
+    interaction: plan?.interaction,
+    targets: plan?.targets,
+    width,
+    height,
+  });
+  return (
+    <AbsoluteFill>
+      <ShotGraph
+        background={DOODLE_EXPLAINER_PALETTE.background}
+        plan={gpuPlan}
+        renderContent={(shot) => content(shot.start + shot.frame, fps)}
+      />
+      <SceneCaptionOverlay scenes={resolvedScenes} palette={DOODLE_EXPLAINER_PALETTE} fps={fps} width={width} />
+      {bgmAssetId && resolveMediaUrl ? <Audio src={resolveMediaUrl(bgmAssetId) || ""} /> : null}
+    </AbsoluteFill>
+  );
 };

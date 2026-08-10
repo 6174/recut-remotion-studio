@@ -1,6 +1,8 @@
-# html-canvas/ — HTML-in-Canvas 表达镜头层
+# html-canvas/ — HTML-in-Canvas 交互 overlay 层
 
-> 目标：把 HTML-in-Canvas 设为 Remotion Studio 的浏览器硬能力，并以它把实时 HTML 内容转化为可编排的“表达镜头”——由鼠标驱动的模拟交互、聚焦、文本选择、放大镜、场景进出与背景特效，同时保持逐帧确定性和预览/导出一致。
+> **定位更新**：Three-first GPU 合成（`src/three/` + `src/materials/`）是默认架构。本模块的职责收窄为**帧驱动互动脚本与交互 overlay**（cursor/focus/text-selection 的语义状态推导与几何），像素特效（bubble/magnify/glitch）已迁入 `src/materials/`，`GpuCompositor` 与 `HtmlCanvasVideoStage` 的 GPU pass **已退役**：不再作为成片路径使用，仅保留类型与推导函数供 GPU 内容表面复用（`resolveInteractionState` 等）。
+>
+> 目标：把 HTML-in-Canvas 设为 Remotion Studio 的浏览器硬能力，并给「互动引导」提供逐帧确定性、预览/导出一致的帧驱动语义状态桥。
 
 ## 关键约定
 
@@ -21,9 +23,9 @@
 | `InteractionScript.tsx` | 语义 UI 状态桥：`InteractionProvider` / `useInteraction()` |
 | `EffectTimeline.tsx` | `resolveActiveEffects(plan, frame)`：解析局部生命周期与全局层级轨 |
 | `BrowserCapabilityGate.tsx` | 浏览器硬门禁与能力探针 |
-| `HtmlCanvasVideoStage.tsx` | 整支视频唯一的 capture 面，复刻官方 Presentation 的 layoutSubtree + paint copy |
-| `GpuCompositor.ts` | source texture cache 与 Bubble/Magnify/Glitch 的确定性 GPU pixel pass |
-| `EffectOverlay.tsx` | Cursor/Focus/Text/Ambient 的独立透明 2D 引导层 |
+| `HtmlCanvasVideoStage.tsx` | 唯一 capture 面（**已退役**；成片改走 `three/HtmlSurface`，本组件仅存档） |
+| `GpuCompositor.ts` | 单 pass GPU 合成器（**已退役**；bubble/magnify/glitch 迁入 `materials/`） |
+| `EffectOverlay.tsx` | Cursor/Focus/Text/Ambient 的独立透明 2D 引导层（GPU 路径下交互 overlay 改由 `_shared/GpuSceneEngine` 的内容表面绘制） |
 | `CanvasEffect.tsx` / `registry.ts` | CPU overlay layer 适配边界与效果元数据注册表 |
 | `effects/*` | CursorDirector / FocusSpotlight / TextSelection / Ambient overlay；Magnifier 仅保留元数据，实际由 GPU pass 执行 |
 | `demos/product-ui-demo.tsx` | click → focus 的产品 UI 叙事实例，仅用于产品界面类镜头 |

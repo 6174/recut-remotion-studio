@@ -918,17 +918,17 @@
     {
       "id": "cursor",
       "label": "Cursor Director",
-      "description": "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail。",
+      "description": "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail；作为 HTML surface 内的 React 层与排版同帧栅格化。",
       "engine": "html-canvas",
       "layer": "interaction",
       "intent": "guide",
-      "requires": [
-        "html-in-canvas"
-      ],
       "placement": [
         "scene-play",
         "target",
         "video-background"
+      ],
+      "requires": [
+        "html-in-canvas"
       ],
       "preview": {
         "compositionId": "product-ui-demo",
@@ -953,24 +953,17 @@
     {
       "id": "focus-spotlight",
       "label": "Focus Spotlight",
-      "description": "聚焦引导：内容纹理外压暗、目标区域清晰，带羽化与边缘光；可由 hover/click 接管 target。",
+      "description": "聚焦引导：把注意力压向一个目标区域（dim + spotlight）；作为 HTML surface 内的 React 层。",
       "engine": "html-canvas",
-      "layer": "content",
-      "intent": "emphasize",
-      "requires": [
-        "html-in-canvas"
-      ],
+      "layer": "interaction",
+      "intent": "focus",
       "placement": [
         "target",
         "scene-play"
       ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "focus-spotlight"
-        }
-      },
+      "requires": [
+        "html-in-canvas"
+      ],
       "source": {
         "exportName": "focusSpotlightEffect",
         "path": "packages/remotion-kit/src/html-canvas/effects/focus-spotlight.tsx",
@@ -978,33 +971,25 @@
       },
       "prompt": {
         "constraints": [
-          "target 使用设计像素",
-          "一个 target 起步"
-        ],
-        "recommendedDurationFrames": 90
+          "目标几何由排版时产出",
+          "效果只消费已知几何"
+        ]
       }
     },
     {
       "id": "text-selection",
       "label": "Text Selection",
-      "description": "文本选择与荧光笔：按 token Rect[] 逐词/逐行 reveal，可选扫读光；文本保留在 source HTML。",
+      "description": "文本选择：荧光 marker 逐词揭示；作为 HTML surface 内的 React 层与排版同帧光栅化。",
       "engine": "html-canvas",
-      "layer": "content",
+      "layer": "interaction",
       "intent": "emphasize",
-      "requires": [
-        "html-in-canvas"
-      ],
       "placement": [
         "target",
         "scene-play"
       ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "text-selection"
-        }
-      },
+      "requires": [
+        "html-in-canvas"
+      ],
       "source": {
         "exportName": "textSelectionEffect",
         "path": "packages/remotion-kit/src/html-canvas/effects/text-selection.tsx",
@@ -1012,150 +997,367 @@
       },
       "prompt": {
         "constraints": [
-          "输入 token Rect[]",
-          "不做 DOM 文本搜索"
-        ],
-        "recommendedDurationFrames": 90
-      }
-    },
-    {
-      "id": "magnifier",
-      "label": "Magnifier",
-      "description": "GPU 细节放大镜：采样当前 HTML texture，透镜、HUD、色差与 click ripple 走同一合成 pass。",
-      "engine": "html-canvas",
-      "layer": "content",
-      "intent": "inspect",
-      "requires": [
-        "html-in-canvas"
-      ],
-      "placement": [
-        "target",
-        "scene-play"
-      ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "magnifier"
-        }
-      },
-      "source": {
-        "exportName": "magnifierEffect",
-        "path": "packages/remotion-kit/src/html-canvas/effects/magnifier.tsx",
-        "workspacePath": "src/html-canvas/effects/magnifier.tsx"
-      },
-      "prompt": {
-        "constraints": [
-          "一个 lens",
-          "必须走 GpuCompositor source texture",
-          "折射强度受预算限制"
-        ],
-        "recommendedDurationFrames": 90
+          "目标几何由排版时产出",
+          "效果只消费已知几何"
+        ]
       }
     },
     {
       "id": "glitch",
-      "label": "Glitch Burst",
-      "description": "GPU 广播故障：实时 HTML texture 水平撕裂、RGB split、损坏块与模拟噪点。",
-      "engine": "html-canvas",
+      "label": "Glitch",
+      "description": "横向 tearing、RGB split 与噪声 burst；突发型效果使用确定性时间窗口。",
+      "engine": "three",
       "layer": "scene",
-      "intent": "emphasize",
-      "requires": [
-        "html-in-canvas",
-        "webgl2"
-      ],
+      "intent": "distort",
       "placement": [
-        "scene-enter",
-        "scene-play",
-        "scene-exit"
+        "video-background",
+        "scene-play"
       ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "glitch"
+      "requires": [],
+      "material": {
+        "id": "glitch",
+        "category": "post",
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 3,
+            "default": 1.35
+          }
         }
       },
       "source": {
-        "exportName": "GpuCompositor",
-        "path": "packages/remotion-kit/src/html-canvas/GpuCompositor.ts",
-        "workspacePath": "src/html-canvas/GpuCompositor.ts"
+        "exportName": "HtmlGlitchMaterial",
+        "path": "packages/remotion-kit/src/materials/post/glitch-material.tsx",
+        "workspacePath": "src/materials/post/glitch-material.tsx"
       },
       "prompt": {
         "constraints": [
-          "burst 区间与 seed 必须帧驱动",
-          "不得使用 Math.random 或 interval"
-        ],
-        "recommendedDurationFrames": 24
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "crt",
+      "label": "CRT",
+      "description": "barrel、scanline、RGB aperture、vignette 与 flicker 的老式显像管效果。",
+      "engine": "three",
+      "layer": "scene",
+      "intent": "retro",
+      "placement": [
+        "video-background",
+        "scene-play"
+      ],
+      "requires": [],
+      "material": {
+        "id": "crt",
+        "category": "post",
+        "schema": {
+          "scan": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.24
+          }
+        }
+      },
+      "source": {
+        "exportName": "HtmlCrtMaterial",
+        "path": "packages/remotion-kit/src/materials/post/crt-material.tsx",
+        "workspacePath": "src/materials/post/crt-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "vintage",
+      "label": "Vintage",
+      "description": "gate weave、grain、scratch、dust、light leak 与 faded print 的胶片效果。",
+      "engine": "three",
+      "layer": "scene",
+      "intent": "retro",
+      "placement": [
+        "video-background",
+        "scene-play"
+      ],
+      "requires": [],
+      "material": {
+        "id": "vintage",
+        "category": "post",
+        "schema": {
+          "grain": {
+            "type": "number",
+            "min": 0,
+            "max": 0.5,
+            "default": 0.126
+          }
+        }
+      },
+      "source": {
+        "exportName": "HtmlVintageMaterial",
+        "path": "packages/remotion-kit/src/materials/post/vintage-material.tsx",
+        "workspacePath": "src/materials/post/vintage-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "magnify",
+      "label": "Magnify",
+      "description": "带像素 HUD、AA、haze 与 chromatic aberration 的放大镜镜头；中心由 shot progress 扫描派生。",
+      "engine": "three",
+      "layer": "content",
+      "intent": "inspect",
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "requires": [],
+      "material": {
+        "id": "magnify",
+        "category": "post",
+        "schema": {
+          "zoom": {
+            "type": "number",
+            "min": 1,
+            "max": 4,
+            "default": 1.7
+          },
+          "radius": {
+            "type": "number",
+            "min": 60,
+            "max": 400,
+            "default": 140
+          }
+        }
+      },
+      "source": {
+        "exportName": "HtmlMagnifyMaterial",
+        "path": "packages/remotion-kit/src/materials/post/magnify-material.tsx",
+        "workspacePath": "src/materials/post/magnify-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "glass",
+      "label": "Glass",
+      "description": "rounded-SDF、rim normal、六波长折射、fresnel 与 GGX 反射的玻璃卡片。",
+      "engine": "three",
+      "layer": "content",
+      "intent": "inspect",
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "requires": [],
+      "material": {
+        "id": "glass",
+        "category": "post",
+        "schema": {
+          "zoom": {
+            "type": "number",
+            "min": 1,
+            "max": 4,
+            "default": 1.34
+          }
+        }
+      },
+      "source": {
+        "exportName": "HtmlGlassMaterial",
+        "path": "packages/remotion-kit/src/materials/post/glass-material.tsx",
+        "workspacePath": "src/materials/post/glass-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
       }
     },
     {
       "id": "bubble",
       "label": "Bubble",
-      "description": "GPU 液态气泡：脚本轨迹驱动 metaball trail、折射与高光，读取真实 HTML texture。",
-      "engine": "html-canvas",
-      "layer": "interaction",
-      "intent": "inspect",
-      "requires": [
-        "html-in-canvas",
-        "webgl2"
-      ],
+      "description": "metaball trail ray-march 水滴：平滑融合、折射、色散与动态 glints；轨迹由可 seek 时间重建。",
+      "engine": "three",
+      "layer": "content",
+      "intent": "distort",
       "placement": [
         "target",
         "scene-play"
       ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "bubble"
+      "requires": [],
+      "material": {
+        "id": "bubble",
+        "category": "post",
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          }
         }
       },
       "source": {
-        "exportName": "GpuCompositor",
-        "path": "packages/remotion-kit/src/html-canvas/GpuCompositor.ts",
-        "workspacePath": "src/html-canvas/GpuCompositor.ts"
+        "exportName": "HtmlBubbleMaterial",
+        "path": "packages/remotion-kit/src/materials/post/bubble-material.tsx",
+        "workspacePath": "src/materials/post/bubble-material.tsx"
       },
       "prompt": {
         "constraints": [
-          "trail 从 InteractionScript 历史采样得到",
-          "每镜头最多一个 heavy effect"
-        ],
-        "recommendedDurationFrames": 120
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
       }
     },
     {
-      "id": "ambient",
-      "label": "Ambient Canvas FX",
-      "description": "轻量背景材质：确定性 grain、vignette 与冷色调；默认不与强透镜叠加。",
-      "engine": "html-canvas",
-      "layer": "background",
-      "intent": "atmosphere",
-      "requires": [
-        "html-in-canvas"
-      ],
+      "id": "article-highlight",
+      "label": "Article Highlight",
+      "description": "中心文字保持锐利时渐进模糊上下信息的 9x9 progressive Gaussian blur。",
+      "engine": "three",
+      "layer": "content",
+      "intent": "emphasize",
       "placement": [
-        "video-background",
         "scene-play"
       ],
-      "preview": {
-        "compositionId": "product-ui-demo",
-        "durationInFrames": 240,
-        "defaultProps": {
-          "effect": "ambient"
-        }
+      "requires": [],
+      "material": {
+        "id": "article-highlight",
+        "category": "post",
+        "schema": {}
       },
       "source": {
-        "exportName": "ambientEffect",
-        "path": "packages/remotion-kit/src/html-canvas/effects/ambient.tsx",
-        "workspacePath": "src/html-canvas/effects/ambient.tsx"
+        "exportName": "HtmlArticleHighlightMaterial",
+        "path": "packages/remotion-kit/src/materials/post/article-highlight-material.tsx",
+        "workspacePath": "src/materials/post/article-highlight-material.tsx"
       },
       "prompt": {
         "constraints": [
-          "每场景最多一个",
-          "默认关闭"
-        ],
-        "recommendedDurationFrames": 240
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "bend",
+      "label": "Bend",
+      "description": "页面卷曲语义的顶点变形转场。",
+      "engine": "three",
+      "layer": "scene",
+      "intent": "transition",
+      "placement": [
+        "scene-transition"
+      ],
+      "requires": [],
+      "material": {
+        "id": "bend",
+        "category": "transform",
+        "schema": {
+          "bend": {
+            "type": "number",
+            "min": 0,
+            "max": 1.2,
+            "default": 0.6
+          }
+        }
+      },
+      "source": {
+        "exportName": "HtmlBendMaterial",
+        "path": "packages/remotion-kit/src/materials/transform/bend-material.tsx",
+        "workspacePath": "src/materials/transform/bend-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "store-peel",
+      "label": "Store Peel",
+      "description": "cylinder curl、adhesive back 与双层 shine 的卷页转场。",
+      "engine": "three",
+      "layer": "scene",
+      "intent": "transition",
+      "placement": [
+        "scene-transition"
+      ],
+      "requires": [],
+      "material": {
+        "id": "store-peel",
+        "category": "transform",
+        "schema": {}
+      },
+      "source": {
+        "exportName": "HtmlStorePeelMaterial",
+        "path": "packages/remotion-kit/src/materials/transform/store-peel-material.tsx",
+        "workspacePath": "src/materials/transform/store-peel-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "clouds",
+      "label": "Clouds",
+      "description": "无历史帧依赖的程序化 fBm 雾场环境。",
+      "engine": "three",
+      "layer": "background",
+      "intent": "atmosphere",
+      "placement": [
+        "video-background"
+      ],
+      "requires": [],
+      "material": {
+        "id": "clouds",
+        "category": "ambient",
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.74
+          }
+        }
+      },
+      "source": {
+        "exportName": "CanvasUiCloudsMaterial",
+        "path": "packages/remotion-kit/src/materials/ambient/clouds-material.tsx",
+        "workspacePath": "src/materials/ambient/clouds-material.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费 uMap 纹理与语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
       }
     }
   ],
@@ -2268,5 +2470,5 @@
       "motion": ""
     }
   },
-  "kitVersion": "0.6.0"
+  "kitVersion": "0.7.0"
 }

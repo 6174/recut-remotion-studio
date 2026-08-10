@@ -9,6 +9,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 export * from "./_shared/SceneEngine";
+export * from "./_shared/GpuSceneEngine";
 export * from "./_shared/types";
 export * from "./product-launch/beats";
 export * from "./product-launch/template/ProjectVideo";

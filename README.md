@@ -49,7 +49,7 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 - **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入）。
 - **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、SRT、组件、画布和素材重剪等局部编辑工具；打开项目文件夹、导出、构建预览、重启与重置为次级操作。
 - **场景计划先于成片代码**：无真人解说和产品发布片先由 workspace 内的 `remotion-kit/scripts/validate-scene-plan.mjs` 校验 `SCENE_PLAN.md`；它直接改编 HyperFrames 两个场景共用的 storyboard parser，计划通过后才落成 `SCENES`，避免 Prompt 直接跳到散乱代码。
-- **日志与终端**：右侧下半分栏。日志用 `logs.list` 全量回填（预览服务/终端命令/渲染导出所有任务，去重合并）+ `shell.job.log` 实时追加；终端用 xterm 组件对接 `terminal.exec` 在项目目录执行命令调试（非交互式，单条命令，本地行编辑与 ↑↓ 历史），命令继承用户登录 shell 的完整 PATH（service 层 `userBaseEnv` 统一捕获）。
+- **日志与终端**：右侧下半分栏。日志用 `logs.list` 回填（预览服务/终端命令/渲染导出所有任务，去重合并；历史只取最新 `BACKFILL_MAX` 行视为当前会话，`MAX_LINES` 封顶实时总量）+ `shell.job.log` 实时追加，列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件对接 `terminal.exec` 在项目目录执行命令调试（非交互式，单条命令，本地行编辑与 ↑↓ 历史），命令继承用户登录 shell 的完整 PATH（service 层 `userBaseEnv` 统一捕获）。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
 - **HTML-in-Canvas 平台契约**：Cursor、Magnifier、Glitch、Bubble 等读取 live DOM texture 的镜头层依赖 `CanvasDrawElement`。CanvasUI 通过仅对 `canvasui.dev` 有效的 Origin Trial 启用它；Recut 的动态项目预览必须由桌面/渲染宿主统一启用该 feature，不能复用第三方 token 或让用户手动改 flag。完整契约见 `dev/2026-08-09-html-in-canvas-platform-contract.md`。
