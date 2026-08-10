@@ -37,6 +37,7 @@ button { font: inherit; }
 .benchmark-samples { color: #6f849b; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; }
 .benchmark-proof { min-height: 14px; margin-top: 5px; color: #78f3bc; font: 10px ui-monospace, SFMono-Regular, Consolas, monospace; white-space: nowrap; }
 .lab-main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; max-width: 1500px; margin: 0 auto; }
+.film-main { max-width: 1500px; margin: 0 auto; }
 .player-frame { min-height: 0; aspect-ratio: 16 / 9; background: #000; border: 1px solid #243545; }
 .graph-inspector { padding: 18px; border: 1px solid #243545; background: #0d1722; }
 .graph-tree { padding: 0; margin: 16px 0 22px; list-style: none; }

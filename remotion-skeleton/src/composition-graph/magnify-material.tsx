@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Three CanvasTexture、Remotion 已计算的 lens center/zoom 与 R3F ShaderMaterial
- * [OUTPUT]: 对外提供 HtmlMagnifyMaterial，在 HTML texture 内执行局部放大、色散与 HUD reticle
- * [POS]: composition-graph 的 Effect Node；参考 CanvasUI Magnify 的光学语言，但不依赖 CanvasUI runtime
+ * [INPUT]: 依赖 Three CanvasTexture、Remotion 派生的单一镜头位置与 R3F ShaderMaterial
+ * [OUTPUT]: 对外提供 HtmlMagnifyMaterial，以 CanvasUI Magnify 原始光学计算渲染 HTML texture
+ * [POS]: composition-graph 的 Effect Node；保留 CanvasUI 的像素 HUD、AA、haze 与 chromatic aberration，仅适配 Three UV
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useLayoutEffect, useMemo, useRef } from "react";
@@ -15,83 +15,142 @@ const vertexShader = `
   }
 `;
 
+// CanvasUI Magnify FRAG, adapted from pixel framebuffer coordinates to a full-screen Three material.
 const fragmentShader = `
   uniform sampler2D uMap;
+  uniform vec2 uResolution;
   uniform vec2 uCenter;
   uniform float uRadius;
   uniform float uZoom;
-  uniform float uAspect;
-  uniform float uIntensity;
+  uniform vec3 uColor;
+  uniform float uHud;
+  uniform float uAberration;
+  uniform float uHaze;
   varying vec2 vUv;
 
-  float line(float distanceToLine, float width) {
-    return 1.0 - smoothstep(width, width + fwidth(distanceToLine) * 1.6, abs(distanceToLine));
+  const float PI = 3.14159265358979;
+
+  float pow2(float x) { return x * x; }
+
+  vec3 page(vec2 px) {
+    vec2 uv = clamp(px / uResolution, 0.0005, 0.9995);
+    return pow(texture2D(uMap, uv).rgb, vec3(2.2));
+  }
+
+  vec3 pageAA(vec2 px) {
+    // CanvasUI selects a mip from this footprint. CanvasTexture has no stable mip chain
+    // across every browser backend, so the footprint is retained for the shader's AA math.
+    float footprint = max(length(fwidth(px)), 1.0);
+    return mix(page(px), page(px + vec2(footprint * 0.12)), 0.08);
+  }
+
+  float line(float d, float halfWidth) {
+    return 1.0 - smoothstep(halfWidth - 0.75, halfWidth + 0.75, abs(d));
   }
 
   void main() {
-    vec2 relative = vUv - uCenter;
-    vec2 metric = vec2(relative.x * uAspect, relative.y);
-    float distanceToCenter = length(metric);
-    float edge = max(fwidth(distanceToCenter) * 1.6, 0.002);
-    float lens = 1.0 - smoothstep(uRadius - edge, uRadius + edge, distanceToCenter);
-    vec3 base = texture2D(uMap, vUv).rgb;
-    float ring = line(distanceToCenter - uRadius, 0.004);
-    float angle = atan(metric.y, metric.x);
-    float tickAngle = abs(sin(angle * 8.0));
-    float ticks = smoothstep(0.94, 0.985, tickAngle)
-      * (1.0 - smoothstep(uRadius + 0.042, uRadius + 0.072, distanceToCenter));
-    float crossLength = uRadius * 1.12;
-    float crosshair = max(
-      line(metric.x, 0.002) * step(abs(metric.y), crossLength),
-      line(metric.y, 0.002) * step(abs(metric.x), crossLength)
+    vec2 fragPx = vUv * uResolution;
+    vec2 p = fragPx - uCenter;
+    float d = length(p);
+    float w = 1.1;
+    float lensMask = 1.0 - smoothstep(uRadius - 1.5, uRadius, d);
+    vec2 lensPx = uCenter + p / max(uZoom, 1.0);
+    float rimT = pow2(clamp(d / max(uRadius, 1.0), 0.0, 1.0));
+    vec2 dir = p / max(d, 0.5);
+    float caPx = uAberration * 5.0 * rimT;
+    vec3 inside;
+    inside.r = pageAA(lensPx + dir * caPx).r;
+    inside.g = pageAA(lensPx).g;
+    inside.b = pageAA(lensPx - dir * caPx).b;
+
+    vec3 soft = page(lensPx);
+    inside = mix(
+      inside,
+      soft * (1.0 + 0.4 * uHaze) + uColor * 0.06 * uHaze,
+      clamp(uHaze, 0.0, 1.0) * 0.45
     );
-    float dot = 1.0 - smoothstep(0.006, 0.012, distanceToCenter);
-    vec3 hud = vec3(0.36, 0.97, 0.78) * (ring * 0.92 + ticks * 0.48 + crosshair * 0.36 + dot);
-    if (lens < 0.001 && max(max(hud.r, hud.g), hud.b) < 0.001) {
-      gl_FragColor = vec4(base, 1.0);
-      return;
-    }
-    vec2 magnified = uCenter + relative / max(uZoom, 1.0);
-    vec2 direction = normalize(metric + vec2(0.0001));
-    vec2 split = vec2(direction.x / uAspect, direction.y) * (1.0 - distanceToCenter / max(uRadius, 0.001)) * 0.006;
-    vec3 enlarged = vec3(
-      texture2D(uMap, magnified + split).r,
-      texture2D(uMap, magnified).g,
-      texture2D(uMap, magnified - split).b
+
+    float hud = line(d - uRadius, 1.3);
+    float angle = atan(p.y, p.x);
+    float sector = PI / 4.0;
+    float da = abs(angle - floor(angle / sector + 0.5) * sector) * max(d, 1.0);
+    float tickBand = smoothstep(uRadius + 4.0, uRadius + 6.0, d)
+      * (1.0 - smoothstep(uRadius + 12.0, uRadius + 14.0, d));
+    hud += line(da, w) * tickBand;
+
+    float reach = uRadius * 1.14;
+    float crossLine = max(
+      line(p.x, w) * step(abs(p.y), reach),
+      line(p.y, w) * step(abs(p.x), reach)
     );
-    vec3 result = mix(base, enlarged, lens * uIntensity) + hud;
-    gl_FragColor = vec4(result, 1.0);
+    hud += crossLine * smoothstep(6.0, 10.0, d) * 0.75;
+
+    vec2 q = abs(p);
+    float c = uRadius * 0.64;
+    float arm = uRadius * 0.2;
+    float arm1 = line(q.x - c, w) * step(c - arm, q.y) * step(q.y, c + w);
+    float arm2 = line(q.y - c, w) * step(c - arm, q.x) * step(q.x, c + w);
+    hud += max(arm1, arm2);
+    hud += 1.0 - smoothstep(1.6, 2.6, d);
+    hud += line(d - 5.5, 0.9) * 0.6;
+    hud = clamp(hud, 0.0, 1.0) * uHud;
+
+    vec3 base = mix(page(fragPx), inside, lensMask);
+    base = mix(base, uColor, hud);
+    gl_FragColor = vec4(pow(max(base, 0.0), vec3(1.0 / 2.2)), 1.0);
   }
 `;
 
 export interface HtmlMagnifyMaterialProps {
-  texture: THREE.Texture;
   center: readonly [number, number];
-  radius: number;
+  height: number;
+  texture: THREE.Texture;
+  width: number;
   zoom: number;
-  aspect: number;
-  intensity: number;
 }
 
-export const HtmlMagnifyMaterial: React.FC<HtmlMagnifyMaterialProps> = ({ texture, center, radius, zoom, aspect, intensity }) => {
+export const HtmlMagnifyMaterial: React.FC<HtmlMagnifyMaterialProps> = ({
+  center,
+  height,
+  texture,
+  width,
+  zoom,
+}) => {
   const material = useRef<THREE.ShaderMaterial>(null);
-  const uniforms = useMemo(() => ({
-    uMap: new THREE.Uniform(texture),
-    uCenter: new THREE.Uniform(new THREE.Vector2(center[0], center[1])),
-    uRadius: new THREE.Uniform(radius),
-    uZoom: new THREE.Uniform(zoom),
-    uAspect: new THREE.Uniform(aspect),
-    uIntensity: new THREE.Uniform(intensity),
-  }), [texture]);
+  const uniforms = useMemo(
+    () => ({
+      uMap: new THREE.Uniform(texture),
+      uResolution: new THREE.Uniform(new THREE.Vector2(width, height)),
+      uCenter: new THREE.Uniform(
+        new THREE.Vector2(center[0] * width, center[1] * height),
+      ),
+      uRadius: new THREE.Uniform(140),
+      uZoom: new THREE.Uniform(zoom),
+      uColor: new THREE.Uniform(new THREE.Color(0.8, 0.8, 0.8)),
+      uHud: new THREE.Uniform(0.8),
+      uAberration: new THREE.Uniform(0.8),
+      uHaze: new THREE.Uniform(0.2),
+    }),
+    [height, texture, width],
+  );
 
   useLayoutEffect(() => {
     if (!material.current) return;
-    material.current.uniforms.uCenter.value.set(center[0], center[1]);
-    material.current.uniforms.uRadius.value = radius;
+    material.current.uniforms.uResolution.value.set(width, height);
+    material.current.uniforms.uCenter.value.set(
+      center[0] * width,
+      center[1] * height,
+    );
     material.current.uniforms.uZoom.value = zoom;
-    material.current.uniforms.uAspect.value = aspect;
-    material.current.uniforms.uIntensity.value = intensity;
-  }, [aspect, center, intensity, radius, zoom]);
+  }, [center, height, width, zoom]);
 
-  return <shaderMaterial ref={material} fragmentShader={fragmentShader} toneMapped={false} uniforms={uniforms} vertexShader={vertexShader} />;
+  return (
+    <shaderMaterial
+      ref={material}
+      fragmentShader={fragmentShader}
+      toneMapped={false}
+      uniforms={uniforms}
+      vertexShader={vertexShader}
+    />
+  );
 };

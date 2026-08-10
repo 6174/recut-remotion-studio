@@ -7,8 +7,9 @@
 import { ThreeCanvas } from "@remotion/three";
 import { AbsoluteFill, useVideoConfig } from "remotion";
 import { CompositionGraphScene } from "./scene";
+import { GRAPH_DURATION_IN_FRAMES } from "./timeline";
 
-export const GRAPH_DURATION_IN_FRAMES = 360;
+export { GRAPH_DURATION_IN_FRAMES } from "./timeline";
 
 export interface CompositionGraphProps {
   htmlAnimation: boolean;
@@ -16,7 +17,32 @@ export interface CompositionGraphProps {
   magnify: boolean;
 }
 
-export const CompositionGraphComposition: React.FC<CompositionGraphProps> = ({ htmlAnimation, htmlRasterizer, magnify }) => {
+export const CompositionGraphComposition: React.FC<CompositionGraphProps> = ({
+  htmlAnimation,
+  htmlRasterizer,
+  magnify,
+}) => {
   const { width, height } = useVideoConfig();
-  return <AbsoluteFill style={{ background: "#071019" }}><ThreeCanvas camera={{ fov: 34, position: [0, 0, 8] }} dpr={[1, 2]} frameloop="demand" gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }} height={height} width={width}><CompositionGraphScene htmlAnimation={htmlAnimation} htmlRasterizer={htmlRasterizer} magnify={magnify} /></ThreeCanvas></AbsoluteFill>;
+  return (
+    <AbsoluteFill style={{ background: "#071019" }}>
+      <ThreeCanvas
+        camera={{ fov: 34, position: [0, 0, 8] }}
+        dpr={[1, 2]}
+        frameloop="demand"
+        gl={{
+          alpha: false,
+          antialias: true,
+          powerPreference: "high-performance",
+        }}
+        height={height}
+        width={width}
+      >
+        <CompositionGraphScene
+          htmlAnimation={htmlAnimation}
+          htmlRasterizer={htmlRasterizer}
+          magnify={magnify}
+        />
+      </ThreeCanvas>
+    </AbsoluteFill>
+  );
 };
