@@ -18,7 +18,7 @@ install:
 	@test -n "$(FILES)" || { echo "错误: 缺少 RECUT_APP_FILES_DIR（应由 Recut 宿主注入）"; exit 1; }
 	@test -d $(NM) || { echo "错误: node_modules 缺失，请先运行 workspace.ensure 完成 seed"; exit 1; }
 	@test -f index.html && test -f vite.config.ts && test -d src || { echo "错误: 骨架工程不完整，请重新 workspace.ensure"; exit 1; }
-	@node -e "require('vite'); require('@remotion/player'); require('remotion'); require('react')" 2>/dev/null || { \
+	@node -e "require('vite'); require('@remotion/player'); require('@remotion/three'); require('@react-three/fiber'); require('three'); require('remotion'); require('react')" 2>/dev/null || { \
 		echo "依赖缺失，自动安装 App 渲染工作区依赖…"; \
 		$(NPM) ci --prefix "$(APP_RENDER)" --no-audit --no-fund || { echo "错误: 依赖安装失败，请检查网络/Node 后重试"; exit 1; }; \
 	}

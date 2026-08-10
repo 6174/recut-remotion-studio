@@ -10,7 +10,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const KIT_VERSION = "0.5.0";
+const KIT_VERSION = "0.6.0";
 
 const readExistingCatalog = () => {
   try {
@@ -308,7 +308,7 @@ const EFFECTS = [
   {
     id: "magnifier",
     label: "Magnifier",
-    description: "细节放大镜：对 cursor 或关键帧目标二次采样 HTML 纹理，绘制透镜、HUD 与可选色差。",
+    description: "GPU 细节放大镜：采样当前 HTML texture，透镜、HUD、色差与 click ripple 走同一合成 pass。",
     engine: "html-canvas",
     layer: "content",
     intent: "inspect",
@@ -316,20 +316,33 @@ const EFFECTS = [
     placement: ["target", "scene-play"],
     preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "magnifier" } },
     source: { exportName: "magnifierEffect", path: "packages/remotion-kit/src/html-canvas/effects/magnifier.tsx", workspacePath: "src/html-canvas/effects/magnifier.tsx" },
-    prompt: { constraints: ["一个 lens", "折射强度受预算限制"], recommendedDurationFrames: 90 },
+    prompt: { constraints: ["一个 lens", "必须走 GpuCompositor source texture", "折射强度受预算限制"], recommendedDurationFrames: 90 },
   },
   {
-    id: "scene-transition",
-    label: "Scene Transition",
-    description: "场景进出：enter 时前一幕失焦淡出，exit 时下一幕由模糊聚焦。",
+    id: "glitch",
+    label: "Glitch Burst",
+    description: "GPU 广播故障：实时 HTML texture 水平撕裂、RGB split、损坏块与模拟噪点。",
     engine: "html-canvas",
-    layer: "transition",
-    intent: "connect",
-    requires: ["html-in-canvas"],
-    placement: ["scene-enter", "scene-exit", "between-scenes"],
-    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "scene-transition" } },
-    source: { exportName: "sceneTransitionEffect", path: "packages/remotion-kit/src/html-canvas/effects/scene-transition.tsx", workspacePath: "src/html-canvas/effects/scene-transition.tsx" },
-    prompt: { constraints: ["单舞台内", "不嵌套 HtmlInCanvas"], recommendedDurationFrames: 30 },
+    layer: "scene",
+    intent: "emphasize",
+    requires: ["html-in-canvas", "webgl2"],
+    placement: ["scene-enter", "scene-play", "scene-exit"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "glitch" } },
+    source: { exportName: "GpuCompositor", path: "packages/remotion-kit/src/html-canvas/GpuCompositor.ts", workspacePath: "src/html-canvas/GpuCompositor.ts" },
+    prompt: { constraints: ["burst 区间与 seed 必须帧驱动", "不得使用 Math.random 或 interval"], recommendedDurationFrames: 24 },
+  },
+  {
+    id: "bubble",
+    label: "Bubble",
+    description: "GPU 液态气泡：脚本轨迹驱动 metaball trail、折射与高光，读取真实 HTML texture。",
+    engine: "html-canvas",
+    layer: "interaction",
+    intent: "inspect",
+    requires: ["html-in-canvas", "webgl2"],
+    placement: ["target", "scene-play"],
+    preview: { compositionId: "product-ui-demo", durationInFrames: 240, defaultProps: { effect: "bubble" } },
+    source: { exportName: "GpuCompositor", path: "packages/remotion-kit/src/html-canvas/GpuCompositor.ts", workspacePath: "src/html-canvas/GpuCompositor.ts" },
+    prompt: { constraints: ["trail 从 InteractionScript 历史采样得到", "每镜头最多一个 heavy effect"], recommendedDurationFrames: 120 },
   },
   {
     id: "ambient",

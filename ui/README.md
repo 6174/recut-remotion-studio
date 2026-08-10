@@ -6,8 +6,8 @@
 src/main.tsx: Vite React 挂载入口。
 src/app.tsx: Remotion Studio 项目工作台入口；加载 brief、项目素材与 catalog，管理 Brief → 工作室切换，并在 Header 承载打开项目文件夹、导出、构建、重启、重置等次级操作。
 src/brief-form.tsx: 项目 brief 的创建表单（可播放预览的成片模板、选题、素材）。
-src/studio.tsx: 工作室工作面：左预览 + 右侧创作列；以「选择成片模板」为主入口，配当前成片编辑工具，统一走「参数选择 → 可编辑 Prompt → Agent」。
-src/fine-tunes/: 当前成片的微调动作与 Prompt 生成模块；所有 UI 组件、类型和目录名均用 FineTune 区别于真正的成片模板。CaptionsFineTune 用白色网格 Player 检验无底框字幕动效。
+src/studio.tsx: 工作室工作面：左预览 + 右侧创作列；以「选择成片模板」为主入口，配当前成片编辑工具，统一走「参数选择 → 可编辑 Prompt → Agent」，并以 FineTune 的 ready 合同禁用不满足资源或原生能力的提交。
+src/fine-tunes/: 当前成片的微调动作与 Prompt 生成模块；所有 UI 组件、类型和目录名均用 FineTune 区别于真正的成片模板。EffectsFineTune 在 HTML-in-Canvas 原生能力不可用时同时阻断预览与 Prompt 提交，且默认停在效果已发生的关键帧、由用户显式播放，避免面板一打开便持续运行 1080p 合成；双输入 PageTurn/Peel adapter 未接入前明确阻断，而不伪造为单输入镜头层；CaptionsFineTune 用白色网格 Player 检验无底框字幕动效。
 src/preview/: Remotion Player 样片选择器；字幕大预览使用完整白色网格画布、无内框，以高对比字重检验可读性，卡片停在代表帧。
 src/player-panel.tsx: 轮询每项目 Vite 预览服务器；仅在应用层 HTTP 健康检查和浏览器连通性均通过后显示 iframe，启动/重启的 15 秒轮询窗口始终展示 Loading，超时或真实失败才显示错误诊断。
 src/export-panel.tsx: 轻量导出入口；用模态框承载本地导出设置、环境检查、渲染进度与历史产物。

@@ -9,6 +9,7 @@ styles/: 供模板组合的 StyleFrame、StyleLabel、StylePill 风格原子。
 captions/: 时间轴字幕主题与布局引擎。
 components/: vendored Remotion 模板与 shotcraft 动态组件。
 effects/: 背景与文字效果层。
+html-canvas/: 单 HtmlInCanvas capture、GPU texture compositor 与确定性镜头层效果。
 scenarios/: 场景模板：共享编排引擎与各自独立的默认视觉、内容序列和 beat 渲染器。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

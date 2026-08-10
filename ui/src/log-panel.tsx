@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖宿主 shell 日志事件、logs.list 全量回填与父级 active 状态
+ * [INPUT]: 依赖宿主 shell 日志事件、logs.list 回填（仅当前服务启动 + 近期日志，服务端已做总量截断）与父级 active 状态
  * [OUTPUT]: 对外提供日志区域：logs.list 挂载/事件/切页回填 + shell.job.log 实时追加，去重合并，按任务过滤、复制与清空
  * [POS]: remotion-studio/ui 右侧「日志」分栏；展示后台任务输出，不改变任务执行状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md

@@ -1,14 +1,14 @@
 /**
- * [INPUT]: 依赖 effects 目录、preview/PreviewCard、BrowserCapabilityGate 与 FineTuneProps 回调
- * [OUTPUT]: 对外提供 EffectsFineTune：特效选择器（按表达目的分组）+ 真实 Player 预览 +
- *           位置编辑器 + 可编辑 Prompt；HTML-in-Canvas 预览同样过 BrowserCapabilityGate
+ * [INPUT]: 依赖 effects 目录、preview/PreviewCard、BrowserCapabilityGate/useHtmlInCanvasSupport 与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 EffectsFineTune：特效选择器（按表达目的分组）+ 关键帧 Player 预览 +
+ *           位置编辑器 + 可编辑 Prompt；HTML-in-Canvas 预览和提交同样过 BrowserCapabilityGate
  * [POS]: remotion-studio/ui/fine-tunes 的镜头层微调动作。组件回答“画面里有什么”，
  *        特效回答“观众如何感受、注意和理解它”；放置是语义选择，不伪造 DOM selector。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";
 import { LivePreview } from "../preview/PreviewCard";
-import { BrowserCapabilityGate } from "@recut/remotion-kit";
+import { BrowserCapabilityGate, useHtmlInCanvasSupport } from "@recut/remotion-kit";
 import type { FineTuneProps } from "./FineTuneProps";
 
 const LAYER_GROUPS: Array<{ key: string; label: string }> = [
@@ -24,10 +24,12 @@ const SCENE_PHASES = ["scene-enter", "scene-play", "scene-exit", "background"] a
 type PlacementMode = "agent" | "scene" | "connect" | "target" | "interaction";
 
 export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
+  const capability = useHtmlInCanvasSupport();
   const effects = catalog.effects ?? [];
   const [value, setValue] = useState(effects[0]?.id ?? "");
   const [hovered, setHovered] = useState<string | null>(null);
   const active = effects.find((item) => item.id === (hovered ?? value)) ?? effects[0];
+  const requiresTransitionAdapter = active?.id === "scene-transition";
   const [placement, setPlacement] = useState<PlacementMode>("agent");
   const [sceneId, setSceneId] = useState("");
   const [phase, setPhase] = useState<(typeof SCENE_PHASES)[number]>("scene-play");
@@ -84,8 +86,9 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
 
   useEffect(() => {
     onPrompt(prompt);
-    onReady(true);
-  }, [onPrompt, onReady, prompt]);
+    // 原生 capture 不可用时，不能让 Agent 写出一个必然无法在 Player/renderer 验收的 StagePlan。
+    onReady(capability.status === "supported" && !requiresTransitionAdapter);
+  }, [capability.status, onPrompt, onReady, prompt, requiresTransitionAdapter]);
 
   if (effects.length === 0) {
     return <p className="text-xs text-muted-foreground">目录中暂无可用的镜头层效果。</p>;
@@ -121,9 +124,24 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
           ))}
         </div>
         <div className="min-w-0 space-y-2">
-          <BrowserCapabilityGate>
-            <LivePreview key={`effect:${active?.id}`} height={320} showControls spec={{ id: active?.id ?? "", kind: "effect" }} />
-          </BrowserCapabilityGate>
+          {requiresTransitionAdapter ? (
+            <div className="grid h-80 place-items-center rounded-xs border border-dashed border-border bg-muted/10 p-6 text-center text-xs leading-5 text-muted-foreground">
+              PageTurn / Peel 需要 root-level A/B texture 转场适配器；单输入 HtmlCanvasVideoStage 不会伪造或提交这个效果。
+            </div>
+          ) : (
+            <BrowserCapabilityGate>
+              <LivePreview
+                key={`effect:${active?.id}`}
+                autoPlay={false}
+                height={320}
+                initialFrame={72}
+                showControls
+                spec={{ id: active?.id ?? "", kind: "effect" }}
+              />
+            </BrowserCapabilityGate>
+          )}
+          {capability.status === "unsupported" ? <p className="text-[10px] leading-4 text-destructive">平台能力未就绪，已阻止提交该镜头层 Prompt。</p> : null}
+          {requiresTransitionAdapter ? <p className="text-[10px] leading-4 text-destructive">该转场适配器尚未接入，已阻止提交，避免生成必然白屏的单输入 StagePlan。</p> : null}
           <p className="flex items-center gap-2 text-xs font-semibold">
             <span className="truncate">{active?.label}</span>
             <span className="min-w-0 flex-1 truncate text-[10px] font-normal text-muted-foreground">{active?.description}</span>

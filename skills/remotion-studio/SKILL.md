@@ -40,7 +40,7 @@ references: references/effects.md, references/captions.md, references/directing.
 
 - **优先复用 `@recut/remotion-kit/html-canvas`**：唯一 `HtmlCanvasVideoStage`（在 `src/compositions/ProjectVideo.tsx` 包住场景路由一次，接 `stagePlan` prop）、`BrowserCapabilityGate`、`useInteraction()`。
 - **先写 `InteractionScript`（InteractionEvent[]）与 `EffectClip`，再写 JSX**。坐标使用 composition 设计像素；时间用帧；禁止真实 pointer 事件回放、`Date.now()`/`Math.random()`/`requestAnimationFrame()`。
-- **禁止粘贴 CanvasUI 等网页交互示例代码**；只能按 MIT 归属移植 frame-driven 内核（来源 commit 与 LICENSE 见 `remotion-kit/third_party/`）。
+- **禁止粘贴 CanvasUI 等网页交互示例代码**；CanvasUI 当前许可证含 Commons Clause，只能作为视觉与架构参考，不能移植、再发布或把其源码/port 放入产品；效果内核必须独立实现。
 - 目标几何（`FocusTarget`/token `Rect[]`）由场景在排版时产出，效果只消费已知几何，不做 CSS selector 扫描或 DOM layout 读回。
 - 新增镜头层效果时只改 `StagePlan` 与必要场景代码；不创建第二个 `<HtmlInCanvas>`（嵌套在服务器导出尚不支持）。
 

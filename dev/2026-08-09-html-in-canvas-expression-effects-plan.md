@@ -6,6 +6,8 @@
 状态：第一批（A + B 最小闭环）已实施，后续批次按计划推进
 范围：`apps/remotion-studio/` 的 `@recut/remotion-kit`、项目骨架、组件目录与 Agent 创作入口。
 
+> 许可证勘误（2026-08-09）：CanvasUI 当前许可证是 **MIT + Commons Clause License Condition v1.0**，不是纯 MIT；其源码、shader 与 port 不可直接进入产品。关于 GPU 合成器与独立实现策略，以 `2026-08-09-gpu-expression-compositor-redesign.md` 为准；本文件中的“移植 CanvasUI/MIT 源码”表述仅保留为历史记录，已失效。
+
 ## 实施记录（第一批）
 
 - Phase 0 + Phase 1 已落地：`packages/remotion-kit/src/html-canvas/`（types/timeline/targets/interaction/InteractionScript/EffectTimeline/BrowserCapabilityGate/HtmlCanvasVideoStage/CanvasEffect/registry），纯函数单测 `scripts/html-canvas-tests.mjs`（14 项通过）。

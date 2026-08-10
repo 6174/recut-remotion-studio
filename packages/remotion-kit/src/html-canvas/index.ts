@@ -23,11 +23,11 @@ export {
 export { resolveInteractionState, resolvePointer, pathPointAt, sortEvents } from "./interaction";
 export { InteractionContext, InteractionProvider, useInteraction, useInteractionEvents, useInteractionMaybe } from "./InteractionScript";
 export { BrowserCapabilityGate, isHtmlInCanvasSupported, probeHtmlInCanvas, requireHtmlInCanvas, useHtmlInCanvasSupport } from "./BrowserCapabilityGate";
-export type { CapabilityProbeResult, SupportStatus } from "./BrowserCapabilityGate";
-export { EffectOverlay } from "./EffectOverlay";
-export type { EffectOverlayProps } from "./EffectOverlay";
+export type { CapabilityProbeResult, HtmlInCanvasCapability, SupportStatus } from "./BrowserCapabilityGate";
 export { HtmlCanvasVideoStage } from "./HtmlCanvasVideoStage";
 export type { HtmlCanvasVideoStageProps } from "./HtmlCanvasVideoStage";
+export { GpuCompositor } from "./GpuCompositor";
+export type { GpuCompositorRender } from "./GpuCompositor";
 export { resolveActiveEffects, useEffectTimeline } from "./EffectTimeline";
 export { EFFECT_REGISTRY, getEffectDefinition } from "./registry";
 export type { CanvasEffectDefinition, CanvasEffectRenderer, EffectRuntime, PaintContext } from "./CanvasEffect";
@@ -39,3 +39,4 @@ export {
   planForEffect,
   ProductUiDemo,
 } from "./demos/product-ui-demo";
+export { EffectFixtureDemo } from "./demos/effect-fixtures";

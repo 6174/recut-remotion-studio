@@ -1,3 +1,11 @@
+/**
+ * [INPUT]: 依赖 Recut 注入的导出 props、workspace composition、Remotion bundler/renderer 与素材文件
+ * [OUTPUT]: 对外提供 ProjectVideo 的本地 MP4 导出、进度文件与 ANGLE/SwiftShader 图形诊断路径
+ * [POS]: remotion-skeleton 的服务端成片入口；预览与导出均解析同一冻结 remotion-kit，WebGL
+ *        HTML-in-Canvas pass 的 Chromium backend 在此唯一配置。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
+
 /*
  * Remotion Studio — programmatic server-side render entry.
  *
@@ -144,6 +152,9 @@ function writeProgress(phase, progress, message) {
     outputLocation: outFile,
     inputProps,
     concurrency: "50%",
+    // HTML-in-Canvas 的 WebGL pass 需要一个明确、预览可复现的后端；无 GPU 环境可将
+    // RECUT_REMOTION_GL=swangle 作为受控诊断路径，而不是静默退回 DOM 效果。
+    chromiumOptions: { gl: process.env.RECUT_REMOTION_GL === "swangle" ? "swangle" : "angle" },
     timeoutInMilliseconds: 60000,
     onProgress: ({ progress }) => writeProgress("render", 0.1 + progress * 0.89, `渲染中 ${Math.round(progress * 100)}%`),
   });

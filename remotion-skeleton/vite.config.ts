@@ -47,4 +47,12 @@ export default defineConfig({
     ],
   },
   publicDir: path.join(workspace, "preview"),
+  build: {
+    rollupOptions: {
+      input: {
+        preview: path.join(workspace, "index.html"),
+        compositionGraph: path.join(workspace, "composition-graph.html"),
+      },
+    },
+  },
 });

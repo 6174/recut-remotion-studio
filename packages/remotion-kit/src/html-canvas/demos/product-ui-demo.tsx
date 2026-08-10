@@ -271,6 +271,24 @@ export const planForEffect = (effect: string): StagePlan => {
           { id: "scene-transition", scope: "video", effect: "scene-transition", timing: { startFrame: 20, enterFrames: 30, holdFrames: 140, exitFrames: 30 }, options: { blur: 26 }, zIndex: 1 },
         ],
       };
+    case "glitch":
+      return {
+        targets: DEMO_TARGETS,
+        interaction: DEMO_INTERACTION,
+        effects: [
+          DEMO_CURSOR_CLIP,
+          { id: "glitch-burst", scope: "scene", effect: "glitch", timing: { startFrame: 58, enterFrames: 4, holdFrames: 20, exitFrames: 8 }, options: { slices: 22, shift: 32, rgbShift: 5, blocks: 0.6, noise: 0.45 }, zIndex: 12 },
+        ],
+      };
+    case "bubble":
+      return {
+        targets: DEMO_TARGETS,
+        interaction: DEMO_INTERACTION,
+        effects: [
+          DEMO_CURSOR_CLIP,
+          { id: "bubble-trail", scope: "scene", effect: "bubble", timing: { startFrame: 18, enterFrames: 12, holdFrames: 130, exitFrames: 20 }, options: { size: 32, trail: 12, refraction: 42 }, zIndex: 12 },
+        ],
+      };
     case "cursor":
     default:
       return PRODUCT_UI_DEMO_PLAN;

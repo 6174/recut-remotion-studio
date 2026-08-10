@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖共享 SceneEngine、product-launch 的 beat 渲染器、内置调色板与 HTML-in-Canvas 舞台
+ * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、product-launch 的 beat 渲染器、内置调色板与 HTML-in-Canvas 舞台
  * [OUTPUT]: 对外提供 PRODUCT_LAUNCH_PALETTE、buildProductLaunchScenes、buildProductLaunchStagePlan 与 ProductLaunchVideo
  * [POS]: scenarios/product-launch 的模板代码。场景自带一套内置视觉（palette + beats + 默认 SCENES），
  *        AI 直接参考本文件实现；本模板是视觉与叙事的完整选择，不依赖独立设计系统。
@@ -8,7 +8,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
-import { useVideoConfig } from "remotion";
+import { useCurrentFrame, useVideoConfig } from "remotion";
 import { SceneEngine } from "../../_shared/SceneEngine";
 import { PRODUCT_LAUNCH_BEATS, PRODUCT_LAUNCH_UI_GEOMETRY } from "../beats";
 import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
@@ -110,6 +110,7 @@ export const buildProductLaunchStagePlan = (scenes: Scene[], fps: number): Stage
 
 export const ProductLaunchVideo: React.FC<ProductLaunchVideoProps> = ({ topic, productName, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
   const { fps } = useVideoConfig();
+  const frame = useCurrentFrame();
   const resolvedScenes = scenes && scenes.length ? scenes : buildProductLaunchScenes({ topic, productName });
   const scene = (
     <SceneEngine
@@ -121,5 +122,6 @@ export const ProductLaunchVideo: React.FC<ProductLaunchVideoProps> = ({ topic, p
     />
   );
   const plan = stagePlan === undefined ? buildProductLaunchStagePlan(resolvedScenes, fps) : stagePlan;
-  return plan ? <HtmlCanvasVideoStage plan={plan}>{scene}</HtmlCanvasVideoStage> : scene;
+  // SceneEngine 本身逐帧变化，明确声明 sourceVersion；专用静态镜头 fixture 则不传这个值。
+  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
 };

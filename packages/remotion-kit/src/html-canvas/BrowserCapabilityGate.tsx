@@ -1,50 +1,58 @@
 /**
  * [INPUT]: 依赖 remotion 的 HtmlInCanvas（内部已按真实实现校验 API 存在性）
- * [OUTPUT]: 对外提供 BrowserCapabilityGate / probeHtmlInCanvas / requireHtmlInCanvas / useHtmlInCanvasSupport
+ * [OUTPUT]: 对外提供 BrowserCapabilityGate / probeHtmlInCanvas / requireHtmlInCanvas / useHtmlInCanvasSupport / HtmlInCanvasCapability
  * [POS]: src/html-canvas 的浏览器硬门禁。职责只有一件事：在 Player/Studio UI 之前验证原生能力，
  *        只允许或阻断，绝不返回 fallback；阻断时给出可操作的平台修复路径。
- *        判断来源与 canvas-ui 的 supportsHtmlInCanvas() 一致：在真实 canvas 上检查
- *        drawElementImage/requestPaint/captureElementImage 是否为函数（同步、可靠），
- *        不做脆弱的 paint 事件等待。
+ *        准入唯一委托给 Remotion 的 HtmlInCanvas.isSupported()；诊断只解释 Origin Trial
+ *        或 CanvasDrawElement feature 的平台配置，不参与准入判断，也不制造 fallback。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React, { useState } from "react";
 import { HtmlInCanvas } from "remotion";
 
-export type CapabilityProbeResult = { supported: boolean; detail: string };
-
-const chromeVersion = (): string => {
-  const match = typeof navigator !== "undefined" ? navigator.userAgent.match(/\b(?:HeadlessChrome|Chrome)\/(\d+)/) : null;
-  return match ? `Chrome ${match[1]}` : "未知浏览器";
+export type HtmlInCanvasCapability = {
+  api: boolean;
+  originTrial: "configured" | "missing";
 };
 
-const FLAG_HINT =
-  "当前预览 Chromium 未暴露 HTML-in-Canvas API（需 Chrome 148+，早期版本还需 chrome://flags/#canvas-draw-element 即运行特征 CanvasDrawElement）。" +
-  "平台应使用并固定满足要求的预览 Chromium；不支持时本产品阻断创作与预览，不提供降级路径。";
+export type CapabilityProbeResult = {
+  supported: boolean;
+  detail: string;
+  capability: HtmlInCanvasCapability;
+};
 
-/** 与 canvas-ui supportsHtmlInCanvas() 相同的同步表面检查；多查 captureElementImage（Remotion 需要）。 */
+const ORIGIN_TRIAL_SELECTOR = 'meta[http-equiv="origin-trial"][data-recut-html-in-canvas]';
+
+/** 这是部署诊断，而不是第二套 capability gate；最终准入仍完全由 Remotion 决定。 */
+const inspectPlatformCapability = (): HtmlInCanvasCapability => ({
+  api: typeof document !== "undefined" && HtmlInCanvas.isSupported(),
+  originTrial: typeof document !== "undefined" && document.querySelector(ORIGIN_TRIAL_SELECTOR)?.getAttribute("content")?.trim()
+    ? "configured"
+    : "missing",
+});
+
+const unsupportedDetail = (capability: HtmlInCanvasCapability): string => {
+  const trial = capability.originTrial === "configured"
+    ? "已配置 Recut Origin Trial，但当前 Chromium 未接受它（检查 token 的 origin、有效期与页面加载顺序）。"
+    : "Recut 当前 origin 未配置 HTMLInCanvas Origin Trial。CanvasUI 能运行，是因为它为 canvasui.dev 注入了仅该域有效的 token；该 token 不能复用到 Recut。";
+  return `${trial} 平台须为嵌入式 Chromium 启用 CanvasDrawElement，或为每个固定预览 origin 签发自己的 token。项目预览使用动态 localhost 端口，因此正式方案应由宿主浏览器启用 feature；不支持时本产品阻断原生镜头层，不伪装为 DOM 效果。`;
+};
+
+/** 唯一能力来源：Remotion 已排除 Chrome 147 等 API 表面存在但实现有缺陷的版本。 */
 export const probeHtmlInCanvas = (): CapabilityProbeResult => {
-  if (typeof document === "undefined") {
-    return { supported: false, detail: "无 document（SSR），无法探测" };
+  let capability: HtmlInCanvasCapability = { api: false, originTrial: "missing" };
+  try {
+    capability = inspectPlatformCapability();
+    return capability.api
+      ? { supported: true, detail: "Remotion：HTML-in-Canvas API 可用", capability }
+      : { supported: false, detail: unsupportedDetail(capability), capability };
+  } catch (error) {
+    return { supported: false, detail: `${unsupportedDetail(capability)} 原因：${error instanceof Error ? error.message : String(error)}`, capability };
   }
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  const missing: string[] = [];
-  if (typeof ctx?.drawElementImage !== "function") missing.push("drawElementImage");
-  if (typeof canvas.requestPaint !== "function") missing.push("requestPaint");
-  if (typeof canvas.captureElementImage !== "function") missing.push("captureElementImage");
-  if (missing.length > 0) {
-    return { supported: false, detail: `${chromeVersion()}：缺少 ${missing.join("、")}。${FLAG_HINT}` };
-  }
-  return { supported: true, detail: `${chromeVersion()}：HTML-in-Canvas API 可用` };
 };
 
 export const isHtmlInCanvasSupported = (): boolean => {
-  try {
-    return HtmlInCanvas.isSupported();
-  } catch {
-    return probeHtmlInCanvas().supported;
-  }
+  return probeHtmlInCanvas().supported;
 };
 
 /** 同步硬阻断：舞台渲染期调用；与门禁同一判断来源。 */
@@ -68,9 +76,9 @@ export const useHtmlInCanvasSupport = (): SupportStatus => {
 };
 
 const SUPPORT_STEPS = [
-  "更新 Chrome 到 148 或更高版本（预览由平台提供的 Chromium 承载，请由平台负责升级）。",
-  "早期版本需启用 chrome://flags/#canvas-draw-element（运行特征 CanvasDrawElement）并重启浏览器。",
-  "本产品把该能力作为硬门槛：不支持时不会伪装成普通 DOM 预览。",
+  "平台启动嵌入式 Chromium 时启用 CanvasDrawElement；不要把 chrome://flags 交给终端用户配置。",
+  "若使用 Origin Trial，必须为 Recut 的实际固定 origin 申请 token，并在初始 HTML 的 <head> 注入它；不能复用 CanvasUI 的 token。",
+  "项目 Vite 预览使用动态 localhost 端口，不能把单个 origin token 当作通用开发方案。",
 ];
 
 export const BrowserCapabilityGate: React.FC<{ children?: React.ReactNode }> = ({ children }) => {

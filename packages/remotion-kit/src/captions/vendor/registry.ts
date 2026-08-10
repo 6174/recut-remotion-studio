@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖各字幕主题组件的 InternalThemeProps 统一输入契约
+ * [OUTPUT]: 对外提供主题 id 到真实主题组件的唯一映射与 ThemeName 类型
+ * [POS]: captions/vendor 的主题分发目录；由 CaptionTheme 作为唯一运行时消费者
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 import React from "react";
 import { InternalThemeProps } from "./types";
 import { PopTheme } from "./themes/pop";
@@ -22,7 +28,6 @@ export const themeRegistry: Record<string, React.FC<InternalThemeProps>> = {
   "kinetic-01": Kinetic01,
   "kinetic-02": Kinetic02,
 
-  // Custom Themes
   hustle: HustleTheme,
   grape: GrapeTheme,
   beast: BeastTheme,

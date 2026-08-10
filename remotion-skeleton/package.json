@@ -4,12 +4,16 @@
   "version": "0.1.0",
   "description": "Remotion server-side render workspace for the Recut Remotion Studio app",
   "scripts": {
+    "build": "vite build --configLoader runner",
+    "dev": "vite --configLoader runner",
     "render": "node render.js"
   },
   "dependencies": {
+    "@react-three/fiber": "8.17.10",
     "@recut/remotion-kit": "file:../packages/remotion-kit",
     "@remotion/bundler": "4.0.507",
     "@remotion/renderer": "4.0.507",
+    "@remotion/three": "4.0.507",
     "@tailwindcss/postcss": "4.1.17",
     "@tailwindcss/vite": "4.1.17",
     "@vitejs/plugin-react": "4.3.4",
@@ -23,11 +27,14 @@
     "roughjs": "^4.6.6",
     "tailwind-merge": "3.3.0",
     "tailwindcss": "4.1.17",
+    "three": "0.169.0",
     "vite": "6.3.5"
   },
   "devDependencies": {
+    "@types/offscreencanvas": "^2019.7.3",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
+    "@types/three": "^0.169.0",
     "typescript": "5.9.3"
   }
 }

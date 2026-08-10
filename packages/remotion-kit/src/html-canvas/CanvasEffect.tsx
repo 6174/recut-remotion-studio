@@ -1,10 +1,8 @@
 /**
  * [INPUT]: 依赖 types 与 timeline 的 EffectProgress
  * [OUTPUT]: 对外提供 PaintContext/EffectRuntime/CanvasEffectDefinition 与 CanvasEffectRegistry 类型
- * [POS]: src/html-canvas 的原生 paint renderer 适配边界。每个效果只实现
- *        render(paint, runtime)（只读 frame 派生状态、确定性绘制）、getBounds 与 schema；
- *        坐标、时间、互动和生命周期由舞台统一负责。效果画在独立 overlay 上，
- *        需要采样内容时读 paint.contentCanvas（HtmlInCanvas 的 layout canvas）。
+ * [POS]: src/html-canvas 的 overlay 绘制适配边界。它只生产可上传至 GPU 的透明 layer；
+ *        纹理采样型效果由 GpuCompositor 的 image pass 实现，绝不再反向采样 layout canvas。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { EffectClip, EffectId, EffectScope, FocusTarget, InteractionState, Rect, TargetMap } from "./types";
@@ -20,8 +18,6 @@ export type PaintContext = {
   pixelDensity: number;
   /** 设计像素 → 画布像素的换算比例。 */
   designScale: number;
-  /** 内容层（HtmlInCanvas 的 layout canvas）：放大镜/转场等采样内容的唯一来源。 */
-  contentCanvas?: HTMLCanvasElement | null;
   /** 当前全局帧。 */
   frame: number;
   /** 当前帧互动状态（与 InteractionScript 同一推导源）。 */
@@ -52,4 +48,4 @@ export type CanvasEffectDefinition = {
   schema?: Record<string, { type: "number" | "boolean" | "string" | "rect[]"; min?: number; max?: number; default?: unknown }>;
 };
 
-export type CanvasEffectRegistry = Record<EffectId, CanvasEffectDefinition>;
+export type CanvasEffectRegistry = Partial<Record<EffectId, CanvasEffectDefinition>>;

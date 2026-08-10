@@ -1,8 +1,13 @@
 {
   "name": "@recut/remotion-kit",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "updatedAt": "2026-08-09",
   "changelog": [
+    {
+      "version": "0.6.0",
+      "date": "2026-08-09",
+      "notes": "镜头层重构为单 HtmlInCanvas WebGL2 GPU 合成器：elementImage 通过 texElementImage2D 成为唯一 source texture，排序 image/overlay pass 使用 ping-pong FBO 合成；Magnifier、Glitch 与 Bubble 进入确定性 GPU 路径，BrowserCapabilityGate 统一委托 HtmlInCanvas.isSupported()，renderer 显式选择 ANGLE。旧的 layout canvas 反向采样与伪单场景转场退出运行时。"
+    },
     {
       "version": "0.5.0",
       "date": "2026-08-09",

@@ -12,6 +12,6 @@ third_party/: 随代码分发的第三方许可证与归属说明。
 
 依赖边界
 UI 预览和项目 workspace 都从本包导入；catalog 只描述资源，不承载渲染逻辑。模板是视觉与叙事的唯一选择，不存在独立风格层。
-HTML-in-Canvas 表达镜头（src/html-canvas/）走唯一捕获舞台与 StagePlan 确定性合同；浏览器硬能力由 BrowserCapabilityGate 把关，不支持时不降级。
+HTML-in-Canvas 表达镜头（src/html-canvas/）走唯一 capture 舞台、`elementImage → WebGL2 pass` 合成器与 StagePlan 确定性合同；浏览器硬能力唯一由 `HtmlInCanvas.isSupported()` 把关。CanvasUI 的 Origin Trial 只对 canvasui.dev 有效；Recut 的动态项目预览需由宿主 Chromium 统一启用 `CanvasDrawElement`，不支持时不降级。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

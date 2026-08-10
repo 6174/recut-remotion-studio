@@ -313,9 +313,14 @@ function readLogs(input, ctx) {
   return { jobId, status: job.status, logs: logs.slice(-limit).map((line) => ({ sequence: line.sequence, stream: line.stream, text: line.text, timestamp: line.timestamp })) };
 }
 
-// logs.list 汇总本项目 App 启动过的全部 shell 任务日志（预览服务、终端命令、
-// 渲染导出），按时间线排序后一次返回，供界面在挂载或切换时回填；shell 结果
-// 均为 camelCase map（status/stream/text/timestamp/sequence）。
+// logs.list 只回填当前预览服务启动阶段的日志 + 最近一段时间的任务日志（预览
+// 服务、终端命令、渲染导出），按时间线排序后返回，供界面在挂载或切换时回填；
+// 太久远的历史与超量的日志直接截掉，避免把项目全部历史一次性加载进界面。shell
+// 结果均为 camelCase map（status/stream/text/timestamp/sequence）。
+const LOG_MAX_JOBS = 8;      // 最多汇总的任务数，优先当前服务与最近任务
+const LOG_PER_JOB = 500;     // 每个任务最多回填的行数（取最新一段）
+const LOG_MAX_LINES = 1500;  // 返回总行数上限，保留时间线上最新的一段
+
 function collectJobIds(ctx) {
   const ids = [];
   const seen = new Set();
@@ -323,11 +328,17 @@ function collectJobIds(ctx) {
     const value = String(jobId || "").trim();
     if (value && !seen.has(value)) { seen.add(value); ids.push(value); }
   };
-  for (const key of [`serve_job:${scope(ctx)}`, `serve_jobs:${scope(ctx)}`, `terminal_jobs:${scope(ctx)}`]) {
-    ctx.sqlite.query("select value from app_meta where key = ?", [key]).forEach((row) => { String(row.value || "").split(",").filter(Boolean).forEach(push); });
+  // 当前正在运行的预览服务启动日志优先回填。
+  ctx.sqlite.query("select value from app_meta where key = ?", [`serve_job:${scope(ctx)}`]).forEach((row) => push(row.value));
+  // 预览服务 / 终端命令历史为追加顺序，取末尾最新的一段。
+  for (const key of [`serve_jobs:${scope(ctx)}`, `terminal_jobs:${scope(ctx)}`]) {
+    ctx.sqlite.query("select value from app_meta where key = ?", [key]).forEach((row) => {
+      String(row.value || "").split(",").filter(Boolean).reverse().forEach(push);
+    });
   }
-  ctx.sqlite.query("select shell_job_id from exports where project_id = ?", [scope(ctx)]).forEach((row) => push(row.shell_job_id));
-  return ids;
+  // 导出表会持续累积，只取最新的若干条。
+  ctx.sqlite.query("select shell_job_id from exports where project_id = ? order by created_at desc limit 8", [scope(ctx)]).forEach((row) => push(row.shell_job_id));
+  return ids.slice(0, LOG_MAX_JOBS);
 }
 
 function listLogs(_, ctx) {
@@ -340,10 +351,10 @@ function listLogs(_, ctx) {
       status = ctx.shell.status(jobId).status;
       logs = ctx.shell.logs(jobId);
     } catch (_) { continue; }
-    logs.forEach((line) => lines.push({ jobId, status, sequence: line.sequence ?? 0, stream: line.stream, text: line.text, timestamp: line.timestamp }));
+    logs.slice(-LOG_PER_JOB).forEach((line) => lines.push({ jobId, status, sequence: line.sequence ?? 0, stream: line.stream, text: line.text, timestamp: line.timestamp }));
   }
   lines.sort((a, b) => (a.timestamp < b.timestamp ? -1 : a.timestamp > b.timestamp ? 1 : (a.sequence ?? 0) - (b.sequence ?? 0)));
-  return { lines };
+  return { lines: lines.slice(-LOG_MAX_LINES) };
 }
 
 function workflowContext(_, ctx) {

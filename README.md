@@ -52,6 +52,7 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 - **日志与终端**：右侧下半分栏。日志用 `logs.list` 全量回填（预览服务/终端命令/渲染导出所有任务，去重合并）+ `shell.job.log` 实时追加；终端用 xterm 组件对接 `terminal.exec` 在项目目录执行命令调试（非交互式，单条命令，本地行编辑与 ↑↓ 历史），命令继承用户登录 shell 的完整 PATH（service 层 `userBaseEnv` 统一捕获）。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
+- **HTML-in-Canvas 平台契约**：Cursor、Magnifier、Glitch、Bubble 等读取 live DOM texture 的镜头层依赖 `CanvasDrawElement`。CanvasUI 通过仅对 `canvasui.dev` 有效的 Origin Trial 启用它；Recut 的动态项目预览必须由桌面/渲染宿主统一启用该 feature，不能复用第三方 token 或让用户手动改 flag。完整契约见 `dev/2026-08-09-html-in-canvas-platform-contract.md`。
 
 ## 本地开发
 

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖项目 brief、素材状态、系统目录资源与 Player/日志/终端/导出子面板，以及按 kind 分模块的场景选择器
- * [OUTPUT]: 对外提供左预览、场景网格（打开对应场景模块生成 Prompt）、跨平台打开工作区、轻量维护工具与日志/终端分栏
+ * [OUTPUT]: 对外提供左预览、场景网格（打开对应场景模块生成 Prompt）、按模块能力门禁的提交、跨平台打开工作区、轻量维护工具与日志/终端分栏
  * [POS]: remotion-studio/ui 的工作面编排层；把创作决策置于首位，连接资源选择、预览、导出、终端和诊断
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -240,7 +240,12 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const submitFineTune = () => {
     if (!fineTune) return;
     if (!fineTuneReady) {
-      setStatus(fineTune.kind === "srt" ? "请上传一个 SRT 文件，或选择一个音视频素材。" : "请至少选择一个要使用的素材。");
+      const message = fineTune.kind === "effects"
+        ? "HTML-in-Canvas 平台能力未就绪，无法提交原生镜头层效果。请由平台启用 CanvasDrawElement 后重试。"
+        : fineTune.kind === "srt"
+          ? "请上传一个 SRT 文件，或选择一个音视频素材。"
+          : "请至少选择一个要使用的素材。";
+      setStatus(message);
       return;
     }
     const prompt = finalPrompt.trim();
@@ -334,7 +339,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
             <label className="mb-1.5 block text-xs font-medium" htmlFor="fine-tune-supplement">补充 Prompt（可选）</label>
             <Textarea className="max-h-48 min-h-24 resize-y bg-muted/10 text-[11px] leading-5 text-foreground" id="fine-tune-supplement" onChange={(event) => setFineTuneSupplement(event.target.value)} placeholder="补充你对这支视频的要求，如：竖屏 9:16、强调关键词、字幕放大、风格更克制等" value={fineTuneSupplement} />
           </div>
-          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt()} type="button" variant="ghost">复制 Prompt</Button><Button onClick={submitFineTune} type="button">交给 AI</Button></div>
+          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt()} type="button" variant="ghost">复制 Prompt</Button><Button disabled={!fineTuneReady} onClick={submitFineTune} type="button">交给 AI</Button></div>
         </div> : null}
       </Modal>
     </div>

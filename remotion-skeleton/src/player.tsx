@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 @remotion/player、ProjectVideo 与 preview/props.json
- * [OUTPUT]: 对外提供读取 preview/props.json 并渲染 ProjectVideo 的 App 组件（由 bootstrap 动态加载并挂载）
+ * [OUTPUT]: 对外提供读取 preview/props.json 并渲染 ProjectVideo 的 App 组件（由 bootstrap 动态加载并挂载）；Player 内容区域限制最大 960×540，居中显示
  * [POS]: remotion-skeleton 的浏览器预览根组件；入口与全局错误捕获在 bootstrap.tsx
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -35,21 +35,25 @@ export function App() {
   }
 
   return (
-    <Player
-      acknowledgeRemotionLicense
-      component={ProjectVideo}
-      compositionHeight={meta.height}
-      compositionWidth={meta.width}
-      controls
-      durationInFrames={meta.durationInFrames}
-      fps={meta.fps}
-      initiallyMuted
-      inputProps={props}
-      loop
-      style={{ width: "100%", height: "100%" }}
-      errorFallback={({ error: renderError }) => (
-        <ErrorView title="composition 渲染出错" detail={(renderError as Error).stack || String(renderError)} />
-      )}
-    />
+    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1017" }}>
+      <div style={{ width: "100%", height: "100%", maxWidth: 960, maxHeight: 540 }}>
+        <Player
+          acknowledgeRemotionLicense
+          component={ProjectVideo}
+          compositionHeight={meta.height}
+          compositionWidth={meta.width}
+          controls
+          durationInFrames={meta.durationInFrames}
+          fps={meta.fps}
+          initiallyMuted
+          inputProps={props}
+          loop
+          style={{ width: "100%", height: "100%" }}
+          errorFallback={({ error: renderError }) => (
+            <ErrorView title="composition 渲染出错" detail={(renderError as Error).stack || String(renderError)} />
+          )}
+        />
+      </div>
+    </div>
   );
 }

@@ -41,6 +41,8 @@ export type EffectId =
   | "focus-spotlight"
   | "text-selection"
   | "magnifier"
+  | "glitch"
+  | "bubble"
   | "scene-transition"
   | "ambient";
 

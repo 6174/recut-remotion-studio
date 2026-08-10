@@ -15,8 +15,7 @@ import {
   FlashCut,
   ProductLaunchVideo,
   VerticalTicker,
-  planForEffect,
-  ProductUiDemo,
+  EffectFixtureDemo,
 } from "@recut/remotion-kit";
 import * as Templates from "@recut/remotion-kit/templates";
 import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
@@ -224,5 +223,5 @@ export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => 
 
 /** HTML-in-Canvas 表达镜头真实预览：走唯一捕获舞台，与项目导出同一套 kit 舞台。 */
 const EffectPreview: React.FC<{ id: string }> = ({ id }) => (
-  <ProductUiDemo plan={planForEffect(id)} />
+  <EffectFixtureDemo effect={id} />
 );

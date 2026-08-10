@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖共享 SceneEngine、faceless-explainer 的科技新闻 beat 渲染器与内置调色板
+ * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、faceless-explainer 的科技新闻 beat 渲染器与内置调色板
  * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE（渐变荧光绿纸面视觉）、buildFacelessExplainerScenes 与 FacelessExplainerVideo
  * [POS]: scenarios/faceless-explainer 的科技新闻模板代码。场景自带 palette + beats + 默认 SCENES，
  *        用网格纸、荧光 marker、黑色超大排版与手绘 SVG 图形讲科技新闻；替换新闻内容不替换视觉语法。
@@ -7,6 +7,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
+import { useCurrentFrame } from "remotion";
 import { SceneEngine } from "../../_shared/SceneEngine";
 import { FACELESS_EXPLAINER_BEATS } from "../beats";
 import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
@@ -91,6 +92,7 @@ export const FACELESS_EXPLAINER_STAGE_PLAN: StagePlan = {
 };
 
 export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
+  const frame = useCurrentFrame();
   const scene = (
     <SceneEngine
       palette={FACELESS_EXPLAINER_PALETTE}
@@ -101,5 +103,5 @@ export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ 
     />
   );
   const plan = stagePlan === undefined ? FACELESS_EXPLAINER_STAGE_PLAN : stagePlan;
-  return plan ? <HtmlCanvasVideoStage plan={plan}>{scene}</HtmlCanvasVideoStage> : scene;
+  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
 };

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖共享 SceneEngine、doodle-explainer 的 beat 渲染器与手绘速写本内置调色板
+ * [INPUT]: 依赖 Remotion useCurrentFrame、共享 SceneEngine、doodle-explainer 的 beat 渲染器与手绘速写本内置调色板
  * [OUTPUT]: 对外提供 DOODLE_EXPLAINER_PALETTE（速写本视觉）、buildDoodleExplainerScenes 与 DoodleExplainerVideo
  * [POS]: scenarios/doodle-explainer 的白板涂鸦讲解模板代码。场景自带内置 palette（来自全局
  *        doodle 设计系统的 token）+ beats + 默认 SCENES，用 roughjs 手绘原语把抽象概念画清楚；
@@ -8,6 +8,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
+import { useCurrentFrame } from "remotion";
 import { SceneEngine } from "../../_shared/SceneEngine";
 import { DOODLE_EXPLAINER_BEATS } from "../beats";
 import { HtmlCanvasVideoStage } from "../../../html-canvas/HtmlCanvasVideoStage";
@@ -71,6 +72,7 @@ export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
 };
 
 export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
+  const frame = useCurrentFrame();
   const scene = (
     <SceneEngine
       palette={DOODLE_EXPLAINER_PALETTE}
@@ -81,5 +83,5 @@ export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topi
     />
   );
   const plan = stagePlan === undefined ? DOODLE_EXPLAINER_STAGE_PLAN : stagePlan;
-  return plan ? <HtmlCanvasVideoStage plan={plan}>{scene}</HtmlCanvasVideoStage> : scene;
+  return plan ? <HtmlCanvasVideoStage plan={plan} sourceVersion={frame}>{scene}</HtmlCanvasVideoStage> : scene;
 };
