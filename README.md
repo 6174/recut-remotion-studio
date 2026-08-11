@@ -15,7 +15,7 @@
 ## 结构
 
 ```text
-manifest.json   唯一运行时配置（operations、permissions、onboarding）
+manifest.json   App 契约与发布白名单（operations、permissions、onboarding、distribution.builtin.include）
 background.js   Goja 沙箱业务后端：Brief、workspace seed/reset/open、组件目录（catalog.list）、素材登记、预览服务（启动时同步系统拥有的无声 player.tsx）、终端、日志、渲染任务编排
 seed.js         骨架 remotion-skeleton → 项目私有 workspace/（含 node_modules 符号链接）
 skills/
@@ -63,6 +63,10 @@ make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 ```
 
 导出与预览需要本机 `node`（18+）；首次会 `npm ci` 安装 Remotion/Vite 依赖，并下载 headless Chrome（约 90MB）。调试看项目页底部「日志/终端」，或直接 `make dev` 起服务后查看。
+
+## 内置发布
+
+`distribution.builtin.include` 是本 App 随 Recut binary 分发的唯一白名单。它只保留运行所需的 UI 成品、workspace 骨架、组件 kit 和 Skill；`node_modules`、Git 元数据、缓存与演示输出由通用打包器拒绝。修改运行时目录时，必须同时更新该列表。
 
 ## 复用来源与授权
 

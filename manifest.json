@@ -9,6 +9,29 @@
   "type": "project",
   "background": "background.js",
   "ui": { "projectView": "ui/dist/index.html" },
+  "distribution": {
+    "builtin": {
+      "include": [
+        "manifest.json",
+        "background.js",
+        "seed.js",
+        "ui/dist",
+        "remotion-skeleton/Makefile",
+        "remotion-skeleton/README.md",
+        "remotion-skeleton/index.html",
+        "remotion-skeleton/node-check.js",
+        "remotion-skeleton/package-lock.json",
+        "remotion-skeleton/package.json",
+        "remotion-skeleton/render.js",
+        "remotion-skeleton/src",
+        "remotion-skeleton/tsconfig.json",
+        "remotion-skeleton/vite-server.js",
+        "remotion-skeleton/vite.config.ts",
+        "packages/remotion-kit",
+        "skills"
+      ]
+    }
+  },
   "onboarding": [
     {
       "id": "start-video",

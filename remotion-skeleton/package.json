@@ -9,6 +9,7 @@
     "render": "node render.js"
   },
   "dependencies": {
+    "@react-three/drei": "9.121.3",
     "@react-three/fiber": "8.17.10",
     "@recut/remotion-kit": "file:../packages/remotion-kit",
     "@remotion/bundler": "4.0.507",
