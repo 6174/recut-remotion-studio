@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖后端写入的 Brief、媒体映射与导出设置
+ * [OUTPUT]: 对外提供 ProjectVideo 所需的共享领域类型
+ * [POS]: remotion-skeleton/src 的运行时数据契约；预览和导出共同消费
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
 export type AssetKind = "image" | "video" | "audio";
 
 export interface MediaRef {
@@ -11,6 +17,10 @@ export interface MediaRef {
 
 export type MediaMap = Record<string, MediaRef>;
 
+export type NarrativeSource =
+  | { kind: "srt"; name: string; text: string }
+  | { kind: "videos"; assetIds: string[]; names: string[] };
+
 export interface Brief {
   id: string;
   template: string;
@@ -19,6 +29,7 @@ export interface Brief {
   details?: string;
   expectedDurationSec: number;
   materialAssetIds: string[];
+  narrativeSource?: NarrativeSource | null;
   createdAt?: string;
 }
 

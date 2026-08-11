@@ -19,7 +19,7 @@ export interface LensDescriptor {
   travel: number;
 }
 
-/** Camera Language v2：语义动词只用于创作与 catalog；运行时由 keyframes 精确执行。 */
+/** Shot Language v3：camera 动词只用于创作与 catalog；运行时由 keyframes 精确执行。 */
 export type CameraVerb = "locked" | "drift" | "push-in" | "pull-out" | "truck" | "crane" | "orbit";
 export type CameraTrackEasing = "linear" | "ease-in" | "ease-out" | "ease-in-out";
 

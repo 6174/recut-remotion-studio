@@ -62,7 +62,7 @@ browser   transform  bend/corner/cloth  displacement  focus/lens  vintage
 - `surface.keyframes` 承担 `position`、`rotation`、`scale`、`bend` 与单角 `cornerCurl`；它们发生在真实 Three 网格上。
 - `surface.cloth` 是低幅几何波动，可以与 bend、corner curl 和 `effect: "displacement"` 组合；密集正文不启用 cloth。
 - `displacement` 是纹理面扰动，应在 12--20f 的入场窗口内减弱或关闭，不能持续污染阅读。
-- `text-focus`、`magnify`、`glass`、`bubble` 是 attention/optics；同段最多一个强主角。`
+- `text-focus`、`magnify`、`glass`、`bubble` 是 attention/optics；同段最多一个强主角。
 
 ## 主体和坐标
 

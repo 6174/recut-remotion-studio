@@ -2,7 +2,7 @@
 
 > L2 | 父级: /apps/remotion-studio/packages/remotion-kit/src/components/README.md
 
-Recut 集成约束：所有模板由 `index.ts` 导出，运行时动画必须从 Remotion frame 推导。`ken-burns.tsx`、`parallax-pan.tsx` 与 `zoom-pulse.tsx` 已移除 Next/CSS 时间依赖，以保证预览、拖动时间轴与导出一致。`FlameFrame.tsx` 是内容容器而非全屏后处理：火焰 SVG 与 children 共用同一 relative box，禁止再以纹理坐标猜测目标位置。
+Recut 集成约束：所有模板由 `index.ts` 导出，运行时动画必须从 Remotion frame 推导，所有进入 SVG 几何属性的插值必须同时钳制左右边界，避免序列负帧传入非法尺寸。`ken-burns.tsx`、`parallax-pan.tsx` 与 `zoom-pulse.tsx` 已移除 Next/CSS 时间依赖，以保证预览、拖动时间轴与导出一致。`FlameFrame.tsx` 是内容容器而非全屏后处理：火焰 SVG 与 children 共用同一 relative box，禁止再以纹理坐标猜测目标位置。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md
 

@@ -28,11 +28,13 @@
 - **每个 scene 只讲一个主要动效**；一种动画手法（飞入/堆叠/翻页）全片只当一次主角。
 - **落定后必须呼吸**：品牌字标落定 hold ≥ 1s（30f），批量动效收尾 ≥ 0.5s 静止；动效排满每一帧必返工，放慢从未被否。
 
-## 三、运镜：景别沿信息推进变化
+## 三、镜头表达：景别沿信息推进变化
 
-- 默认只从安全集选择：`static`、`push_in`、`pull_out`、`pan`、`tilt`、`parallax`、`element`（元素级小动作）。缩放、平移、视差安全；旋转、轨道、dolly-zoom、手持、甩镜、快速变焦会破坏平面与文字稳定，除非用户明确要实验风格。
-- 相邻 scene 不要重复同一种运镜。先全景建立关系 → 中景解释主体 → 近景/特写落在论点、证据或结果。
-- 本工程 `useImageMotion("push-in" | "pan-left")` 提供两种已调校运镜；更复杂用 frame 派生。
+- 需要 Three、3D 视角、页面/设备入镜、曲面、焦点或透镜时，先读 `shot-recipes/camera/README.md` 的 Shot Language v3。先写意图和空间基底，再选 `catalog.json` 的 `three-camera` preset；不要从 CSS transform 或 shader 名称开始设计。
+- 一个镜头用 `shell → pose → geometry → surface → attention → grade` 组合：camera 是观看者，surface 是被拍物。单张页面也可借由真实 PerspectiveCamera、斜入/翻转/落位、bend 或 corner curl 呈现空间感；不需要虚构多层才能“有 3D 感”。
+- 每镜只选一个主 camera 动词（locked/drift/push-in/pull-out/truck/crane/orbit/dolly-zoom）和一个强光学主角；`magnify`、`glass`、`bubble` 互斥，`flip`/`peel`/`cross-zoom` 是两镜头的 A/B 转场。
+- 相邻 scene 不要重复同一种镜头语法。先建立关系 → 解释主体 → 近景/特写落在论点、证据或结果。默认约 24--32f 完成空间动作，之后留可读 hold；需要解释的信息不使用 orbit、dolly-zoom 或持续 cloth。
+- 标题、说明、HUD 是否留在 screen layer，由镜头意图决定；机制同时提供 world surface 与 screen layer，不能默认替叙事做决定。字幕始终最高层。
 
 ## 四、提示词模板（改写代码时的自检清单）
 

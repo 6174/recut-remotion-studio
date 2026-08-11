@@ -71,7 +71,7 @@ export const recut = {
     compose: (input: { prompt: string }) => call("agent.compose", input),
   },
   media: {
-    pick: (input: { kinds: Array<"image" | "video" | "audio">; multiple?: boolean; selectedIDs?: string[] }) => call("media.pick", input),
+    pick: (input: { kinds: Array<"image" | "video" | "audio" | "transcript">; multiple?: boolean; selectedIDs?: string[] }) => call("media.pick", input),
   },
   events: {
     subscribe: (listener: (event: unknown) => void) => {

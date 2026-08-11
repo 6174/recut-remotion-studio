@@ -8,7 +8,7 @@ description: 把选题、真实素材和成片模板做成可审阅、可实时�
 <!--
 [INPUT]: 依赖项目 workspace、`@recut/remotion-kit`、场景模板与按需读取的 references。
 [OUTPUT]: 对外提供 Remotion Studio 的创作、镜头、预览、导出与确定性渲染约束。
-[POS]: Remotion Studio 的唯一运行时创作 Skill；镜头表达以 Camera Language v2 为语义入口。
+[POS]: Remotion Studio 的唯一运行时创作 Skill；镜头表达以 Shot Language v3 为语义入口。
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md
 -->
 
@@ -34,11 +34,12 @@ description: 把选题、真实素材和成片模板做成可审阅、可实时�
 
 用户选择一个**成片模板**。`brief.template` 存模板 id；每个模板同时定义做什么、怎样表达和使用哪些组件。模板技能与模板代码在 **remotion-kit 内**：`{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）+ `template/ProjectVideo.tsx`（模板代码）。模板清单读 `{paths.appKitPath}/catalog.json` 的 `scenarios`。
 
-开始设计前按顺序读**三件参考**：
+开始设计前按顺序读**三件参考**；只要成片使用 Three、镜头层特效、页面/设备入镜或放大镜，再额外读第 4 项：
 
 1. **模板代码**：`{paths.workspacePath}/src/compositions/ProjectVideo.tsx`（该项目的成片骨架。默认只是接近空白的标题页，请按所选模板整体重写为完整成片：以 `{paths.appKitPath}/src/scenarios/<brief.template>/template/ProjectVideo.tsx` 的默认 palette、beats 与 SCENES 为骨架，替换为当前选题的真实内容）。
 2. **场景技能**：`{paths.appKitPath}/src/scenarios/<brief.template>/SKILL.md`（这种视频怎么表达更好：分镜结构、镜头语言、节奏、素材纪律、验收）。
 3. **组件目录**：`{paths.appKitPath}/catalog.json` 的 `components` + `effects`（镜头层效果）+ `references/effects.md` / `references/captions.md`（表达特效、字幕主题与内置动态组件）。按需读取，不一次全读。需要计划门槛的模板先运行 `validate-scene-plan.mjs`。
+4. **Shot Language**：`{paths.appKitPath}/skills/remotion-studio/references/shot-recipes/camera/README.md`（camera、surface、attention 的组合合同）；根据选中的 preset 继续读取对应配方。
 
 ## 帧驱动互动引导（内容表面 overlay）
 
@@ -53,27 +54,30 @@ description: 把选题、真实素材和成片模板做成可审阅、可实时�
 
 成片默认走 Three-first GPU 合成：`@recut/remotion-kit/three` 的 `ThreeVideoCanvas` 是统一 GPU 根，HTML 内容经 `HtmlSurface` 光栅化为 `CanvasTexture`，效果全部由 `@recut/remotion-kit/materials` 的材质实现。**开始设计前必读 `references/gpu-composition.md`（架构契约）。**
 
-- **默认根**：`ProjectVideo` 包 `ThreeVideoCanvas`；内容镜头用 `ShotGraph` 的声明式 plan（`content`/`effect`/`transition`/`lens`/`ambient`）。
-- **内容层渲染在真实 React 树内**：`renderContent(shot)` 返回镜头内容，`ShotGraph` 用 `<Sequence from={shot.start}>` 提供镜头局部帧，因此内容内部可以正常用 Remotion hook（`useCurrentFrame`/`spring`/`interpolate`）。排版、字幕、palette、静态背景与交互引导都在 HTML surface 内。
-- **效果写材质，不写 DOM**：放大镜/玻璃/glitch/CRT/胶片/气泡/模糊走 `materials` post；页面卷曲/bend 转场走 transform；云/雾/粒子氛围走 ambient。参数只能取 `catalog.json` effects 里 `material.schema` 声明的语义参数。
+- **默认根**：`ProjectVideo` 包 `ThreeVideoCanvas`；内容镜头用 `ShotGraph` 的声明式 plan（`content`/`camera`/`surface`/`effect`/`transition`/`lens`/`ambient`）。
+- **内容层渲染在真实 React 树内**：`renderContent(shot)` 返回 world 内容，`ShotGraph` 用 `<Sequence from={shot.start}>` 提供镜头局部帧，因此内容内部可以正常用 Remotion hook（`useCurrentFrame`/`spring`/`interpolate`）。标题、说明、HUD 可通过 `Scene.screenKind` + `SceneScreenLayer` 在 Three 输出后作为 screen layer 叠加；字幕始终位于两层之上。
+- **效果写材质，不写 DOM**：surface 的 `bend` / `cornerCurl` / `cloth` 发生在实际 Three 网格，`effect: "displacement"` 可与它们组合；放大镜/玻璃/glitch/CRT/胶片/气泡/模糊走 attention/post；云/雾/粒子氛围走 ambient。参数只能取 `catalog.json` effects 里 `material.schema` 声明的语义参数。
 - **转场是镜头 descriptor 的 `transition`**，在镜头前 `durationFrames` 内激活；`lens` 驱动的光学镜头中心由 shot progress 派生，禁止写死。
 - 交互引导（cursor/focus/text-selection）作为 HTML surface 内的 React 层，与排版同帧栅格化，不产生额外 overlay/GPU pass。
 
-## 镜头表达：Camera Language v2
+## 镜头表达：Shot Language v3
 
-只要任务涉及推近、拉远、平移、三维视角、焦点、景深、放大镜、翻页或 flip，先读 `references/shot-recipes/camera/README.md`，再按需读具体配方。先用一句镜头语义确定观看意图，再选择当前已经存在的实现；不从 CSS 参数或 shader 名称反推镜头。
+只要任务涉及推近、拉远、平移、三维视角、焦点、景深、放大镜、翻页、browser/device shell 或 flip，先读 `references/shot-recipes/camera/README.md`，再按需读具体配方。先用一句镜头语义确定观看意图，再选择当前已经存在的实现；不从 CSS 参数或 shader 名称反推镜头。
 
 ```text
-意图 -> 空间基底 -> 动词 -> 主体 -> 焦点/光学 -> 节奏 -> 排他项
+意图 -> 空间基底 -> shell -> pose/geometry -> camera -> 主体 -> attention -> 节奏 -> 排他项
 ```
 
+- 每镜头先在 `catalog.json.effects` 选择一个 `engine="three-camera"` preset；它已经给出可用的 `camera` + `surface` 描述和时长约束。先替换 `subject.anchor` 为实际目标，再按内容小幅调参，不能只复制 CSS 动画。
+- `surface` 负责被拍物：`shell`（plain/browser）、`position`、`rotation`、`scale`、`bend`、`cornerCurl`、`cloth`；`camera` 负责观看者。两者可组合，但各自只允许一个主动作，默认约 24--32f 完成落位，之后必须 hold 阅读。
+- 几何与像素的组合顺序固定为 `shell → pose → bend/cornerCurl/cloth → displacement → focus/lens → grade`。`displacement` 可和 surface 几何叠加；`magnify`、`glass`、`bubble` 是同层强光学主角，彼此互斥。
 - 动词只选一个主角：`locked`、`drift`、`push-in`、`pull-out`、`truck`、`crane`、`orbit`、`dolly-zoom`。一个镜头不得同时承担两个大运镜。
 - 主体是唯一 `Subject`：一个 composition 归一化 anchor 同时派生 `PageCam` 目标、Three camera lookAt、focus 与 magnifier 中心。禁止在不同层手填不一致的坐标；Y 轴转换由运行时边界统一处理。
-- `single-plane` 可以做真实 Three camera 的位置/FOV/倾斜变化，但不能声称获得页面内部的真实景深；没有显式 `depth-layers` 时，focus blur 是屏幕空间注意力处理。
+- `single-plane` 可以做真实 Three camera 的位置/FOV 与 surface 倾斜、全页/单角弯曲，但不能声称获得页面内部的真实景深；没有显式 `depth-layers` 时，focus blur 是屏幕空间注意力处理。
 - `rack-focus` 先完成焦点交接，`lens-inspect` 才出现。放大镜/玻璃/气泡/全屏 glitch/重型转场不能无节制叠加；每镜头至多一个强光学主角。
 - `flip`、`peel`、`cross-zoom` 是 A/B transition，必须消费前后镜头的两张纹理，不是单输入的 camera effect。
 - `CameraMotionBlur` 只包速度峰值区间；落位后的信息、焦点和 HUD 必须保持锐利，并至少留出一个可读 hold。
-- `ShotGraph` 已支持 `CameraMoveDescriptor`：`subject.anchor` + 局部进度 keyframes 驱动真实 Three camera，首批可用动词为 `drift`、`push-in`、`pull-out`、`truck`、`crane`、`orbit`。先复用这套轨道；多平面真实景深与有序 post chain 仍按 `dev/2026-08-11-three-camera-shot-system-design.md` 后续演进，不得假称已完成。
+- `ShotGraph` 已支持 `CameraMoveDescriptor` + `SurfaceMoveDescriptor`：前者以 `subject.anchor` + 局部进度 keyframes 驱动真实 Three camera，后者以同一进度驱动内容 mesh / shell 的姿态与曲面。优先复用 catalog 的 10 个已验证组合；多平面真实景深与有序 post chain 仍按 `dev/2026-08-11-three-camera-shot-system-design.md` 后续演进，不得假称已完成。
 
 ## 工作流
 
@@ -132,7 +136,7 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 1. **场景技能** —— 用户选择场景后，读 `{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）与 `template/ProjectVideo.tsx`（模板代码）。
 2. **`references/effects.md`** —— 表达特效目录（remotion-templates）。用户选择想要的效果（背景 / 文字 / 镜头运动），你把它用进对应 scene；`workspace/remotion-kit/`（seed 时从 `@recut/remotion-kit` 整包拷贝的冻结副本）里有全部 81 个模板，直接 `import X from "@recut/remotion-kit/templates/<name>"` 复用；若用户想用更新版本，对比 `workspace/.recut-workspace` 与 `{paths.appKitPath}/catalog.json` 的版本，用原生文件工具读 `{paths.appKitPath}/src/` 最新源码按需升级。
 3. **`references/captions.md`** —— 字幕主题目录（remotion-captions-themes，13 套）。用户选择主题后，把主题 id 设为 `palette.captionTheme`，或直接用 `<CaptionTheme theme="…">`；旁白用 `buildCaptionsData` 生成逐词字幕。
-4. **创作参考** —— `references/creation-modes.md` 只在需要自主创作、共同创作或单镜头时决定工作方式；随后按任务读取对应资料：`production-workflow.md`（完整制作流程）、`shot-recipes/`（镜头运动配方）、`sequence-patterns/`（桥段骨架）、`aesthetic-rules.md`（审美准则）、`sound-design.md` 与 `music-beat-sync.md`（声音和卡点）、`final-review.md`（独立终检）。`paper-ink-product-promo.md` 仅在用户明确要纸墨编辑风产品片时读取。
+4. **创作参考** —— `references/creation-modes.md` 只在需要自主创作、共同创作或单镜头时决定工作方式；随后按任务读取对应资料：`production-workflow.md`（完整制作流程）、`shot-recipes/camera/README.md`（只要使用镜头表达必须先读）与选中配方、`sequence-patterns/`（桥段骨架）、`aesthetic-rules.md`（审美准则）、`sound-design.md` 与 `music-beat-sync.md`（声音和卡点）、`final-review.md`（独立终检）。`paper-ink-product-promo.md` 仅在用户明确要纸墨编辑风产品片时读取。
 
 ## 媒体边界
 

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖组件目录、preview/PreviewCard 与 FineTuneProps 回调
- * [OUTPUT]: 对外提供 ComponentFineTune，左侧选择目录、右侧播放真实组件预览并生成插入提示
- * [POS]: remotion-studio/ui/fine-tunes 的动态组件微调动作；将 catalog 的 template/motion 类型映射到右侧预览层
+ * [OUTPUT]: 对外提供 ComponentFineTune，左侧以紧凑网格卡片选择目录、右侧播放真实组件预览并生成插入提示
+ * [POS]: remotion-studio/ui/fine-tunes 的动态组件微调动作；复用镜头特效的卡片交互，将 catalog 的 template/motion 类型映射到右侧预览层
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";
@@ -40,12 +40,12 @@ export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt
           {groups.map(([category, list]) => (
             <div key={category}>
               <p className="px-1 pb-1 pt-2 font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">{category}</p>
-              <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-1.5 xl:grid-cols-3">
                 {list.map((item) => {
                   const selected = item.id === value;
                   return (
                     <button
-                      className={`flex w-full items-center gap-2 rounded-xs border p-2 text-left text-xs outline-none ${selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"}`}
+                      className={`relative flex min-h-16 w-full flex-col justify-between rounded-xs border p-2 text-left outline-none ${selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"}`}
                       key={item.id}
                       onFocus={() => setHovered(item.id)}
                       onMouseEnter={() => setHovered(item.id)}
@@ -53,8 +53,9 @@ export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt
                       onClick={() => setValue(item.id)}
                       type="button"
                     >
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {selected ? <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">✓</span> : null}
+                      <span className="min-w-0 pr-4 text-xs font-semibold leading-4">{item.label}</span>
+                      <span className="line-clamp-2 min-w-0 text-[10px] leading-3.5 text-muted-foreground">{item.description}</span>
+                      {selected ? <span className="absolute right-2 top-2 grid size-3.5 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">✓</span> : null}
                     </button>
                   );
                 })}

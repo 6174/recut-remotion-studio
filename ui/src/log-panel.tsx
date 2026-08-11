@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖宿主 shell 日志事件、logs.list 回填（仅当前服务启动 + 近期日志，服务端已做总量截断）与父级 active 状态
+ * [INPUT]: 依赖宿主 shell 日志事件、logs.list 的有界回填（最近 3 个任务、最多 300 行）与父级 active 状态
  * [OUTPUT]: 对外提供日志区域：logs.list 挂载/事件/切页回填 + shell.job.log 实时追加，去重合并，按任务过滤、复制与清空
  * [POS]: remotion-studio/ui 右侧「日志」分栏；展示后台任务输出，不改变任务执行状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
@@ -12,9 +12,9 @@ import { recut } from "./recut-sdk";
 
 const APP_ID = "recut.remotion-studio";
 // 当前会话保留的总行数上限：实时日志超出后丢弃最旧行，避免 DOM 无限增长。
-const MAX_LINES = 600;
+const MAX_LINES = 300;
 // 历史回填（logs.list）只取最新的这一段，视作「当前会话」，不再把全部历史一次性加载进界面。
-const BACKFILL_MAX = 300;
+const BACKFILL_MAX = 120;
 
 interface LogLine { jobId: string; stream: string; text: string; timestamp: string; sequence?: number; }
 

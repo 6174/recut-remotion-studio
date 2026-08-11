@@ -120,12 +120,15 @@ tokens、启动方式和数据风险。根据项目证据和用户已有描述�
 
 1. **先列产品功能清单，逐一对应镜头**。核心功能漏拍等于返工；
    一种动画手法（飞入/堆叠/翻页）全片只当一次主角，同质化即返工信号。
-2. 扫描 `shot-recipes/` 全部卡片的 frontmatter，根据用途、能量、建议时长、
+2. 每项需要空间表达的功能，先读 `shot-recipes/camera/README.md`，写一张 Shot Language 卡：
+   `意图 → 空间基底 → shell → pose/geometry → camera → Subject → attention → 节奏 → 排他项`。
+   再从 `catalog.json.effects` 选择 `engine="three-camera"` 的首选 preset；已有配方只作为动作语法的延伸，不替代这张卡。
+3. 扫描 `shot-recipes/` 全部卡片的 frontmatter，根据用途、能量、建议时长、
    限制和所需页面状态，为每项功能选择首选与备选卡；Agent 自主定案并记录依据。
-3. 完整读取选中卡片，并按“参考实现”定位准确 demo 源码。没有合适卡片时可新写，
+4. 完整读取选中卡片，并按“参考实现”定位准确 demo 源码。没有合适卡片时可新写，
    但必须在设计 spec 中说明范围与验证风险。
 
-**产出**：功能到镜头映射表；选中卡名、变体、demo 源码和参考样片定位。
+**产出**：功能到镜头映射表；每个空间镜头的 Shot Language 卡、选中 preset/配方、demo 源码和参考样片定位。
 
 ---
 
@@ -141,12 +144,13 @@ tokens、启动方式和数据风险。根据项目证据和用户已有描述�
 2. **已有指定 BGM 时**：先出音乐结构表（满能量起点/breakdown 拍号，
    见 music-beat-sync.md §2），镜头边界全部锚到拍号，最强 hit 分给
    全片 2–3 个大 slam；breakdown 段天然是品牌呼吸位。
-3. 写完整分镜表：镜头顺序、时长、功能信息、具体页面状态、镜头卡与变体、主动作、
-   素材来源、字幕、转场和 SFX。每镜只讲一个主要动效。
-4. 排时间线时**预留 hold/rest 帧预算**：品牌字标落定 hold ≥1s（30f）、
+3. 写完整分镜表：镜头顺序、时长、功能信息、具体页面状态、Shot Language 卡与 preset/配方、
+   主动作、素材来源、字幕、转场和 SFX。每镜只讲一个主要动效；空间镜头要标明 world surface 与 screen layer 的内容归属。
+4. 对每个 Three 镜头明确动作窗口、速度峰值与可读 hold：默认在 24--32f（约 1 秒）完成推近/落位/翻面，随后保留阅读；`CameraMotionBlur` 只覆盖速度峰值，单平面 blur 不得写成真实景深。
+5. 排时间线时**预留 hold/rest 帧预算**：品牌字标落定 hold ≥1s（30f）、
    批量动效收尾 0.5s 静止、开场主体动作 ≥3s。节奏返工是单向的——
    过快必返工、放慢从未被否。
-5. Agent 检查分镜与产品简报、需求决策、视觉方向和镜头映射一致后自行放行，
+6. Agent 检查分镜与产品简报、需求决策、视觉方向和镜头映射一致后自行放行，
    把分镜转译成帧级时间轴进实施计划：
    `| shot | from | duration | 内容 |`（卡点片则 from/to 全用 `beatF(n)`
    表达），并给每镜头指定源文件与验收帧号。
@@ -212,25 +216,27 @@ tokens、启动方式和数据风险。根据项目证据和用户已有描述�
    配方里的动作语法、时值配比、遮罩时机和“已知坑/命门”是质量下限；允许为目标产品
    调整素材、坐标和文案，但不得把它们降为凭名称猜出的近似动效。没有 kit 能力时，
    在分镜中明确新增实现范围与验证风险。
-2. **PageCam 是一切"真实页面"镜头的地基**：整页纹理 + 关键帧 2.5D 相机 +
-   页面空间 overlay，children 按页面 CSS px 定位、与 layout.json 共坐标系。
-3. **静帧验收（最高频动作）**：每镜头在计划里写死 2 个验收帧号，
+2. **ShotGraph 是新的 Three 页面镜头地基**：用 `ShotDescriptor.camera` 表示观看者，
+   `ShotDescriptor.surface` 表示被拍物，并以唯一 `Subject.anchor` 驱动 lookAt/focus/lens。
+   `shell → pose → geometry → surface → attention → grade` 按固定顺序组合；PageCam 只用于尚未迁移的旧模板。
+3. **静帧验收（最高频动作）**：每镜头在计划里写死开始、中段、落位后至少 3 个验收帧号，
    完成即跑 `npx remotion still src/index.ts <Comp> out/qa/<name>.png
    --frame=<N>`，自己肉眼检查构图/穿帮/文字锐度后才算完成。
    静帧产物按迭代版本归档 `out/qa/`，用户贴帧反馈时可直接对号。
-4. **每轮修改后整片渲染**：`npx remotion render src/index.ts <Comp>
+4. 空间镜头还要检查：camera/surface 是否都在世界坐标中产生可感姿态变化；subject 是否始终清晰可见；推近后纹理是否足够清晰；落位后是否保留阅读 hold；screen layer 与 surface 的选择是否符合分镜，而非运行时默认。
+5. **每轮修改后整片渲染**：`npx remotion render src/index.ts <Comp>
    out/promo.mp4`，再用 `ffmpeg -i out/promo.mp4 -vf "select=eq(n,…)"`
    从成片抽关键帧回看。实际形态是"改哪个镜头就 still 哪几帧，
    然后整片重渲"，成本可接受且杜绝接缝意外。
-5. 像素级自检备小工具：裁剪放大看文字锐度（crop）、两帧像素 diff、
+6. 像素级自检备小工具：裁剪放大看文字锐度（crop）、两帧像素 diff、
    量元素 bbox 对构图。
-6. **确定性渲染铁律**：禁 `Date.now()` / `Math.random()` / 无参 `new Date()`。
+7. **确定性渲染铁律**：禁 `Date.now()` / `Math.random()` / 无参 `new Date()`。
    一切伪随机用固定种子（mulberry32/哈希函数，seed 从 index 派生），
    保证逐帧可复现、渲染间零抖动。
-7. 对照 `references/aesthetic-rules.md` 边做边自检（不等阶段 7）：
+8. 对照 `references/aesthetic-rules.md` 边做边自检（不等阶段 7）：
    落地要弹的缓动 y1 必须 >1、光效裁进圆角、3D 下文字糊先查
    栅格化路径（CSS `zoom` 布局级放大，而非 transform scale）而不是调 DoF。
-8. 指代含糊的用户反馈（"第一个标题"）先确认对象再动手；改错立即整
+9. 指代含糊的用户反馈（"第一个标题"）先确认对象再动手；改错立即整
    commit revert 重来，不在错误版本上打补丁——每个改动独立 commit
    以便干净回滚。
 

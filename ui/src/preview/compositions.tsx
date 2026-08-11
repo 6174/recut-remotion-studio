@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 @recut/remotion-kit 的字幕主题/模板调色板/效果层/动态组件
- * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件、材质或 Three camera 的演示合成）与时长元数据
+ * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件、材质或 Three camera 的演示合成）与时长元数据；字幕预览使用固定安全轨道防止播放抖动
  * [POS]: remotion-studio/ui 预览层的合成端；与 workspace 渲染同一份 kit 组件
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -62,16 +62,20 @@ const CaptionPanel: React.FC<{ theme: string; palettePrimary?: string; paletteAc
 }) => {
   const { width, height } = useVideoConfig();
   const data = useMemo(() => buildCaptionsData(SAMPLE_NARRATION, 0.4, CAPTION_DURATION_SEC, 2), []);
+  const laneHeight = height * (thumbnail ? 0.42 : compact ? 0.3 : 0.34);
   return (
     <div
       style={{
         position: "absolute",
         bottom: compact ? height * 0.06 : height * 0.08,
+        height: laneHeight,
         left: 0,
         right: 0,
         display: "flex",
+        alignItems: "center",
         justifyContent: "center",
         padding: "0 5%",
+        overflow: "visible",
         pointerEvents: "none",
       }}
     >

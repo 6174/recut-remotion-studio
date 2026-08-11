@@ -1,4 +1,10 @@
 /**
+ * [INPUT]: 依赖 Remotion 帧时钟与内置图表样例数据
+ * [OUTPUT]: 对外提供 ChartAnimation，渲染按帧依次生长的 SVG 柱状图
+ * [POS]: remotion-kit/components 的图表模板；可作为目录组件直接预览或被项目 composition 引入
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
+/**
  * Free Remotion Template Component
  * ---------------------------------
  * This template is free to use in your projects!
@@ -120,7 +126,7 @@ export default function ChartAnimation() {
               frame,
               [i * 3, 15 + i * 3],
               [0, 1],
-              { extrapolateRight: "clamp" }
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
 
             const currentHeight = barHeight * barProgress;

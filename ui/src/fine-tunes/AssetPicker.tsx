@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 app 层的 MediaAsset 领域类型与父级选择回调
  * [OUTPUT]: 对外提供可复用的素材选择列表
- * [POS]: fine-tunes 的素材选择原子，被 SrtFineTune 与 MaterialsFineTune 复用
+ * [POS]: fine-tunes 的素材选择原子，被 MaterialsFineTune 复用
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { MediaAsset } from "../app";

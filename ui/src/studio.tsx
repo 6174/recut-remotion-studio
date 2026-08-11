@@ -6,7 +6,6 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  AlignCenter,
   Captions,
   Clapperboard,
   Expand,
@@ -27,9 +26,7 @@ import { TemplateFineTune } from "./fine-tunes/TemplateFineTune";
 import { CaptionsFineTune } from "./fine-tunes/CaptionsFineTune";
 import { CanvasFineTune } from "./fine-tunes/CanvasFineTune";
 import { ComponentFineTune } from "./fine-tunes/ComponentFineTune";
-import { DirectFineTune } from "./fine-tunes/DirectFineTune";
 import { EffectsFineTune } from "./fine-tunes/EffectsFineTune";
-import { SrtFineTune } from "./fine-tunes/SrtFineTune";
 import { MaterialsFineTune } from "./fine-tunes/MaterialsFineTune";
 import type { FineTuneProps } from "./fine-tunes/FineTuneProps";
 import type { Brief, Catalog, KitState, MediaAsset, MediaMap } from "./app";
@@ -52,7 +49,7 @@ export interface WorkspaceActions {
   resetWorkspace: () => void;
 }
 
-type FineTuneKind = "srt" | "template" | "captions" | "canvas" | "component" | "direct" | "materials" | "effects";
+type FineTuneKind = "template" | "captions" | "canvas" | "component" | "materials" | "effects";
 
 interface FineTuneConfig {
   kind: FineTuneKind;
@@ -63,6 +60,27 @@ interface FineTuneConfig {
 }
 
 const FINE_TUNES: FineTuneConfig[] = [
+  {
+    kind: "effects" as const,
+    title: "表达特效",
+    description: "选择 Three 材质或真实相机：聚焦、放大镜、推进、移镜与 crane。",
+    basePrompt: "请把当前视频的表达增强为我选择的 Three 镜头层效果。组件回答“画面里有什么”，材质和相机回答“观众如何感受、注意和理解它”。",
+    Icon: MousePointer2,
+  },
+  {
+    kind: "component" as const,
+    title: "内容组件",
+    description: "选择内置组件，强化一个重点段落。",
+    basePrompt: "请在最能强化叙事的场景中加入我选择的内置 Remotion 组件。先阅读组件源码确认 API，只在内容需要的地方使用，并保持时间轴和视觉风格协调。",
+    Icon: Sparkles,
+  },
+  {
+    kind: "materials" as const,
+    title: "使用素材",
+    description: "选择素材，再说明希望如何使用。",
+    basePrompt: "",
+    Icon: ImagePlus,
+  },
   {
     kind: "template" as const,
     title: "选择成片模板",
@@ -84,58 +102,14 @@ const FINE_TUNES: FineTuneConfig[] = [
     basePrompt: "请把当前视频适配为我选择的画布尺寸。重新安排安全边距、文字长度、素材裁切和信息层级，确保关键内容在该画幅下第一眼就能读清。",
     Icon: Expand,
   },
-  {
-    kind: "component" as const,
-    title: "加入动态组件",
-    description: "选择内置组件，强化一个重点段落。",
-    basePrompt: "请在最能强化叙事的场景中加入我选择的内置 Remotion 组件。先阅读组件源码确认 API，只在内容需要的地方使用，并保持时间轴和视觉风格协调。",
-    Icon: Sparkles,
-  },
-  {
-    kind: "effects" as const,
-    title: "镜头层特效",
-    description: "选择 Three 材质或真实相机：聚焦、放大镜、推进、移镜与 crane。",
-    basePrompt: "请把当前视频的表达增强为我选择的 Three 镜头层效果。组件回答“画面里有什么”，材质和相机回答“观众如何感受、注意和理解它”。",
-    Icon: MousePointer2,
-  },
-  {
-    kind: "direct" as const,
-    title: "重组镜头表达",
-    description: "为现有内容重做镜头和转场。",
-    basePrompt: "请重新编排这支视频的镜头表达：为开场建立明确钩子，中段按信息层级推进，结尾形成清晰收束。用导演语言选择镜头运动和转场，不要只是机械替换文案。用少量巨大文字分段表演主张，禁止 UI 化的小 tag；用背景、主色块、文字或光晕的协调渐变建立画面景深。",
-    Icon: Clapperboard,
-  },
-  {
-    kind: "direct" as const,
-    title: "调整叙事节奏",
-    description: "压缩重复信息，突出关键观点。",
-    basePrompt: "请重排这支视频的叙事节奏：压缩重复信息，为关键观点留出呼吸，把每个场景的镜头时长和转场调整得更有推进感。保留选题与核心信息。",
-    Icon: AlignCenter,
-  },
-  {
-    kind: "materials" as const,
-    title: "使用素材",
-    description: "选择素材，再说明希望如何使用。",
-    basePrompt: "",
-    Icon: ImagePlus,
-  },
-  {
-    kind: "srt" as const,
-    title: "从 SRT 生成视频",
-    description: "上传字幕并选择成片模板。",
-    basePrompt: "请根据我上传的 SRT 字幕生成一支完整的 Remotion 视频：按字幕时间轴拆分自然段，为每段设计匹配的镜头和画面节奏，并严格使用我选择的成片模板。",
-    Icon: Captions,
-  },
 ];
 
 const FINE_TUNE_MODULES: Partial<Record<FineTuneKind, React.FC<FineTuneProps>>> = {
-  srt: SrtFineTune,
   template: TemplateFineTune,
   captions: CaptionsFineTune,
   canvas: CanvasFineTune,
   component: ComponentFineTune,
   effects: EffectsFineTune,
-  direct: DirectFineTune,
   materials: MaterialsFineTune,
 };
 
@@ -240,10 +214,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const submitFineTune = () => {
     if (!fineTune) return;
     if (!fineTuneReady) {
-      const message = fineTune.kind === "srt"
-        ? "请上传一个 SRT 文件，或选择一个音视频素材。"
-        : "请至少选择一个要使用的素材。";
-      setStatus(message);
+      setStatus("请至少选择一个要使用的素材。");
       return;
     }
     const prompt = finalPrompt.trim();
@@ -296,7 +267,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
               <TabsTrigger value="terminal">终端</TabsTrigger>
               <TabsTrigger value="logs">日志</TabsTrigger>
             </TabsList>
-            <TabsContent value="terminal"><TerminalPanel /></TabsContent>
+            <TabsContent value="terminal"><TerminalPanel active={consoleTab === "terminal"} /></TabsContent>
             <TabsContent value="logs"><LogPanel active={consoleTab === "logs"} /></TabsContent>
           </Tabs>
         </div>

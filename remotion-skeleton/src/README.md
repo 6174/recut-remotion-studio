@@ -11,7 +11,7 @@ index.css: 正式预览与导出的 Tailwind 入口和 Recut 语义 token。
 error-view.tsx: 预览模块与 composition 错误的可读回退页。
 media.tsx: 项目媒体元素的预览组件。
 tw-probe.tsx: Tailwind 编译链的运行时探针。
-types.ts: ProjectVideo、媒体和渲染设置的共享类型。
+types.ts: ProjectVideo、媒体、可选 SRT/视频叙事来源和渲染设置的共享类型。
 lib/utils.ts: 本地 UI 原子的 className 合并工具。
 runtime/media.ts: 预览/导出共用的 assetId 媒体 URL 解析器。
 components/: 成片可复用的 UI、模板与动态组件。

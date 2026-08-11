@@ -1,6 +1,6 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、启动时同步系统拥有的无声 player.tsx、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
+ * [OUTPUT]: 注册 Brief（含可选 SRT/视频叙事来源）、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、启动时同步系统拥有的无声 player.tsx、终端命令（terminal.exec）与有界日志读取（logs.read/list）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
  * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（Agent 用原生文件工具直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -18,13 +18,14 @@ function scope(ctx) {
 const WORKSPACE = "workspace";
 
 function ensureSchema(ctx) {
-  ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, created_at text not null)");
+  ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, source_json text not null default '', created_at text not null)");
   ctx.sqlite.execute("create table if not exists exports (render_id text primary key, project_id text not null default '', brief_id text not null, shell_job_id text not null, status text not null, label text not null, settings_json text not null, asset_id text, error text, created_at text not null, updated_at text not null)");
   ctx.sqlite.execute("create table if not exists composition_assets (project_id text not null, asset_id text not null, created_at text not null, primary key (project_id, asset_id))");
   ctx.sqlite.execute("create table if not exists app_meta (key text primary key, value text not null)");
   for (const [table, column] of [["briefs", "project_id"], ["exports", "project_id"], ["exports", "brief_id"]]) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
   }
+  try { ctx.sqlite.execute("alter table briefs add column source_json text not null default ''"); } catch (_) { /* 新库已含该列。 */ }
   const exportsCols = ctx.sqlite.query("pragma table_info(exports)").map((row) => String(row.name));
   if (exportsCols.includes("design_id")) {
     // 旧版 schema 曾写入 design_id（NOT NULL 无默认），重构后代码不再维护该列；
@@ -91,6 +92,31 @@ function catalog(_, ctx) {
   return readCatalog(ctx);
 }
 
+function normalizeNarrativeSource(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  if (value.kind === "srt") {
+    const text = String(value.text || "").trim().slice(0, 16000);
+    if (!text) throw new Error("SRT 叙事来源必须包含字幕内容");
+    return { kind: "srt", name: String(value.name || "未命名.srt").trim() || "未命名.srt", text };
+  }
+  if (value.kind === "video") {
+    const assetId = String(value.assetId || "").trim();
+    if (!assetId) throw new Error("视频叙事来源必须选择一个素材");
+    return { kind: "videos", assetIds: [assetId], names: [String(value.name || "未命名视频").trim() || "未命名视频"] };
+  }
+  if (value.kind === "videos") {
+    const assetIds = Array.isArray(value.assetIds) ? value.assetIds.map((assetId) => String(assetId || "").trim()).filter(Boolean) : [];
+    if (!assetIds.length) throw new Error("视频叙事来源必须选择至少一个素材");
+    const names = Array.isArray(value.names) ? value.names.map((name) => String(name || "").trim() || "未命名视频") : [];
+    return { kind: "videos", assetIds: Array.from(new Set(assetIds)), names: assetIds.map((_, index) => names[index] || "未命名视频") };
+  }
+  throw new Error("叙事来源必须是 SRT 或视频素材");
+}
+
+function parseNarrativeSource(value) {
+  try { return normalizeNarrativeSource(JSON.parse(String(value || "null"))); } catch (_) { return null; }
+}
+
 function createBrief(input, ctx) {
   ensureSchema(ctx);
   const template = String(input.template || "").trim();
@@ -101,7 +127,9 @@ function createBrief(input, ctx) {
   const details = String(input.details ?? "").trim();
   const expectedDurationSec = input.expectedDurationSec === undefined ? 60 : Number(input.expectedDurationSec);
   if (!Number.isFinite(expectedDurationSec) || expectedDurationSec <= 0) throw new Error("expectedDurationSec 必须是正数");
-  const materialAssetIds = Array.isArray(input.materialAssetIds) ? input.materialAssetIds.filter((value) => typeof value === "string" && Boolean(value.trim())) : [];
+  const narrativeSource = normalizeNarrativeSource(input.narrativeSource);
+  const selectedMaterials = Array.isArray(input.materialAssetIds) ? input.materialAssetIds.filter((value) => typeof value === "string" && Boolean(value.trim())) : [];
+  const materialAssetIds = Array.from(new Set([...selectedMaterials, ...(narrativeSource?.kind === "videos" ? narrativeSource.assetIds : [])]));
   const brief = {
     id: id(),
     template,
@@ -109,18 +137,19 @@ function createBrief(input, ctx) {
     details,
     expectedDurationSec,
     materialAssetIds,
+    narrativeSource,
     createdAt: new Date().toISOString(),
   };
-  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), brief.createdAt]);
+  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, source_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), JSON.stringify(narrativeSource), brief.createdAt]);
   return ctx.artifacts.publish({ type: "recut.remotion-studio.brief@1", value: brief });
 }
 
 function latestBrief(_, ctx) {
   ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
+  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, source_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
   if (!rows.length) return null;
   const row = rows[0];
-  return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), createdAt: row.created_at };
+  return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), narrativeSource: parseNarrativeSource(row.source_json), createdAt: row.created_at };
 }
 
 function workspaceSeeded(ctx) {
@@ -214,7 +243,7 @@ function ensureRenderDeps(ctx) {
 function syncPreviewPlayer(ctx) {
   const result = ctx.shell.run({
     command: "node",
-    args: ["-e", "const fs=require('fs');const source='remotion-skeleton/src/player.tsx';const target='workspace/src/player.tsx';const next=fs.readFileSync(source,'utf8');if(fs.readFileSync(target,'utf8')!==next)fs.writeFileSync(target,next);"],
+    args: ["-e", "const fs=require('fs');const source='remotion-skeleton/src/player.tsx';const target=process.argv[1];const next=fs.readFileSync(source,'utf8');if(fs.readFileSync(target,'utf8')!==next)fs.writeFileSync(target,next);", ctx.paths.workspacePath + "/src/player.tsx"],
     timeoutSeconds: 30,
   });
   if (result.exitCode !== 0) throw new Error(`预览播放器同步失败：${result.error || result.stdout || "未知错误"}`);
@@ -329,9 +358,9 @@ function readLogs(input, ctx) {
 // 服务、终端命令、渲染导出），按时间线排序后返回，供界面在挂载或切换时回填；
 // 太久远的历史与超量的日志直接截掉，避免把项目全部历史一次性加载进界面。shell
 // 结果均为 camelCase map（status/stream/text/timestamp/sequence）。
-const LOG_MAX_JOBS = 8;      // 最多汇总的任务数，优先当前服务与最近任务
-const LOG_PER_JOB = 500;     // 每个任务最多回填的行数（取最新一段）
-const LOG_MAX_LINES = 1500;  // 返回总行数上限，保留时间线上最新的一段
+const LOG_MAX_JOBS = 3;      // 只回填当前预览服务与最近两个任务
+const LOG_PER_JOB = 150;     // 每个任务只保留最新一段
+const LOG_MAX_LINES = 300;   // 首屏总量上限，保留时间线上最新的一段
 
 function collectJobIds(ctx) {
   const ids = [];

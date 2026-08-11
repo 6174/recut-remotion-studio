@@ -118,7 +118,7 @@
     {
       "name": "logs.list",
       "surfaces": ["api"],
-      "description": "汇总本项目 App 启动过的全部 shell 任务日志（预览服务、终端命令、渲染导出），按时间线排序一次返回，供界面挂载或切换日志时回填。",
+      "description": "返回当前预览服务与最近任务的最新日志片段（最多 3 个任务、300 行），供界面快速回填；完整历史不在首屏加载。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {

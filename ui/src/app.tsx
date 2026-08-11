@@ -15,6 +15,10 @@ const VIDEO_EXPRESSION_CONSTRAINT = `## 平台视频表达硬约束
 
 每个 beat 只突出一个巨大主张；禁止小字、小 tag、chip 和弱对比说明。用大字的分词/分句入场、位移、文字渐变与形状关系组织阅读。主信息有效字高 ≥56px、字幕 ≥40px、必要辅助信息 ≥32px，并按 480px 宽手机预览验收。拒绝单一纯色大铺底：背景、主色块、文字或光晕至少使用两层协调渐变。字幕默认无底框，不能遮住主视觉。`;
 
+export type NarrativeSource =
+  | { kind: "srt"; name: string; text: string }
+  | { kind: "videos"; assetIds: string[]; names: string[] };
+
 export interface Brief {
   id: string;
   template: string;
@@ -22,6 +26,7 @@ export interface Brief {
   details: string;
   expectedDurationSec: number;
   materialAssetIds: string[];
+  narrativeSource: NarrativeSource | null;
   createdAt: string;
 }
 
@@ -66,7 +71,7 @@ export interface KitState {
 
 export interface MediaAsset {
   id: string;
-  kind: "image" | "video" | "audio";
+  kind: "image" | "video" | "audio" | "transcript";
   name: string;
   mimeType?: string;
   status: string;
@@ -157,7 +162,7 @@ export default function App() {
     return () => { window.removeEventListener("recut-sdk-ready", () => void refresh()); unsubscribe(); };
   }, []);
 
-  const startDesign = async (input: { template: string; topic: string; materialAssetIds: string[] }) => {
+  const startDesign = async (input: { template: string; topic: string; details: string; materialAssetIds: string[]; narrativeSource: NarrativeSource | null }) => {
     setStatus("正在保存项目 Brief…");
     const saved = await recut.background.call("project.create", input);
     setBrief(saved.value ?? saved);
@@ -165,7 +170,13 @@ export default function App() {
     const materialText = input.materialAssetIds.length
       ? `\n已选用素材（assetId）：\n${input.materialAssetIds.join("\n")}\n`
       : "";
-    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}${materialText}\n\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，动态组件经 @recut/remotion-kit/components 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
+    const narrativeSourceText = input.narrativeSource?.kind === "srt"
+      ? `\n叙事来源（SRT 字幕）：${input.narrativeSource.name}\n请严格按以下时间轴拆分场景、安排字幕与镜头。\n\n${input.narrativeSource.text}\n`
+      : input.narrativeSource?.kind === "videos"
+        ? `\n叙事来源（视频素材）：\n${input.narrativeSource.assetIds.map((assetId, index) => `- ${input.narrativeSource.names[index] ?? "未命名视频"}（assetId：${assetId}）`).join("\n")}\n请先转录这些视频并综合生成 SRT，再按时间轴构建视频；它们已进入 Brief 的可用素材清单。\n`
+        : "";
+    const detailsText = input.details ? `\n- 详细描述：${input.details}\n` : "";
+    const prompt = `我要用 Remotion Studio 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}${detailsText}${materialText}${narrativeSourceText}\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，动态组件经 @recut/remotion-kit/components 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。若 Brief 提供 SRT，严格按其时间轴；若提供视频叙事来源，先转录再拆分场景。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
     const composedPrompt = `${prompt}\n\n${VIDEO_EXPRESSION_CONSTRAINT}`;
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(composedPrompt);

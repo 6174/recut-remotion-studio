@@ -8,13 +8,13 @@
 | --- | --- |
 | `ThreeVideoCanvas.tsx` | 统一 GPU 根：`@remotion/three` ThreeCanvas + demand frameloop + high-performance GPU |
 | `CameraDirector.tsx` | Shot Language 的观看轨执行器：纯函数解析 keyframes，确定性驱动 Three PerspectiveCamera |
-| `SurfaceMotion.ts` | Shot Language 的被拍物轨解析器：纯函数把表面位置、倾斜、缩放与 bend 曲率解析为逐帧 mesh 姿态 |
+| `SurfaceMotion.ts` | Shot Language 的被拍物轨解析器：纯函数把表面位置、倾斜、缩放、bend 与 corner curl 解析为逐帧 mesh 姿态 |
 | `SurfaceShell.tsx` | 可替换内容外壳：当前提供有厚度的 Chrome 式 BrowserSurfaceShell；手机/设备模型沿同一 surface.shell 边界扩展 |
 | `HtmlSurface.tsx` | 双 adapter 内容纹理：`HtmlSurfaceProvider`（真实树渲染 + HIC 捕获）/ `FrozenSurface`（一次性冻结捕获，A/B 转场输入 A）/ 带真实姿态与曲率的 `HtmlSurfacePlane`；foreignObject 备 |
 | `MediaTexture.tsx` | 静态图片 → CanvasTexture（`useImageTexture`）与媒体证据平面（`MediaPlane`） |
 | `ShotGraph.tsx` | 镜头声明式模型装配：内容 + 单输入效果/变形材质，或 A/B 冻结纹理转场 + 环境材质 + 扫描镜头 |
 | `timing.ts` | `RemotionFrameInvalidator`（帧变即 invalidate）与 `seekSmooth` 缓动 |
-| `types.ts` | `ShotDescriptor` / `CameraMoveDescriptor` / `ShotGraphPlan` / `shotAt` 纯函数 |
+| `types.ts` | `ShotDescriptor` / `CameraMoveDescriptor` / `SurfaceMoveDescriptor` / `ShotGraphPlan` / `shotAt` 纯函数 |
 
 ## 使用
 
@@ -49,6 +49,6 @@ export const MyVideo = () => (
 
 ## 与 materials 的关系
 
-`ShotGraph` 对单输入 `effect`、transform transition 与 `ambient` 通过 `MaterialElement`（materials 模块）按 id 挂载；`CameraDirector` 同时以当前 shot progress 驱动 `ShotDescriptor.camera` 的真实 Three 机位，`SurfaceMotion` 以同一 progress 驱动 `ShotDescriptor.surface` 的真实 mesh 位置、倾斜、缩放和曲率；`surface.shell` 决定它是 plain 页面还是 BrowserSurfaceShell。前者决定观看者，后者决定被拍物；一张内容平面也能以快速“落入镜头”的姿态产生 2.5D 透视。手机/设备模型只是 shell 的后续实现，不改 camera、surface 或 attention 合同。`fade` / `slide` / `wipe` / `flip` / `clock-wipe` / `iris` / `cross-zoom` 是 A/B 转场，专门消费冻结的前镜头纹理与当前镜头纹理，绝不传入单输入 `MaterialElement`。镜头 descriptor 只声明语义 id 与参数，不写任何 GLSL。
+`ShotGraph` 对单输入 `effect`、transform transition 与 `ambient` 通过 `MaterialElement`（materials 模块）按 id 挂载；`CameraDirector` 同时以当前 shot progress 驱动 `ShotDescriptor.camera` 的真实 Three 机位，`SurfaceMotion` 以同一 progress 驱动 `ShotDescriptor.surface` 的真实 mesh 位置、倾斜、缩放、bend、corner curl 和可选 cloth；`surface.shell` 决定它是 plain 页面还是 BrowserSurfaceShell。geometry 与 `effect: "displacement"` 可组合，attention 层的 lens/focus 仍在其后处理。前者决定观看者，后者决定被拍物；一张内容平面也能以快速“落入镜头”的姿态产生 2.5D 透视。手机/设备模型只是 shell 的后续实现，不改 camera、surface 或 attention 合同。`fade` / `slide` / `wipe` / `flip` / `clock-wipe` / `iris` / `cross-zoom` 是 A/B 转场，专门消费冻结的前镜头纹理与当前镜头纹理，绝不传入单输入 `MaterialElement`。镜头 descriptor 只声明语义 id 与参数，不写任何 GLSL。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

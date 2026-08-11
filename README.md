@@ -4,10 +4,10 @@
 
 ## 能力
 
-- **Brief 表单**：新建项目时直接预览并选择成片模板，再填写选题和素材，一键交给 AI 设计。
+- **Brief 表单**：新建项目时直接预览并选择成片模板，再填写选题、可选详细描述、优先从素材库选择的 SRT 和一次支持多选的素材；素材库没有 SRT 时可上传本地文件，未提供 SRT 时所选视频成为叙事来源，一键交给 AI 设计。
 - **代码驱动的创作台**：AI 用原生文件工具直接读写项目私有 `workspace/`（绝对路径由 `workflow.context` 的 `paths` 提供）里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
 - **Vite 热更新预览**：每个项目一个 Vite dev server，iframe 嵌入其预览页（`@remotion/player`，播放/暂停/进度条）；AI 改代码即热更新。
-- **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置动态组件与素材库仅作为局部编辑工具。SRT 场景只选择成片模板和字幕来源。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
+- **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置动态组件与素材库仅作为局部编辑工具。SRT 或视频叙事来源在 Brief 创建阶段作为可选输入，不在工作台重复出现。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
 - **重置项目**：一键把 workspace 重置回骨架（丢失 AI 改写，仅测试/回退用）。
 - **打开项目文件夹**：从右上角在 Finder、Windows 资源管理器或 Linux 默认文件管理器中直接打开当前项目的 `workspace/`。
 - **本地导出**：`render.js` 使用 `@remotion/bundler` + `@remotion/renderer` 在本地 headless Chrome 中把项目 workspace 的 composition 渲染为 MP4，并归档为 Recut 媒体素材；每次完成导出自动将该 MP4 设为 Project 封面。
@@ -47,9 +47,9 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 - **模板是单一真相源**：`brief.template` 存成片模板 id；模板代码、视觉原语、场景技能和建议组件都在 `@recut/remotion-kit` 的 `src/scenarios/<id>/`。不再维护独立的设计系统选择。
 - **每项目一个 Remotion 工程**：首次 `workspace.ensure` 把 `remotion-skeleton/` 整体复制到项目私有目录，AI 直接改写项目代码；项目间互不干扰，骨架改动只影响新项目。
 - **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入）。
-- **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、SRT、组件、画布和素材重剪等局部编辑工具；打开项目文件夹、导出、构建预览、重启与重置为次级操作。
+- **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、组件、画布和素材重剪等局部编辑工具；SRT 或视频叙事来源由 Brief 作为首版成片输入持久化。打开项目文件夹、导出、构建预览、重启与重置为次级操作。
 - **场景计划先于成片代码**：无真人解说和产品发布片先由 workspace 内的 `remotion-kit/scripts/validate-scene-plan.mjs` 校验 `SCENE_PLAN.md`；它直接改编 HyperFrames 两个场景共用的 storyboard parser，计划通过后才落成 `SCENES`，避免 Prompt 直接跳到散乱代码。
-- **日志与终端**：右侧下半分栏。日志用 `logs.list` 回填（预览服务/终端命令/渲染导出所有任务，去重合并；历史只取最新 `BACKFILL_MAX` 行视为当前会话，`MAX_LINES` 封顶实时总量）+ `shell.job.log` 实时追加，列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件对接 `terminal.exec` 在项目目录执行命令调试（非交互式，单条命令，本地行编辑与 ↑↓ 历史），命令继承用户登录 shell 的完整 PATH（service 层 `userBaseEnv` 统一捕获）。
+- **日志与终端**：右侧下半分栏。`logs.list` 只回填当前预览服务与最近两个任务的最新片段（服务端最多 300 行，界面首屏最多 120 行）；其后由 `shell.job.log` 实时追加，界面总量封顶 300 行。列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件连接 Service PTY，在项目 `workspace/` 启动用户本机的交互式 zsh，原样转发输入、输出与窗口尺寸，因此补全、`cd`、历史和作业控制均由 shell 自己完成。服务统一注入登录 shell 环境与 `xterm-256color` 终端能力。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
 - **HTML-in-Canvas 平台契约**：Cursor、Magnifier、Glitch、Bubble 等读取 live DOM texture 的镜头层依赖 `CanvasDrawElement`。CanvasUI 通过仅对 `canvasui.dev` 有效的 Origin Trial 启用它；Recut 的动态项目预览必须由桌面/渲染宿主统一启用该 feature，不能复用第三方 token 或让用户手动改 flag。完整契约见 `dev/2026-08-09-html-in-canvas-platform-contract.md`。
