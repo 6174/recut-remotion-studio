@@ -1,6 +1,6 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
+ * [OUTPUT]: 注册 Brief、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、启动时同步系统拥有的无声 player.tsx、终端命令（terminal.exec）与日志读取（logs.read）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
  * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（Agent 用原生文件工具直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -209,6 +209,17 @@ function ensureRenderDeps(ctx) {
   return { ready, checks };
 }
 
+// player.tsx 是预览宿主层，不是用户创作的成片代码；启动时同步它让既有项目也获得
+// 平台级播放器修复，同时绝不改动 ProjectVideo、SCENES 或用户素材。
+function syncPreviewPlayer(ctx) {
+  const result = ctx.shell.run({
+    command: "node",
+    args: ["-e", "const fs=require('fs');const source='remotion-skeleton/src/player.tsx';const target='workspace/src/player.tsx';const next=fs.readFileSync(source,'utf8');if(fs.readFileSync(target,'utf8')!==next)fs.writeFileSync(target,next);"],
+    timeoutSeconds: 30,
+  });
+  if (result.exitCode !== 0) throw new Error(`预览播放器同步失败：${result.error || result.stdout || "未知错误"}`);
+}
+
 function renderSetup(_, ctx) {
   ensureSchema(ctx);
   return ensureRenderDeps(ctx);
@@ -217,6 +228,7 @@ function renderSetup(_, ctx) {
 function previewServeStart(_, ctx) {
   ensureSchema(ctx);
   workspaceEnsure({}, ctx);
+  syncPreviewPlayer(ctx);
   const existing = previewServeStatus({}, ctx);
   if (existing.running) return { jobId: existing.jobId, phase: existing.phase, port: existing.port, url: existing.url };
   // 项目工程的 Makefile 内部处理依赖与端口冲突；无法解决时把可读错误抛给 AI。

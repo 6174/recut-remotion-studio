@@ -15,13 +15,30 @@ export type MaterialId =
   | "glitch"
   | "crt"
   | "vintage"
+  | "vhs"
   | "magnify"
   | "glass"
   | "bubble"
+  | "ripple"
   | "article-highlight"
+  | "asciify"
+  | "retro-dither"
+  | "displacement"
+  | "droplets"
+  | "frost"
+  | "decrypt-reveal"
+  | "particle-reveal"
+  | "text-focus"
   | "bend"
   | "store-peel"
-  | "clouds";
+  | "cloth"
+  | "clouds"
+  | "grid"
+  | "liquid"
+  | "glyph-rain"
+  | "laser"
+  | "blaze"
+  | "particle-scroll";
 
 /** 语义参数 schema：限制参数范围，给 catalog、Agent 与未来表单共用 */
 export type MaterialParamSchema =

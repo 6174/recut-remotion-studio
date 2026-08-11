@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 @recut/remotion-kit 的字幕主题/模板调色板/效果层/shotcraft 组件
- * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件的演示合成）与时长元数据
+ * [INPUT]: 依赖 @recut/remotion-kit 的字幕主题/模板调色板/效果层/动态组件
+ * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件、材质或 Three camera 的演示合成）与时长元数据
  * [POS]: remotion-studio/ui 预览层的合成端；与 workspace 渲染同一份 kit 组件
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -13,18 +13,21 @@ import {
   DoodleExplainerVideo,
   FacelessExplainerVideo,
   FlashCut,
+  FlameFrame,
   ProductLaunchVideo,
   VerticalTicker,
   EffectFixtureDemo,
 } from "@recut/remotion-kit";
 import * as Templates from "@recut/remotion-kit/templates";
 import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
+import { MaterialPreview } from "./material-preview";
+import { CameraPreview } from "./camera-preview";
 
 export const PREVIEW_WIDTH = 1920;
 export const PREVIEW_HEIGHT = 1080;
 
-/** `composition` 是成片模板；`template` 是可直接运行的内置组件模板；`effect` 是 HTML-in-Canvas 表达镜头。 */
-export type PreviewKind = "caption" | "composition" | "template" | "component" | "effect";
+/** `composition` 是成片模板；`template` 是可直接运行的内置组件模板；`material` 是 Three GPU 材质；`effect` 是交互 overlay。 */
+export type PreviewKind = "caption" | "composition" | "template" | "component" | "effect" | "material" | "camera";
 
 export interface PreviewSpec {
   kind: PreviewKind;
@@ -33,6 +36,8 @@ export interface PreviewSpec {
 }
 
 export const previewDurationFrames = (spec: PreviewSpec): number => {
+  if (spec.kind === "material") return Math.round(8 * PREVIEW_FPS);
+  if (spec.kind === "camera") return Math.round(8 * PREVIEW_FPS);
   if (spec.kind === "effect") return Math.round(8 * PREVIEW_FPS);
   if (spec.kind === "caption") return Math.round((CAPTION_DURATION_SEC + 1.5) * PREVIEW_FPS);
   if (spec.kind === "composition") {
@@ -140,6 +145,12 @@ const FlashCutDemo: React.FC = () => (
   </AbsoluteFill>
 );
 
+const FlameFrameDemo: React.FC = () => (
+  <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 42%, #3d1507 0%, #160b08 46%, #08090d 100%)" }}>
+    <FlameFrame />
+  </AbsoluteFill>
+);
+
 const PageCamDemo: React.FC = () => (
   <PlaceholderDemo label="PAGECAM" note="页面镜头预览需真实页面素材，请以代码为准。" />
 );
@@ -186,6 +197,8 @@ export const ComponentDemo: React.FC<{ kind?: string; id: string }> = ({ kind, i
       return <VerticalTickerDemo />;
     case "FlashCut":
       return <FlashCutDemo />;
+    case "FlameFrame":
+      return <FlameFrameDemo />;
     case "PageCam":
       return <PageCamDemo />;
     case "FlatPanel":
@@ -211,6 +224,8 @@ const ScenarioDemo: React.FC<{ id: string }> = ({ id }) => {
 export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => {
   if (kind === "caption") return <CaptionDemo theme={id} thumbnail={thumbnail} />;
   if (kind === "composition") return <ScenarioDemo id={id} />;
+  if (kind === "material") return <MaterialPreview id={id} />;
+  if (kind === "camera") return <CameraPreview id={id} />;
   if (kind === "effect") return <EffectPreview id={id} />;
   return (
     <AbsoluteFill style={{ background: "#ffffff", backgroundImage: "linear-gradient(#e7ece8 1px, transparent 1px), linear-gradient(90deg, #e7ece8 1px, transparent 1px)", backgroundSize: "48px 48px" }}>

@@ -12,9 +12,12 @@
 | `MaterialElement.tsx` | 装配 | 从统一 envelope（id + 纹理 + 帧 + 语义参数）挂载 typed 材质组件 |
 | `shared/glsl.ts` | 着色器头 | `PASSTHROUGH_VERTEX`、`hash12`、`fbm2`、数值工具等确定性 GLSL 片段 |
 | `shared/uniforms.ts` | 生命周期 | `useMaterialUniforms`：一次编译 + 逐帧只写 uniform 的统一纪律 |
-| `post/` | 后处理 | 消费内容纹理的全屏效果：glitch / crt / vintage / magnify / glass / bubble / article-highlight |
-| `transform/` | 转场 | 顶点变形 + 消费纹理：bend / store-peel |
-| `ambient/` | 环境 | 程序化、不依赖内容纹理：clouds |
+| `post/` | 后处理 | 消费内容纹理的全屏效果：glitch / crt（滚动刷新带 + 行级轻抖）/ vintage / vhs / magnify / glass / bubble / ripple / article-highlight / asciify（字符化后复原）/ retro-dither / displacement / droplets（CanvasUI 下落雨滴场）/ frost / decrypt-reveal / text-focus / particle-reveal |
+| `transform/` | 转场 | 顶点变形 + 消费纹理：bend / store-peel（反射只贴合卷页弧面）/ cloth |
+| `transition/` | A/B 转场 | 双输入（前镜头冻结 A + 当前镜头实时 B）：fade / slide / wipe / flip / clock-wipe / iris / cross-zoom（移植自 remotion transitions 视觉概念，MIT） |
+| `ambient/` | 环境 | 程序化、不依赖内容纹理：clouds / grid（持续斜向掠过）/ liquid / glyph-rain / laser / blaze / particle-scroll |
+
+文本专属材质（explainer 场景重点）：`decrypt-reveal`（逐字符乱码→正文）、`text-focus`（以 `focusBox=[left,top,width,height]` 锁定文字或卡片，背景景深虚化）、`article-highlight`（黄色 marker 从左向右划出焦点，纵向聚焦）、`particle-reveal`（粒子汇聚内容入场）。火焰框已迁至 components 的 `FlameFrame`：内容与火焰共享同一个容器边界，禁止再以全屏纹理的 `center/half` 估算目标位置。`particle-reveal`、`decrypt-reveal` 与 `asciify` 均消费 ShotGraph 注入的 `effectProgress`，收尾直接采样原始纹理，不会以时钟循环回到乱码、碎片或像素化态。
 
 ## Material 契约（新增效果必须遵守）
 

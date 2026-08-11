@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖场景 beat 类型、设计系统 palette、动画原语库与 shotcraft 组件
+ * [INPUT]: 依赖场景 beat 类型、设计系统 palette、动画原语库与 kit 动态组件
  * [OUTPUT]: 对外提供 product-launch 的 beat 渲染器表（PRODUCT_LAUNCH_BEATS）
- * [POS]: scenarios/product-launch 的视觉语法层。60s 长片：每个 beat 有**唯一**的视觉主角
+ * [POS]: scenarios/product-launch 的世界层视觉语法。60s 长片：每个 beat 有**唯一**的视觉主角
  *        （eye-catch），全片不重复同一种表达——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 /
  *        超大数据 / 引述扫光 / 路线进度 / 发光 CTA，各有各的图形与动效。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
@@ -227,7 +227,6 @@ const CtaBeat: BeatRenderer = ({ scene, p, frame, fps }) => {
 export const PRODUCT_LAUNCH_UI_GEOMETRY = {
   panel: { x: 520, y: 150, width: 880, height: 770 },
   "export-button": { x: 1160, y: 806, width: 160, height: 64 },
-  "focus:export-button": { x: 1090, y: 726, width: 300, height: 224 },
 };
 
 const SETTING_ROWS = ["自动保存", "云端同步", "深色主题"];
@@ -242,7 +241,7 @@ const UiDetailBeat: BeatRenderer = ({ scene, p, frame, interaction }) => {
   return (
     <AbsoluteFill style={{ overflow: "hidden", color: p.text, fontFamily: p.fontFamily, background: p.background }}>
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 0%, ${p.accent}1e 0%, transparent 55%)` }} />
-      <div style={{ position: "absolute", top: 80, left: 112 }}><Eyebrow color={p.accent}>{scene.kicker || "PRODUCT UI"}</Eyebrow></div>
+      {!scene.screenKind ? <div style={{ position: "absolute", top: 80, left: 112 }}><Eyebrow color={p.accent}>{scene.kicker || "PRODUCT UI"}</Eyebrow></div> : null}
       <div
         style={{
           position: "absolute",
@@ -259,7 +258,7 @@ const UiDetailBeat: BeatRenderer = ({ scene, p, frame, interaction }) => {
         }}
       >
         <p style={{ margin: 0, color: "rgba(255,255,255,0.55)", fontSize: 22, letterSpacing: "0.16em", textTransform: "uppercase" }}>Project Settings</p>
-        <h1 style={{ margin: "10px 0 0", fontSize: 52, fontWeight: 900, letterSpacing: "-0.02em" }}>{scene.title}</h1>
+        <h1 style={{ margin: "10px 0 0", fontSize: 52, fontWeight: 900, letterSpacing: "-0.02em" }}>{scene.screenKind ? "导出设置" : scene.title}</h1>
 
         <div style={{ marginTop: 34, borderRadius: 20, padding: 24, background: `linear-gradient(135deg, ${p.accent}22, transparent)`, border: `1px solid ${p.accent}55` }}>
           <p style={{ margin: 0, color: p.accent, fontSize: 22, letterSpacing: "0.1em" }}>导出画质</p>

@@ -1,97 +1,108 @@
 /**
- * [INPUT]: 依赖 effects 目录、preview/PreviewCard、BrowserCapabilityGate/useHtmlInCanvasSupport 与 FineTuneProps 回调
- * [OUTPUT]: 对外提供 EffectsFineTune：特效选择器（按表达目的分组）+ 关键帧 Player 预览 +
- *           位置编辑器 + 可编辑 Prompt；HTML-in-Canvas 预览和提交同样过 BrowserCapabilityGate
- * [POS]: remotion-studio/ui/fine-tunes 的镜头层微调动作。组件回答“画面里有什么”，
- *        特效回答“观众如何感受、注意和理解它”；放置是语义选择，不伪造 DOM selector。
+ * [INPUT]: 依赖 catalog 的 Three material/camera effects、preview 的真实 Three 样片与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 EffectsFineTune：紧凑网格材质与 Camera Language v2 选择器、实时预览与包含参数 schema 的可编辑 Prompt
+ * [POS]: remotion-studio/ui/fine-tunes 的镜头层微调动作。Agent 按叙事自动选择材质的 effect/transition/ambient
+ *        或 camera 的 descriptor.camera 挂载位置与材质参数，用户只负责选择效果。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";
 import { LivePreview } from "../preview/PreviewCard";
-import { BrowserCapabilityGate, useHtmlInCanvasSupport } from "@recut/remotion-kit";
 import type { FineTuneProps } from "./FineTuneProps";
 
-const LAYER_GROUPS: Array<{ key: string; label: string }> = [
-  { key: "interaction", label: "模拟交互" },
-  { key: "content", label: "聚焦内容" },
-  { key: "transition", label: "场景节奏" },
-  { key: "background", label: "氛围背景" },
-];
+const CATEGORY_LABELS: Record<string, string> = {
+  post: "后处理特效",
+  transform: "转场特效",
+  transition: "A/B 转场",
+  ambient: "环境氛围",
+  camera: "Three 镜头",
+};
 
-const GESTURES = ["move", "hover", "click", "drag", "scroll"] as const;
-const SCENE_PHASES = ["scene-enter", "scene-play", "scene-exit", "background"] as const;
-
-type PlacementMode = "agent" | "scene" | "connect" | "target" | "interaction";
+/** 支持镜头锚点（lens/center）的材质：需要视觉焦点。 */
+const LENS_MATERIALS = new Set(["magnify", "glass", "bubble", "ripple"]);
 
 export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
-  const capability = useHtmlInCanvasSupport();
-  const effects = catalog.effects ?? [];
+  const effects = useMemo(
+    () => (catalog.effects ?? []).filter((item) => item.engine === "three" || item.engine === "three-camera"),
+    [catalog.effects],
+  );
   const [value, setValue] = useState(effects[0]?.id ?? "");
   const [hovered, setHovered] = useState<string | null>(null);
   const active = effects.find((item) => item.id === (hovered ?? value)) ?? effects[0];
-  const requiresTransitionAdapter = active?.id === "scene-transition";
-  const [placement, setPlacement] = useState<PlacementMode>("agent");
-  const [sceneId, setSceneId] = useState("");
-  const [phase, setPhase] = useState<(typeof SCENE_PHASES)[number]>("scene-play");
-  const [fromScene, setFromScene] = useState("");
-  const [toScene, setToScene] = useState("");
-  const [targetDesc, setTargetDesc] = useState("");
-  const [gesture, setGesture] = useState<(typeof GESTURES)[number]>("click");
-  const [intensity, setIntensity] = useState(0.75);
-  const [durationFrames, setDurationFrames] = useState<number>(active?.prompt?.recommendedDurationFrames ?? 90);
-
-  useEffect(() => {
-    setDurationFrames(active?.prompt?.recommendedDurationFrames ?? 90);
-  }, [active?.id, active?.prompt?.recommendedDurationFrames]);
+  const schema = active?.material?.schema ?? {};
+  const isCamera = active?.engine === "three-camera";
+  const isLensInspect = active?.id === "camera-lens-inspect";
+  const previewKind = isCamera ? "camera" as const : "material" as const;
 
   const groups = useMemo(() => {
     const map = new Map<string, typeof effects>();
     for (const item of effects) {
-      const key = LAYER_GROUPS.find((g) => g.key === item.layer)?.label ?? item.layer;
+      const category = (item.material?.category ?? item.layer) as string;
+      const key = CATEGORY_LABELS[category] ?? category;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
     return Array.from(map.entries());
   }, [effects]);
 
+  const isLens = active ? LENS_MATERIALS.has(active.id) : false;
+
   const placementText = useMemo(() => {
-    switch (placement) {
-      case "scene":
-        return `放置位置：指定场景“${sceneId || "（待定）"}”的 ${phase}。`;
-      case "connect":
-        return `放置位置：连接场景“${fromScene || "（前）"}”与“${toScene || "（后）"}”的 between-scenes 转场。`;
-      case "target":
-        return `内容目标：${targetDesc || "（待补充自然语言描述）"}；请先读 SCENES 与 StagePlan，将其转为 scene-owned FocusTarget/Rect[]，并在回复中回报坐标与理由。`;
-      case "interaction":
-        return `指定互动：${gesture} 手势，发生时间由 Agent 按叙事节奏分配；CursorDirector 与目标效果共用同一 InteractionScript。`;
-      case "agent":
-      default:
-        return "放置位置：Agent 决定最佳位置——先读 SCENES、StagePlan 与场景代码，选择叙事最需要的位置并解释原因。";
+    const schemaBlock = Object.keys(schema).length
+      ? `可用参数 schema：${JSON.stringify(schema)}。按镜头与内容自行选择必要参数，遵守 min/max，并将最终值写入 effectOptions。`
+      : "";
+    if (isCamera) {
+      const camera = active?.camera;
+      const surface = active?.surface;
+      const cameraBlock = camera ? JSON.stringify(camera) : "（缺少 preset）";
+      const surfaceBlock = surface ? JSON.stringify(surface) : "（缺少表面姿态 preset）";
+      const lensBlock = isLensInspect
+        ? `同时把 lens.anchor 与 camera.subject.anchor 设为同一个目标；使用 magnify 的 zoom=${camera?.lens?.zoom ?? 1.75}、radius=${camera?.lens?.radius ?? 138}，并让 lens 在相机抵达后出现。`
+        : "";
+      return [
+        `镜头部署：Agent 选择最能服务叙事的 ShotGraph 镜头，并在 descriptor 设置 camera 为 ${cameraBlock}、surface 为 ${surfaceBlock}。`,
+        "先读 SCENES 和场景排版，将 subject.anchor 替换为唯一、可读的真实目标；surface 的 position / rotation / scale / bend 负责表面落位；一个镜头只保留一个主动作。",
+        lensBlock,
+      ].filter(Boolean).join("\n");
     }
-  }, [placement, sceneId, phase, fromScene, toScene, targetDesc, gesture]);
+    return [
+      `镜头部署：Agent 按叙事节奏在 ShotGraph 镜头 descriptor 上设置 effect/transition/ambient 为 "${active?.id}"，并将参数写入 effectOptions。`,
+      active?.id === "article-highlight"
+        ? "Article Highlight 选择关键文字，按排版写入 center、markerWidth、markerHeight，并让 marker 随镜头进度划出。"
+        : active?.id === "text-focus"
+          ? "Text Focus 选择清晰呈现的文字或卡片，按目标边界写入 focusBox=[left,top,width,height]。"
+          : isLens
+            ? "magnify/glass/ripple 选择画面焦点并以 descriptor.lens 驱动扫描中心；bubble 写入 effectOptions.center。"
+            : null,
+      schemaBlock,
+    ].filter(Boolean).join("\n");
+  }, [active?.camera, active?.id, active?.surface, isCamera, isLens, isLensInspect, schema]);
 
   const prompt = useMemo(() => {
     if (!active) return "";
     return [
-      basePrompt || "请把当前视频的表达增强为我选择的镜头层效果。",
+      basePrompt || "请把当前视频的表达增强为我选择的 GPU 材质效果。",
       `特效：${active.label}（${active.description}）`,
-      `引擎：${active.engine}（requires: ${active.requires.join("、")}）· 层级：${active.layer} · 意图：${active.intent}`,
-      `推荐源码：${active.source.path}（项目落点 ${active.source.workspacePath}；改 composition 的 StagePlan 与必要场景代码，禁止粘贴独立 demo）`,
+      isCamera
+        ? `引擎：Three Shot Language · @recut/remotion-kit/three · CameraMoveDescriptor + SurfaceMoveDescriptor（${active.camera?.verb ?? active.id}）`
+        : `引擎：Three GPU material · @recut/remotion-kit/materials · MaterialElement（${active.material?.category ?? active.layer}）`,
+      `推荐源码：${active.source.path}（项目落点 ${active.source.workspacePath}；在 ShotGraph 镜头 descriptor 挂载，禁止写独立 demo）`,
       placementText,
-      `参数：时长 ${durationFrames} 帧 · 强度 ${Math.round(intensity * 100)}%`,
-      "HTML-in-Canvas 硬约束：优先复用 @recut/remotion-kit/html-canvas，先写 InteractionScript 与 EffectClip 再写 JSX；坐标使用设计像素，禁止真实 pointer 事件回放；不嵌套 HtmlInCanvas；不支持时不降级。",
-      "验收：预览与导出均走原生 HTML-in-Canvas 路径，目标几何可审阅，相同输入重复导出逐帧一致。",
+      isCamera
+        ? "实现方式：改 workspace 的 ProjectVideo/ShotGraph 镜头 descriptor.camera 与 descriptor.surface；所有值由 shot progress 派生。surface 的 keyframes 可同时写 position、rotation、scale、bend，默认在约 1 秒内落位并保持阅读。Lens Inspect 额外用相同 subject 配置 magnify 的 lens/anchor，禁止手填两套目标坐标。"
+        : "实现方式：改 workspace 的 ProjectVideo/ShotGraph 镜头 descriptor：effect（主效果）/ transition（转场 {material,durationFrames}）/ ambient（环境）；语义参数放 effectOptions；用 schema 声明的参数名。",
+      isCamera
+        ? "验收：走 Three-first GPU 合成（HtmlSurfaceProvider 真实树光栅化 + SurfaceMotion 真实网格弯曲/姿态 + CameraDirector）；预览/导出逐帧一致；单平面可以有透视与曲面，但不得声称真实景深。"
+        : "验收：走 Three-first GPU 合成（HtmlSurfaceProvider 真实树光栅化 + MaterialElement 逐帧只更新 uniform）；预览/导出逐帧一致；禁止回退到旧 html-canvas / GpuCompositor 效果。",
     ].join("\n");
-  }, [active, basePrompt, placementText, durationFrames, intensity]);
+  }, [active, basePrompt, isCamera, placementText]);
 
   useEffect(() => {
     onPrompt(prompt);
-    // 原生 capture 不可用时，不能让 Agent 写出一个必然无法在 Player/renderer 验收的 StagePlan。
-    onReady(capability.status === "supported" && !requiresTransitionAdapter);
-  }, [capability.status, onPrompt, onReady, prompt, requiresTransitionAdapter]);
+    onReady(true);
+  }, [onPrompt, onReady, prompt]);
 
   if (effects.length === 0) {
-    return <p className="text-xs text-muted-foreground">目录中暂无可用的镜头层效果。</p>;
+    return <p className="text-xs text-muted-foreground">目录中暂无可用的 Three GPU 材质。</p>;
   }
 
   return (
@@ -101,12 +112,12 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
           {groups.map(([label, list]) => (
             <div key={label}>
               <p className="px-1 pb-1 pt-2 font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">{label}</p>
-              <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-1.5 xl:grid-cols-3">
                 {list.map((item) => {
                   const selected = item.id === value;
                   return (
                     <button
-                      className={`flex w-full items-center gap-2 rounded-xs border p-2 text-left text-xs outline-none ${selected ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/40"}`}
+                      className={`relative flex min-h-16 w-full flex-col justify-between rounded-xs border p-2 text-left outline-none ${selected ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"}`}
                       key={item.id}
                       onFocus={() => setHovered(item.id)}
                       onMouseEnter={() => setHovered(item.id)}
@@ -114,8 +125,9 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
                       onClick={() => setValue(item.id)}
                       type="button"
                     >
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {selected ? <span className="grid size-3.5 shrink-0 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">✓</span> : null}
+                      <span className="min-w-0 pr-4 text-xs font-semibold leading-4">{item.label}</span>
+                      <span className="line-clamp-2 min-w-0 text-[10px] leading-3.5 text-muted-foreground">{item.description}</span>
+                      {selected ? <span className="absolute right-2 top-2 grid size-3.5 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">✓</span> : null}
                     </button>
                   );
                 })}
@@ -124,24 +136,14 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
           ))}
         </div>
         <div className="min-w-0 space-y-2">
-          {requiresTransitionAdapter ? (
-            <div className="grid h-80 place-items-center rounded-xs border border-dashed border-border bg-muted/10 p-6 text-center text-xs leading-5 text-muted-foreground">
-              PageTurn / Peel 需要 root-level A/B texture 转场适配器；单输入 HtmlCanvasVideoStage 不会伪造或提交这个效果。
-            </div>
-          ) : (
-            <BrowserCapabilityGate>
-              <LivePreview
-                key={`effect:${active?.id}`}
-                autoPlay={false}
-                height={320}
-                initialFrame={72}
-                showControls
-                spec={{ id: active?.id ?? "", kind: "effect" }}
-              />
-            </BrowserCapabilityGate>
-          )}
-          {capability.status === "unsupported" ? <p className="text-[10px] leading-4 text-destructive">平台能力未就绪，已阻止提交该镜头层 Prompt。</p> : null}
-          {requiresTransitionAdapter ? <p className="text-[10px] leading-4 text-destructive">该转场适配器尚未接入，已阻止提交，避免生成必然白屏的单输入 StagePlan。</p> : null}
+          <LivePreview
+            key={`material:${active?.id}`}
+            autoPlay
+            height={320}
+            initialFrame={0}
+            showControls
+            spec={{ id: active?.id ?? "", kind: previewKind }}
+          />
           <p className="flex items-center gap-2 text-xs font-semibold">
             <span className="truncate">{active?.label}</span>
             <span className="min-w-0 flex-1 truncate text-[10px] font-normal text-muted-foreground">{active?.description}</span>
@@ -149,83 +151,6 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
           <p className="flex flex-wrap gap-1 text-[10px] leading-4 text-muted-foreground">
             {active?.placement.map((p) => <span className="rounded-sm border border-border bg-muted/20 px-1.5 py-0.5" key={p}>{p}</span>)}
           </p>
-        </div>
-      </div>
-
-      <div className="space-y-2 rounded-xs border border-border bg-muted/10 p-3">
-        <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">放置位置 · 语义选择</p>
-        <div className="grid grid-cols-2 gap-1.5">
-          {([
-            ["agent", "Agent 决定"],
-            ["scene", "指定场景"],
-            ["connect", "连接两场景"],
-            ["target", "指定内容目标"],
-            ["interaction", "指定互动"],
-          ] as Array<[PlacementMode, string]>).map(([mode, label]) => (
-            <button
-              className={`rounded-xs border px-2 py-1.5 text-left text-[11px] outline-none ${placement === mode ? "border-primary bg-primary/10 text-primary" : "border-border bg-card hover:border-primary/40"}`}
-              key={mode}
-              onClick={() => setPlacement(mode)}
-              type="button"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {placement === "scene" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block">
-              <span className="mb-1 block text-[10px] text-muted-foreground">场景 id（如 hook / feature-1）</span>
-              <input className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setSceneId(e.target.value)} placeholder="feature-1" value={sceneId} />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-[10px] text-muted-foreground">放置阶段</span>
-              <select className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setPhase(e.target.value as (typeof SCENE_PHASES)[number])} value={phase}>
-                {SCENE_PHASES.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </label>
-          </div>
-        ) : null}
-
-        {placement === "connect" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <label className="block">
-              <span className="mb-1 block text-[10px] text-muted-foreground">前一个场景 id</span>
-              <input className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setFromScene(e.target.value)} placeholder="hook" value={fromScene} />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-[10px] text-muted-foreground">后一个场景 id</span>
-              <input className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setToScene(e.target.value)} placeholder="pain" value={toScene} />
-            </label>
-          </div>
-        ) : null}
-
-        {placement === "target" ? (
-          <label className="block">
-            <span className="mb-1 block text-[10px] text-muted-foreground">用自然语言说明目标，如“设置页右上角的导出按钮”</span>
-            <input className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setTargetDesc(e.target.value)} placeholder="第二段标题中的关键词“一键自动化”" value={targetDesc} />
-          </label>
-        ) : null}
-
-        {placement === "interaction" ? (
-          <label className="block">
-            <span className="mb-1 block text-[10px] text-muted-foreground">选择手势</span>
-            <select className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" onChange={(e) => setGesture(e.target.value as (typeof GESTURES)[number])} value={gesture}>
-              {GESTURES.map((g) => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </label>
-        ) : null}
-
-        <div className="grid grid-cols-2 items-end gap-2">
-          <label className="block">
-            <span className="mb-1 block text-[10px] text-muted-foreground">强度 · {Math.round(intensity * 100)}%</span>
-            <input className="h-8 w-full accent-primary" max={1} min={0.1} onChange={(e) => setIntensity(Number(e.target.value))} step={0.05} type="range" value={intensity} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-[10px] text-muted-foreground">时长（帧）</span>
-            <input className="h-8 w-full rounded-xs border border-border bg-card px-2 text-xs outline-none focus:border-primary/40" min={12} onChange={(e) => setDurationFrames(Math.max(12, Number(e.target.value) || 12))} type="number" value={durationFrames} />
-          </label>
         </div>
       </div>
     </div>

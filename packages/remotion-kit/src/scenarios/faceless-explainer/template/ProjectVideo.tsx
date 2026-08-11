@@ -1,20 +1,18 @@
 /**
  * [INPUT]: 依赖 Three-first GPU 合成（ThreeVideoCanvas/ShotGraph）、共享 GpuSceneEngine、
  *          faceless-explainer 的 beat 渲染器与内置调色板
- * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE、buildFacelessExplainerScenes、FACELESS_EXPLAINER_STAGE_PLAN、
+ * [OUTPUT]: 对外提供 FACELESS_EXPLAINER_PALETTE、buildFacelessExplainerScenes、
  *           buildFacelessExplainerGpuPlan 与 FacelessExplainerVideo
- * [POS]: scenarios/faceless-explainer 的科技新闻模板代码（Three-first 模式）。内容层（纸面网格、
- *        marker、大字）经 HtmlSurface 光栅化为 GPU 纹理；evidence 镜头用 article-highlight 材质保持中心
- *        锐利；concept/data 入场用 bend 转场；hover/focus 交互作为内容表面的 React overlay 与排版同帧。
+ * [POS]: scenarios/faceless-explainer 的科技新闻模板代码（Three-first 模式）。纸面网格、marker 与大字
+ *        经 HtmlSurface 光栅化为 GPU 纹理；全片用 vintage 材质提供克制的纸面纹理，hook/data 以快速倾斜落位 + Three camera 进入；不再绘制 spotlight 聚焦遮罩。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
 import { AbsoluteFill, Audio, useVideoConfig } from "remotion";
 import { ShotGraph } from "../../../three";
-import type { ShotGraphPlan } from "../../../three/types";
+import type { CameraMoveDescriptor, ShotGraphPlan, SurfaceMoveDescriptor } from "../../../three/types";
 import { buildGpuScenePlan, createSceneContent, SceneCaptionOverlay } from "../../_shared/GpuSceneEngine";
 import { FACELESS_EXPLAINER_BEATS } from "../beats";
-import type { StagePlan } from "../../../html-canvas/types";
 import type { Scene } from "../../_shared/types";
 import type { Palette } from "../../../palette";
 
@@ -36,8 +34,6 @@ export interface FacelessExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
-  /** 帧驱动互动脚本 + 目标几何；undefined = 启用内置 hover→focus 用例，null = 关闭。 */
-  stagePlan?: StagePlan | null;
 }
 
 /** 无真人解说的默认 SCENES 全长（秒）：hook 5 + concept 6 + evidence 6 + evidence 6 + example 5 + analogy 5 + example 5 + data 6 + recap 6 + conclusion 5 = 55s。 */
@@ -57,44 +53,71 @@ export const buildFacelessExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "科技新闻的价值，在于它改变了什么", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-/** 科技新闻的帧驱动互动脚本（hover→focus）：claim 与 data-3 的轨迹与目标几何。
- *  效果在 GPU 路径由内容表面 overlay（focus dim + accent ring）表达，不再走 GpuCompositor。 */
-export const FACELESS_EXPLAINER_STAGE_PLAN: StagePlan = {
-  targets: {
-    claim: { kind: "rect", rect: { x: 260, y: 320, width: 1400, height: 300 }, radius: 40 },
-    "data-3": { kind: "rect", rect: { x: 720, y: 330, width: 480, height: 360 }, radius: 60 },
-  },
-  interaction: [
-    { kind: "move", frame: 40, x: 240, y: 900 },
-    { kind: "move", frame: 195, x: 960, y: 440, easing: "easeInOut" },
-    { kind: "hover", frame: 210, targetId: "claim" },
-    { kind: "move", frame: 430, x: 1560, y: 200, easing: "easeInOut" },
-    { kind: "move", frame: 1170, x: 960, y: 500, easing: "easeInOut" },
-    { kind: "hover", frame: 1185, targetId: "data-3" },
-    { kind: "click", frame: 1200, targetId: "data-3" },
+/** 新闻开场一秒内落稳：先由纸面自身倾斜归正建立透视，再保留阅读时间。 */
+const FACELESS_HOOK_DRIFT_CAMERA: CameraMoveDescriptor = {
+  verb: "drift",
+  subject: { anchor: [0.5, 0.43] },
+  keyframes: [
+    { at: 0, position: [-0.2, 0.14, 8.25], fov: 34 },
+    { at: 0.16, position: [0.14, -0.06, 7.9], fov: 33, easing: "ease-out" },
+    { at: 1, position: [0.14, -0.06, 7.9], fov: 33, easing: "linear" },
   ],
 };
 
-/** 科技新闻 GPU 镜头图：evidence 挂 article-highlight（中心锐利），concept/data 入场用 bend 转场。 */
+/** 数据段快速推到数字后静止；不使用 motion blur 侵占阅读时间。 */
+const FACELESS_DATA_PUSH_CAMERA: CameraMoveDescriptor = {
+  verb: "push-in",
+  subject: { anchor: [0.5, 0.47] },
+  keyframes: [
+    { at: 0, position: [0, 0, 8.1], fov: 34 },
+    { at: 0.16, position: [0.04, -0.02, 7.1], fov: 32, easing: "ease-out" },
+    { at: 1, position: [0.04, -0.02, 7.1], fov: 32, easing: "linear" },
+  ],
+};
+
+const FACELESS_HOOK_LAND_SURFACE: SurfaceMoveDescriptor = {
+  keyframes: [
+    { at: 0, position: [-0.48, 0.28, -1.05], rotation: [0.07, -0.2, -0.06], scale: [0.82, 0.82, 1], bend: 0.26 },
+    { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" },
+    { at: 1, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "linear" },
+  ],
+};
+
+const FACELESS_DATA_LAND_SURFACE: SurfaceMoveDescriptor = {
+  keyframes: [
+    { at: 0, position: [0.56, -0.24, -1.18], rotation: [-0.06, 0.18, 0.04], scale: [0.8, 0.8, 1], bend: 0.3 },
+    { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" },
+    { at: 1, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "linear" },
+  ],
+};
+
+/** 科技新闻 GPU 镜头图：全片挂 vintage，提供轻微胶片颗粒、褪色与暗角纹理。 */
 export const buildFacelessExplainerGpuPlan = (scenes: Scene[], fps: number): ShotGraphPlan =>
   buildGpuScenePlan({ scenes }, fps, {
     transitionDurationFrames: 16,
-    effectFor: (scene) => (scene.kind === "evidence" ? "article-highlight" : undefined),
-    transitionFor: (scene) => (scene.id === "concept" || scene.id === "data" ? "bend" : undefined),
+    effectFor: () => "vintage",
+    cameraFor: (scene) => {
+      if (scene.kind === "hook") return FACELESS_HOOK_DRIFT_CAMERA;
+      if (scene.kind === "data") return FACELESS_DATA_PUSH_CAMERA;
+      return undefined;
+    },
+    surfaceFor: (scene) => {
+      if (scene.kind === "hook") return FACELESS_HOOK_LAND_SURFACE;
+      if (scene.kind === "data") return FACELESS_DATA_LAND_SURFACE;
+      return undefined;
+    },
+    optionsFor: () => ({ grain: 0.075, vignette: 0.16, warmth: 0.12, fade: 0.06 }),
   });
 
-export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
+export const FacelessExplainerVideo: React.FC<FacelessExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId }) => {
   const { fps, width, height } = useVideoConfig();
   const resolvedScenes = scenes && scenes.length ? scenes : buildFacelessExplainerScenes(topic);
-  const plan = stagePlan === undefined ? FACELESS_EXPLAINER_STAGE_PLAN : stagePlan;
   const gpuPlan = buildFacelessExplainerGpuPlan(resolvedScenes, fps);
   const content = createSceneContent({
     palette: FACELESS_EXPLAINER_PALETTE,
     scenes: resolvedScenes,
     beats: FACELESS_EXPLAINER_BEATS,
     resolveMediaUrl,
-    interaction: plan?.interaction,
-    targets: plan?.targets,
     width,
     height,
   });

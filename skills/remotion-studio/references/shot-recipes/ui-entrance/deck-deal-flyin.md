@@ -25,7 +25,7 @@ name: deck-deal-flyin
 | 发牌节拍 | 第 k 张 cue = 36 + 4k − 0.0792·k(k−1)，间隔 4f 收缩到 0.2f | 均匀间隔立刻显得机械；匀加速不够狠也被否——要"hard-accelerating"级别（R2/B3） |
 | 卡量 | 10 真卡 + 16 extras = 26 张；网格向下扩 5 行、纸面延长 2036px | 卡不够多涌入感不成立——宁多勿少；extras 落进真实扩展格位，不悬浮（Q9） |
 | 单卡飞行 | deal 8f（bezier(0.3,0,0.2,1)，z 弧顶 +90px sin、scale 峰值 1.06）+ settle 4f（bezier(0.3,0,0.25,1.15) 轻过冲）+ press 0.996→1 回弹 2f | 落地要弹必须 y1>1 的 bezier；settle+press 合计 6f ≈ 飞行 8f 的 30%——快停配足缓冲（法则 5 比例）；落定后强制 identity transform 防斜板亚像素漂移 |
-| 收尾拖拽层级 | rest 段内分层停稳：卡体 press 回弹结束即锁定，落地阴影 `0 32px→0 2px` 收敛滞后卡体 2–4f，飞行残影 opacity 尾梢再拖 3–5f 消散 | 借鉴法则 5 的 drag hierarchy（根→主→次级错帧 2–4f）；0.5s rest 静止判例不变——层级错帧发生在 rest 段头部，rest 末端全部锁死（模式已沉为 assets/lib/helpers/motion.ts lagged） |
+| 收尾拖拽层级 | rest 段内分层停稳：卡体 press 回弹结束即锁定，落地阴影 `0 32px→0 2px` 收敛滞后卡体 2–4f，飞行残影 opacity 尾梢再拖 3–5f 消散 | 借鉴法则 5 的 drag hierarchy（根→主→次级错帧 2–4f）；0.5s rest 静止判例不变——层级错帧发生在 rest 段头部，rest 末端全部锁死（模式已沉为 /remotion-kit/components/helpers/motion.ts lagged） |
 | 运动模糊（单卡） | 飞行中 5% 路径滞后 blur(6px) 残影，opacity 0.25·(1−t) | ghost 残影比真 motion blur 便宜且够用——单卡层面维持此方案 |
 | 运动模糊（相机） | 追逐 scroll 等 ≥30px/f 的快速运镜段用 `@remotion/motion-blur` 的 `<CameraMotionBlur shutterAngle={180} samples={10}>` 包镜；用 `<Sequence>` 把包裹范围切到快速段起点，慢速特写段（<10px/f）不包 | 30fps 下相机每帧跳 50–70px 会频闪，快摇拖影是电影摄像机的物理本能；shutterAngle 越大拖影越长（>270 发糊），samples 按渲染预算调（每 +1 约 +1 倍渲染时间）；整镜全包会把慢速 orbit 段的 1px 级细纹理（拉丝金属）采样抹软——只包快速段；借鉴 Remotion 官方生态非用户判例（2026-07-11 进化轮 #8） |
 | 追逐 scroll | 62→82f ~50px/f，82→98f ~70px/f，98→113f 原地 rest 15f=0.5s，再 11f swoosh 回搜索框 | 满板后 0.5s 静止是用户逐字要求（R2），砍掉必返工 |

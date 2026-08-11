@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @remotion/player 与 preview/compositions 的 PreviewScene
  * [OUTPUT]: 对外提供 Player 大预览与代表帧卡片；全铺预览以白色底承接重载瞬间，视口外卡片自动卸载
- * [POS]: remotion-studio/ui 预览层的卡片原子；只渲染预览，不持有业务选择状态
+ * [POS]: remotion-studio/ui 预览层的卡片原子；预览固定为无声视觉验收，避免宿主音频设备缺失时创建 WebAudio，不持有业务选择状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useRef, useState } from "react";
@@ -22,9 +22,11 @@ export const LivePreview: React.FC<{ spec: PreviewSpec; aspectRatio?: string | n
         durationInFrames={previewDurationFrames(spec)}
         fps={PREVIEW_FPS}
         initialFrame={initialFrame}
+        initialVolume={0}
+        initiallyMuted
         inputProps={spec}
         loop
-        muted
+        showVolumeControls={false}
         style={fullBleed ? { width: "100%", height: "100%" } : { width: "100%", height: "100%", borderRadius: 4, boxShadow: "0 8px 22px rgba(20, 33, 26, 0.10)" }}
       />
     </div>

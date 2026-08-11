@@ -26,7 +26,7 @@ name: shot-transitions
 ## 参数表
 | 参数 | 典型值 | 调节手感 |
 |------|--------|----------|
-| A flash-cut | `assets/lib/FlashCut.tsx`，from = 切点 − 5，两侧各 5f | 用法详见 type-and-filter 卡；白闪只盖硬切，不当装饰光效（Q4）|
+| A flash-cut | `/remotion-kit/components/FlashCut.tsx`，from = 切点 − 5，两侧各 5f | 用法详见 type-and-filter 卡；白闪只盖硬切，不当装饰光效（Q4）|
 | B 暗场滑行 | 前镜推出 8–12f → 暗场 4–8f → 后景放大入场 10–14f；后景从 scale ~0.6 + blur 起步收焦 | 暗场段不能全黑死场——保留背景微渐变/尘点让"still moving"可感；滑行帧过长读作断片，>10f 须有元素在动；推出/迎入的快速运镜可包 `<CameraMotionBlur>`（参数见 deck-deal-flyin 运动模糊行） |
 | B 运动方向 | 出与入同向（前镜向右推出→后景从右迎来），速度曲线连续不回摆 | 方向不接读作两条片子硬拼；参考片 Releases 全程一条 take 的秘密就是方向连续 |
 | C 焦点交换 | 前景 blur 0→8px 同时后景 8px→0，交叉窗口 10–16f；两景错开 2–4f 起跑 | 同帧起跑读作整屏糊掉；浅景深要贯穿该段落而非突然出现（DoF 语言先立后用）|

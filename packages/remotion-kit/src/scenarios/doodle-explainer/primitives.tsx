@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Remotion 帧时钟、roughjs（手绘 SVG 生成器）与 doodle-explainer 的速写本调色板
- * [OUTPUT]: 对外提供白板涂鸦讲解的确定性手绘原语：点阵纸、歪扭方框/椭圆、手绘箭头、
- *           下划线、荧光高亮、便签卡、编号步骤、数据条与进度条。
+ * [OUTPUT]: 对外提供白板涂鸦讲解的确定性手绘原语：点阵纸、歪扭方框/椭圆、手绘弧线箭头、
+ *           下划线、荧光高亮、流式便签卡、编号步骤、数据条与进度条。
  * [POS]: scenarios/doodle-explainer 的视觉源语层。全部图形用 roughjs generator + 固定 seed
  *        生成（预览与导出逐帧一致），beats 只组合本文件原语；可读文字遵守 1080p 主信息 ≥56px、
  *        逐词字幕 ≥40px、辅助信息 ≥32px 的全局约束。
@@ -79,6 +79,19 @@ export const roughArrow = (seed: number, x1: number, y1: number, x2: number, y2:
   ]);
 };
 
+/** 带自然弯曲幅度的手绘箭头：箭头头部沿最后一段切线朝向终点。 */
+export const roughCurveArrow = (seed: number, points: number[][], opts: RoughArrowOptions = {}) => {
+  const end = points[points.length - 1];
+  const previous = points[points.length - 2];
+  if (!end || !previous) return [];
+  const headSize = typeof opts.arrowhead === "number" ? Number(opts.arrowhead) : 64;
+  const { arrowhead, ...rest } = opts;
+  return roughPaths(`curve-arrow:${seed}:${points.map((p) => p.join(",")).join("|")}`, seed, { stroke: INK, strokeWidth: 8, ...rest }, (g) => [
+    g.curve(points as [number, number][], { seed, strokeWidth: 8, ...rest }),
+    g.polygon(arrowHead(previous[0], previous[1], end[0], end[1], headSize), { seed, strokeWidth: 6, ...rest }),
+  ]);
+};
+
 /** 手绘曲线（自由连线 / 下划线）：给一组点，画一条歪扭多段曲线。 */
 export const roughCurve = (seed: number, points: number[][], opts: Options = {}) =>
   roughPaths(
@@ -102,12 +115,13 @@ export const Sketch: React.FC<{
   delay?: number;
   duration?: number;
   fillOpacity?: number;
+  viewBox?: string;
   style?: React.CSSProperties;
-}> = ({ paths, frame, delay = 0, duration = 26, fillOpacity = 1, style }) => {
+}> = ({ paths, frame, delay = 0, duration = 26, fillOpacity = 1, viewBox = "0 0 1920 1080", style }) => {
   const progress = interpolate(frame, [delay, delay + duration], [0, 1], clamp);
   const fade = interpolate(frame, [delay, delay + 12], [0, 1], clamp);
   return (
-    <svg viewBox="0 0 1920 1080" style={{ position: "absolute", inset: 0, overflow: "visible", ...style }} pointerEvents="none">
+    <svg viewBox={viewBox} style={{ position: "absolute", inset: 0, overflow: "visible", ...style }} pointerEvents="none">
       {paths.map((p, i) => {
         const isFill = Boolean(p.fill) && p.fill !== "none";
         return (
@@ -135,11 +149,9 @@ export const DotGrid: React.FC<{ color?: string; opacity?: number; size?: number
   <div style={{ position: "absolute", inset: 0, opacity, backgroundImage: `radial-gradient(${color} 1.8px, transparent 1.8px)`, backgroundSize: `${size}px ${size}px` }} />
 );
 
-/** 手绘方框容器：歪扭边框 + 内部内容，用于卡片与证据框。 */
+/** 手绘方框容器：流式卡片，尺寸只由调用者声明，不携带脱离布局的坐标。 */
 export const SketchBox: React.FC<{
   seed: number;
-  x: number;
-  y: number;
   w: number;
   h: number;
   children?: React.ReactNode;
@@ -151,25 +163,24 @@ export const SketchBox: React.FC<{
   delay?: number;
   duration?: number;
   rotation?: number;
-}> = ({ seed, x, y, w, h, children, stroke, strokeWidth = 7, fill, fillOpacity = 0.18, frame, delay = 0, duration = 26, rotation = 0 }) => (
-  <div style={{ position: "absolute", left: x, top: y, width: w, height: h, transform: `rotate(${rotation}deg)`, transformOrigin: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+}> = ({ seed, w, h, children, stroke, strokeWidth = 7, fill, fillOpacity = 0.18, frame, delay = 0, duration = 26, rotation = 0 }) => (
+  <div style={{ position: "relative", flexShrink: 0, width: w, height: h, transform: `rotate(${rotation}deg)`, transformOrigin: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
     <Sketch
       frame={frame}
       delay={delay}
       duration={duration}
       fillOpacity={fillOpacity}
       paths={roughRect(seed, 0, 0, w, h, { stroke, strokeWidth, fill })}
-      style={{ transform: `rotate(${rotation}deg)` }}
+      viewBox={`0 0 ${w} ${h}`}
+      style={{ width: "100%", height: "100%" }}
     />
     {children}
   </div>
 );
 
-/** 手绘便签卡：暖纸底色 + 顶部胶带条 + 歪扭边框。 */
+/** 手绘便签卡：流式便签，暖纸底色 + 顶部胶带条 + 歪扭边框。 */
 export const SketchNote: React.FC<{
   seed: number;
-  x: number;
-  y: number;
   w: number;
   h: number;
   children?: React.ReactNode;
@@ -178,15 +189,17 @@ export const SketchNote: React.FC<{
   delay?: number;
   rotation?: number;
   style?: React.CSSProperties;
-}> = ({ seed, x, y, w, h, children, tapeColor = "#ffb020", frame, delay = 0, rotation = -2, style }) => {
+}> = ({ seed, w, h, children, tapeColor = "#ffb020", frame, delay = 0, rotation = -2, style }) => {
   const progress = enter(frame, 30, delay, 15);
   return (
-    <div style={{ position: "absolute", left: x, top: y, width: w, height: h, transform: `translateY(${(1 - progress) * 40}px) rotate(${rotation}deg)`, opacity: progress, ...style }}>
+    <div style={{ position: "relative", flexShrink: 0, width: w, height: h, transform: `translateY(${(1 - progress) * 40}px) rotate(${rotation}deg)`, opacity: progress, ...style }}>
       <Sketch
         frame={frame}
         delay={delay}
         fillOpacity={0.95}
         paths={roughRect(seed, 0, 0, w, h, { fill: "#ffef9f", stroke: INK, strokeWidth: 7 })}
+        viewBox={`0 0 ${w} ${h}`}
+        style={{ width: "100%", height: "100%" }}
       />
       <div style={{ position: "absolute", left: w * 0.34, top: -14, width: w * 0.32, height: 26, background: tapeColor, opacity: 0.7, transform: "rotate(-2deg)" }} />
       <div style={{ position: "absolute", inset: "26px 30px 22px", display: "flex", flexDirection: "column", justifyContent: "center" }}>{children}</div>
@@ -226,13 +239,15 @@ export const SketchTitle: React.FC<{
   delay?: number;
   underlineSeed?: number;
   underlineColor?: string;
+  underlineWidth?: number;
   lineHeight?: number;
-}> = ({ children, color = INK, fontFamily, fontSize = 108, delay = 8, underlineSeed, underlineColor = ACCENT, lineHeight = 0.98 }) => {
+}> = ({ children, color = INK, fontFamily, fontSize = 108, delay = 8, underlineSeed, underlineColor = ACCENT, underlineWidth, lineHeight = 0.98 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const reveal = enter(frame, fps, delay, 15);
+  const lineWidth = underlineWidth ?? fontSize * 8;
   return (
-    <div style={{ textAlign: "left" }}>
+    <div style={{ position: "relative", marginBottom: underlineSeed !== undefined ? 52 : 0, textAlign: "left" }}>
       <div style={{ fontSize, lineHeight, fontWeight: 950, letterSpacing: "-0.06em", color, fontFamily, transform: `translateY(${(1 - reveal) * 44}px)`, opacity: reveal }}>
         {children}
       </div>
@@ -243,10 +258,12 @@ export const SketchTitle: React.FC<{
           duration={20}
           paths={roughCurve(underlineSeed, [
             [6, 18],
-            [Math.round(fontSize * 0.35), 34],
-            [Math.round(fontSize * 0.72), 14],
-            [Math.round(fontSize * 0.95), 30],
+            [Math.round(lineWidth * 0.33), 34],
+            [Math.round(lineWidth * 0.65), 14],
+            [Math.round(lineWidth * 0.95), 30],
           ], { stroke: underlineColor, strokeWidth: 9 })}
+          viewBox={`0 0 ${lineWidth} 52`}
+          style={{ left: 0, top: "100%", right: "auto", bottom: "auto", width: lineWidth, height: 52 }}
         />
       ) : null}
     </div>
@@ -290,7 +307,7 @@ export const SketchSteps: React.FC<{
         return (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 24, opacity, transform: `translateY(${y}px)` }}>
             <div style={{ position: "relative", width: 74, height: 74, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Sketch frame={frame} delay={delay} fillOpacity={0.95} paths={roughBadge(40 + i, 37, 37, 36, { fill: "#fff8d7", stroke: INK, strokeWidth: 6 })} />
+              <Sketch frame={frame} delay={delay} fillOpacity={0.95} paths={roughBadge(40 + i, 37, 37, 36, { fill: "#fff8d7", stroke: INK, strokeWidth: 6 })} viewBox="0 0 74 74" style={{ width: "100%", height: "100%" }} />
               <span style={{ position: "relative", zIndex: 2, fontSize: 36, fontWeight: 950, fontFamily: "ui-monospace, monospace", color: INK }}>{i + 1}</span>
             </div>
             <span style={{ color: text, fontSize, lineHeight: 1.15, fontWeight: 900, fontFamily }}>{step}</span>
@@ -314,7 +331,7 @@ export const SketchBars: React.FC<{
         <div key={row.label} style={{ marginTop: index === 0 ? 0 : 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 24, marginBottom: 12, fontSize: 32, lineHeight: 1, fontWeight: 900 }}><span>{row.label}</span><span style={{ color: row.color }}>{Math.round(row.value * 100)}%</span></div>
           <div style={{ position: "relative", height: 26 }}>
-            <Sketch frame={frame} delay={startFrame + index * 16} duration={20} paths={roughRect(80 + index, 0, 0, 780, 26, { stroke: INK, strokeWidth: 5 })} />
+            <Sketch frame={frame} delay={startFrame + index * 16} duration={20} paths={roughRect(80 + index, 0, 0, 780, 26, { stroke: INK, strokeWidth: 5 })} viewBox="0 0 780 26" style={{ width: "100%", height: "100%" }} />
             <div style={{ position: "absolute", left: 8, top: 8, width: `${progress * 752}px`, height: 12, background: row.color, opacity: 0.85 }} />
           </div>
         </div>
@@ -329,7 +346,7 @@ export const SketchProgress: React.FC<{ color?: string; width?: number; delay?: 
   const bar = interpolate(frame, [delay, delay + 46], [0, 1], clamp);
   return (
     <div style={{ position: "relative", width, height: 34, marginTop: 46 }}>
-      <Sketch frame={frame} delay={delay} duration={24} paths={roughRect(101, 0, 0, width, 34, { stroke: INK, strokeWidth: 6 })} />
+      <Sketch frame={frame} delay={delay} duration={24} paths={roughRect(101, 0, 0, width, 34, { stroke: INK, strokeWidth: 6 })} viewBox={`0 0 ${width} 34`} style={{ width: "100%", height: "100%" }} />
       <div style={{ position: "absolute", left: 7, top: 7, height: 20, width: `${bar * (width - 14)}px`, background: color }} />
     </div>
   );

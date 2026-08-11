@@ -1,6 +1,6 @@
-# 导演语言与提示词模板（提炼自 Vincentwei1021/video-shotcraft）
+# 导演语言与提示词模板
 
-> video-shotcraft 是“真正用好 Remotion”的核心参考：它把一支电影感视频拆成镜头配方、运镜、节奏与声音。本项目取其导演语言与提示词模板，落地为代码驱动的工作流。**完整资料已拷贝到 `references/video-shotcraft/`**（用 `recut.skills.reference` 读取）：`SKILL.md`（三种创作模式判断）、`references/pipeline.md`（八阶段流水线）、`references/shots/`（104 张镜头配方卡 + 每张卡的“参考实现”源码定位）、`references/sequences/`（桥段模板）、`references/aesthetic-rules.md`（审美准则 checklist）、`references/sound-design.md`（SFX/BGM 设计）、`references/music-beat-sync.md`（卡点）、`references/guided-free-creation.md`（共同创作确认节点）、`references/final-review.md`（独立终检）与 `template/TEMPLATE.md`（Ink Press 成片模板）。本文件是全片动效取舍的速查，细节以 video-shotcraft 目录为准。
+> 本文件是全片动效取舍的速查。完整资料直接位于本目录：制作流程见 `production-workflow.md`，镜头配方见 `shot-recipes/`，桥段见 `sequence-patterns/`，审美与声音见 `aesthetic-rules.md`、`sound-design.md` 和 `music-beat-sync.md`，共同创作与终检分别见 `collaborative-creation.md`、`final-review.md`。
 
 ## 一、先定“动效嗓音”：品牌 → 动效参数
 
@@ -36,7 +36,7 @@
 
 ## 四、提示词模板（改写代码时的自检清单）
 
-设计每个 scene 时，在心里按以下提示词段落过一遍（源自 video-shotcraft 的镜头配方结构）：
+设计每个 scene 时，在心里按以下提示词段落过一遍：
 
 1. **目标**：这个 scene 要让观众看见什么、理解什么、感受到什么情绪。
 2. **镜头**：只选一个连续镜头运动，不塞多个。
@@ -57,4 +57,4 @@
 - 装饰性 glint/泛光群发 = 廉价；批量元素入场靠运动本身，单点高质量光效可做。
 - 手搓 UI 只用于非复刻场景，且质量与表达明确性是硬门槛；本项目以 `resolveMediaUrl` 引用的真实素材为主。
 
-**来源与授权**：本文档为 video-shotcraft（Vincentwei1021）导演语言与镜头配方提示词的提炼与本地化；完整镜头卡、Gallery 样片与六阶段流水线见其仓库。
+完整镜头卡、桥段与制作流程均随本 skill 分发；实现时以 `@recut/remotion-kit` 的实际源码和 `catalog.json` 为唯一组件真相源。

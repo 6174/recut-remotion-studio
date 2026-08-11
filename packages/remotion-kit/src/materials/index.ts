@@ -5,15 +5,33 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 export { CanvasUiCloudsMaterial } from "./ambient/clouds-material";
+export { BlazeMaterial } from "./ambient/blaze-material";
+export { GlyphRainMaterial } from "./ambient/glyph-rain-material";
+export { GridMaterial } from "./ambient/grid-material";
+export { LaserMaterial } from "./ambient/laser-material";
+export { LiquidMaterial } from "./ambient/liquid-material";
+export { ParticleScrollMaterial } from "./ambient/particle-scroll-material";
+export { AsciifyMaterial } from "./post/asciify-material";
 export { HtmlArticleHighlightMaterial } from "./post/article-highlight-material";
 export { HtmlBubbleMaterial } from "./post/bubble-material";
 export { HtmlCrtMaterial } from "./post/crt-material";
+export { DecryptRevealMaterial } from "./post/decrypt-reveal-material";
+export { DisplacementMaterial } from "./post/displacement-material";
+export { DropletsMaterial } from "./post/droplets-material";
+export { FrostMaterial } from "./post/frost-material";
 export { HtmlGlassMaterial } from "./post/glass-material";
 export { HtmlGlitchMaterial } from "./post/glitch-material";
 export { HtmlMagnifyMaterial } from "./post/magnify-material";
+export { ParticleRevealMaterial } from "./post/particle-reveal-material";
+export { RetroDitherMaterial } from "./post/retro-dither-material";
+export { RippleMaterial } from "./post/ripple-material";
+export { TextFocusMaterial } from "./post/text-focus-material";
+export { VhsMaterial } from "./post/vhs-material";
 export { HtmlVintageMaterial } from "./post/vintage-material";
 export { HtmlBendMaterial } from "./transform/bend-material";
+export { ClothMaterial } from "./transform/cloth-material";
 export { HtmlStorePeelMaterial } from "./transform/store-peel-material";
+export * from "./transition";
 export { MATERIAL_REGISTRY, getMaterialDefinition } from "./registry";
 export { MATERIAL_SCHEMA } from "./schema";
 export { MaterialElement } from "./MaterialElement";

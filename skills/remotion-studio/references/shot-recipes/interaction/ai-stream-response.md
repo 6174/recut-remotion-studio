@@ -15,7 +15,7 @@ name: ai-stream-response
 - 面板进入后摘要句先以短 wipe/淡入落定，落定后至少 12f 才起首条证据
 - 6–8 条证据行自下方 14–24px + 轻微 blur 逐行汇入；间隔逐渐收紧但保留可数节拍
 - 行体先停，状态图标晚 2–4f 由 pending 转 running/done，形成主次拖拽层级
-  （模式已沉为 assets/lib/helpers/motion.ts lagged）
+  （模式已沉为 /remotion-kit/components/helpers/motion.ts lagged）
 - 末条完成后只做一次面板级完成脉冲，随后全画面静止 ≥15f；不逐行 glint
 
 ## 参数表

@@ -3,7 +3,7 @@
   "version": "0.6.0",
   "private": true,
   "type": "module",
-  "description": "Shared Remotion base components for Recut Remotion Studio: 13 caption themes, 81 vendored remotion-templates, shotcraft components, effects and bundled scenario solutions.",
+  "description": "Shared Remotion base components for Recut Remotion Studio: caption themes, templates, motion components, effects, and bundled scene solutions.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
@@ -17,10 +17,10 @@
     "./materials": "./src/materials/index.ts",
     "./three": "./src/three/index.ts",
     "./styles": "./src/styles/index.ts",
-    "./shotcraft": "./src/components/index.ts",
+    "./components": "./src/components/index.ts",
     "./templates": "./src/components/index.ts",
     "./templates/*": "./src/components/*.tsx",
-    "./shotcraft/*": "./src/components/*.tsx"
+    "./components/*": "./src/components/*.tsx"
   },
   "files": [
     "src"

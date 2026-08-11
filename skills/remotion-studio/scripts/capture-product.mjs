@@ -1,4 +1,11 @@
-// capture-template.mjs — 把真实产品页面变成宣传片素材的三件套采集脚本模板
+/**
+ * [INPUT]: 依赖 Puppeteer、目标产品本地开发服务器与脱敏后的演示数据。
+ * [OUTPUT]: 对外提供可配置脚本，采集整页截图、元素切片与 layout.json 坐标。
+ * [POS]: remotion-studio skill 的真实产品素材采集工具；为 composition 提供视觉证据，
+ *        不参与场景、组件或渲染编排。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
+// capture-product.mjs — 把真实产品页面变成宣传片素材的三件套采集脚本模板
 // 通用页面截图管线模板：BASE/输出目录/路由/选择器全部提升为 CONFIG
 //
 // 产出三件套（宣传片 3D 页面平面的全部素材来源）：
@@ -7,7 +14,7 @@
 //   3. layout.json（每个元素在整页坐标系里的 bbox，供动画按真实版式定位）
 //
 // 用法：
-//   node capture-template.mjs
+//   node capture-product.mjs
 //
 // 前置条件（三条都是硬前提）：
 //   1. 目标产品在本地跑起来（CONFIG.BASE 可访问）；

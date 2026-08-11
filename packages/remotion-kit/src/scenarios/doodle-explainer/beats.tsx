@@ -24,7 +24,7 @@ import {
   SketchProgress,
   SketchSteps,
   SketchTitle,
-  roughArrow,
+  roughCurveArrow,
   roughCurve,
   roughEllipse,
   roughRect,
@@ -49,7 +49,7 @@ const HookBeat: BeatRenderer = ({ scene, p, frame }) => {
         </SketchTitle>
         {scene.subtitle ? <div style={{ marginTop: 42, maxWidth: 1160, fontSize: 44, fontWeight: 900, lineHeight: 1.3 }}>{scene.subtitle as string}</div> : null}
       </div>
-      <Sketch frame={frame} delay={16} duration={34} paths={roughArrow(205, 1580, 820, 420, 250, { stroke: ACCENT, strokeWidth: 10, arrowhead: 90 })} />
+      <Sketch frame={frame} delay={16} duration={34} paths={roughCurveArrow(205, [[1640, 790], [1710, 690], [1640, 570], [1480, 500]], { stroke: ACCENT, strokeWidth: 10, arrowhead: 84 })} />
       <div style={{ position: "absolute", left: 90, top: 830, fontSize: 44, fontWeight: 950, color: ACCENT, transform: "rotate(-4deg)", opacity: interpolate(frame, [20, 34], [0, 1], clamp) }}>画出来，就懂了</div>
       <Sketch frame={frame} delay={20} duration={30} paths={roughCurve(206, [[90, 940], [220, 955], [340, 938], [470, 952], [600, 940]], { stroke: INK, strokeWidth: 9 })} />
       <div style={{ position: "absolute", left: 600, top: 900, fontSize: 62, fontWeight: 950, color: INK, transform: `translateX(${penX}px)` }}>✎</div>
@@ -75,8 +75,6 @@ const ConceptBeat: BeatRenderer = ({ scene, p, frame }) => {
             <SketchBox
               key={point}
               seed={310 + index}
-              x={0}
-              y={0}
               w={Math.max(250, point.length * 52)}
               h={86}
               frame={frame}
@@ -111,10 +109,10 @@ const SketchBeat: BeatRenderer = ({ scene, p, frame }) => {
           </div>
         </div>
         <div style={{ flexShrink: 0, position: "relative", width: 520, height: 460 }}>
-          <Sketch frame={frame} delay={16} duration={40} paths={roughRect(403, 0, 0, 520, 460, { stroke: ACCENT, strokeWidth: 9, fill: "#fffdf5", fillStyle: "solid" })} />
+          <Sketch frame={frame} delay={16} duration={40} paths={roughRect(403, 0, 0, 520, 460, { stroke: ACCENT, strokeWidth: 9, fill: "#fffdf5", fillStyle: "solid" })} viewBox="0 0 520 460" style={{ width: "100%", height: "100%" }} />
           <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
             <div style={{ fontSize: 46, fontWeight: 950, color: ACCENT, transform: "rotate(-3deg)" }}>STEP BY STEP</div>
-            <Sketch frame={frame} delay={24} duration={30} paths={roughArrow(404, 90, 420, 430, 210, { stroke: INK, strokeWidth: 8, arrowhead: 60 })} />
+            <Sketch frame={frame} delay={24} duration={30} paths={roughCurveArrow(404, [[100, 360], [180, 300], [320, 315], [420, 230]], { stroke: INK, strokeWidth: 8, arrowhead: 56 })} viewBox="0 0 520 460" style={{ width: "100%", height: "100%" }} />
             <div style={{ fontSize: 130, lineHeight: 1, fontWeight: 950, color: INK }}>?</div>
           </div>
         </div>
@@ -134,9 +132,11 @@ const ExampleBeat: BeatRenderer = ({ scene, p, frame }) => {
         <div style={{ flex: 1, minWidth: 0 }}>
           <SketchTitle fontSize={92} fontFamily={HAND} underlineSeed={502} underlineColor={ACCENT}>{scene.title}</SketchTitle>
           {scene.narration ? <div style={{ marginTop: 36, maxWidth: 860, fontSize: 44, lineHeight: 1.3, fontWeight: 900 }}>{scene.narration}</div> : null}
-          <Sketch frame={frame} delay={20} duration={30} paths={roughArrow(503, 200, 520, 520, 300, { stroke: ACCENT, strokeWidth: 9, arrowhead: 84 })} />
+          <div style={{ position: "relative", width: "100%", height: 150, marginTop: 24 }}>
+            <Sketch frame={frame} delay={20} duration={30} paths={roughCurveArrow(503, [[100, 110], [230, 155], [420, 125], [610, 70]], { stroke: ACCENT, strokeWidth: 9, arrowhead: 72 })} viewBox="0 0 860 180" style={{ width: "100%", height: "100%" }} />
+          </div>
         </div>
-        <SketchNote seed={504} x={0} y={0} w={560} h={430} frame={frame} delay={16} rotation={2.4} style={{ flexShrink: 0, position: "relative" }}>
+        <SketchNote seed={504} w={560} h={430} frame={frame} delay={16} rotation={2.4}>
           <div style={{ fontSize: 32, lineHeight: 1, fontWeight: 950, color: ACCENT }}>FOR EXAMPLE</div>
           <div style={{ marginTop: 26, fontSize: 46, lineHeight: 1.18, fontWeight: 950, color: INK }}>{String(scene.example || "一个具体的、能立刻想象的例子。")}</div>
         </SketchNote>
@@ -155,14 +155,14 @@ const AnalogyBeat: BeatRenderer = ({ scene, p, frame }) => {
       <DotGrid />
       <div style={{ position: "absolute", top: 90, right: 150 }}><SketchChip seed={601} frame={frame} delay={6}>{scene.kicker || "04 · 换个角度"}</SketchChip></div>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 40, padding: "0 8%", opacity }}>
-        <SketchBox seed={602} x={0} y={0} w={560} h={430} frame={frame} delay={12} stroke={INK} strokeWidth={8} rotation={-1.6}>
+        <SketchBox seed={602} w={560} h={430} frame={frame} delay={12} stroke={INK} strokeWidth={8} rotation={-1.6}>
           <div style={{ textAlign: "center", padding: "0 36px" }}>
             <div style={{ fontSize: 34, fontWeight: 950, color: ACCENT }}>看起来像</div>
             <div style={{ marginTop: 30, fontSize: 78, lineHeight: 1.02, fontWeight: 950, color: INK }}>{source}</div>
           </div>
         </SketchBox>
-        <Sketch frame={frame} delay={30} duration={36} paths={roughArrow(603, 100, 260, 560, 210, { stroke: ACCENT, strokeWidth: 10, arrowhead: 80 })} style={{ position: "relative", width: 300, height: 300, transform: "rotate(-6deg)" }} />
-        <SketchBox seed={604} x={0} y={0} w={560} h={430} frame={frame} delay={24} stroke={ACCENT} strokeWidth={8} fill={ACCENT} fillOpacity={0.08} rotation={1.8}>
+        <Sketch frame={frame} delay={30} duration={36} paths={roughCurveArrow(603, [[40, 210], [100, 120], [200, 130], [260, 180]], { stroke: ACCENT, strokeWidth: 10, arrowhead: 70 })} viewBox="0 0 300 300" style={{ position: "relative", width: 300, height: 300, transform: "rotate(-6deg)" }} />
+        <SketchBox seed={604} w={560} h={430} frame={frame} delay={24} stroke={ACCENT} strokeWidth={8} fill={ACCENT} fillOpacity={0.08} rotation={1.8}>
           <div style={{ textAlign: "center", padding: "0 36px" }}>
             <div style={{ fontSize: 34, fontWeight: 950, color: ACCENT }}>其实要看</div>
             <div style={{ marginTop: 30, fontSize: 78, lineHeight: 1.02, fontWeight: 950, color: INK }}>{target}</div>
@@ -186,13 +186,15 @@ const DataBeat: BeatRenderer = ({ scene, p, frame }) => {
       <div style={{ position: "absolute", top: 90, left: 150 }}><SketchChip seed={702} frame={frame} delay={6}>{scene.kicker || "05 · 看数据"}</SketchChip></div>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 80, padding: "0 11%", opacity }}>
         <div style={{ width: 560, flexShrink: 0, textAlign: "center" }}>
-          <Sketch frame={frame} delay={10} duration={30} paths={roughEllipse(703, 280, 210, 300, 200, { stroke: INK, strokeWidth: 8 })} />
-          <div style={{ position: "relative", marginTop: -400 }}>
+          <div style={{ position: "relative", height: 420 }}>
+            <Sketch frame={frame} delay={10} duration={30} paths={roughEllipse(703, 280, 210, 270, 190, { stroke: INK, strokeWidth: 8 })} viewBox="0 0 560 420" style={{ width: "100%", height: "100%" }} />
+            <div style={{ position: "relative", zIndex: 1, paddingTop: 92 }}>
             <div style={{ fontSize: 200, fontWeight: 950, lineHeight: 0.78, color: INK, letterSpacing: "-0.1em" }}>
               {metric.value ? <DigitRoll color={INK} delay={16} fontSize={200} value={metric.value} /> : "3"}
             </div>
             <div style={{ marginTop: 34, fontSize: 52, fontWeight: 950, color: ACCENT }}>{metric.unit || "个信号"}</div>
             <div style={{ marginTop: 20, fontSize: 38, fontWeight: 900, lineHeight: 1.15, color: INK }}>{metric.label || "判断一件事值不值得追"}</div>
+            </div>
           </div>
         </div>
         <div style={{ flex: 1, maxWidth: 820 }}>
@@ -218,8 +220,6 @@ const RecapBeat: BeatRenderer = ({ scene, p, frame }) => {
             <SketchNote
               key={point}
               seed={810 + index}
-              x={0}
-              y={0}
               w={430}
               h={300}
               frame={frame}
@@ -250,7 +250,7 @@ const ConclusionBeat: BeatRenderer = ({ scene, p, frame }) => {
         </SketchTitle>
         <SketchProgress color={ACCENT} delay={34} />
       </div>
-      <Sketch frame={frame} delay={16} duration={30} paths={roughArrow(904, 1500, 830, 500, 260, { stroke: ACCENT, strokeWidth: 10, arrowhead: 88 })} />
+      <Sketch frame={frame} delay={16} duration={30} paths={roughCurveArrow(904, [[1570, 820], [1730, 790], [1760, 640], [1640, 500]], { stroke: ACCENT, strokeWidth: 10, arrowhead: 82 })} />
     </AbsoluteFill>
   );
 };

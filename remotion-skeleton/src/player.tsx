@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @remotion/player、ProjectVideo 与 preview/props.json
  * [OUTPUT]: 对外提供读取 preview/props.json 并渲染 ProjectVideo 的 App 组件（由 bootstrap 动态加载并挂载）；Player 内容区域限制最大 960×540，居中显示
- * [POS]: remotion-skeleton 的浏览器预览根组件；入口与全局错误捕获在 bootstrap.tsx
+ * [POS]: remotion-skeleton 的浏览器预览根组件；固定无声视觉预览，避免宿主音频设备缺失时创建 WebAudio；入口与全局错误捕获在 bootstrap.tsx
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React, { useEffect, useState } from "react";
@@ -45,9 +45,11 @@ export function App() {
           controls
           durationInFrames={meta.durationInFrames}
           fps={meta.fps}
+          initialVolume={0}
           initiallyMuted
           inputProps={props}
           loop
+          showVolumeControls={false}
           style={{ width: "100%", height: "100%" }}
           errorFallback={({ error: renderError }) => (
             <ErrorView title="composition 渲染出错" detail={(renderError as Error).stack || String(renderError)} />

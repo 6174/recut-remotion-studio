@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖同目录的 81 个独立 Remotion 模板
- * [OUTPUT]: 对外提供 `@recut/remotion-kit/templates` 的稳定模板导出面
+ * [INPUT]: 依赖同目录的独立 Remotion 模板与内容容器组件
+ * [OUTPUT]: 对外提供 `@recut/remotion-kit/templates` 的稳定模板与动态组件导出面
  * [POS]: remotion-templates 的唯一 barrel；预览层通过它按目录 ID 解析真实组件
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -89,6 +89,8 @@ export { default as ZoomPulse } from "./zoom-pulse";
 export { Caption } from "./Caption";
 export { DigitRoll } from "./DigitRoll";
 export { FlashCut } from "./FlashCut";
+export { FlameFrame } from "./FlameFrame";
+export type { FlameFrameProps } from "./FlameFrame";
 export { PageCam } from "./PageCam";
 export type { CamKey } from "./PageCam";
 export { VerticalTicker } from "./VerticalTicker";

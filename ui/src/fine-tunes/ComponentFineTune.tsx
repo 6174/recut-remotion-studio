@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖组件目录、preview/PreviewCard 与 FineTuneProps 回调
  * [OUTPUT]: 对外提供 ComponentFineTune，左侧选择目录、右侧播放真实组件预览并生成插入提示
- * [POS]: remotion-studio/ui/fine-tunes 的动态组件微调动作；将 catalog 的 template/shotcraft 类型映射到右侧预览层
+ * [POS]: remotion-studio/ui/fine-tunes 的动态组件微调动作；将 catalog 的 template/motion 类型映射到右侧预览层
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useEffect, useMemo, useState } from "react";

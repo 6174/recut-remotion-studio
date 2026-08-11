@@ -7,7 +7,7 @@
 - **Brief 表单**：新建项目时直接预览并选择成片模板，再填写选题和素材，一键交给 AI 设计。
 - **代码驱动的创作台**：AI 用原生文件工具直接读写项目私有 `workspace/`（绝对路径由 `workflow.context` 的 `paths` 提供）里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
 - **Vite 热更新预览**：每个项目一个 Vite dev server，iframe 嵌入其预览页（`@remotion/player`，播放/暂停/进度条）；AI 改代码即热更新。
-- **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置 shotcraft 组件与素材库仅作为局部编辑工具。SRT 场景只选择成片模板和字幕来源。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
+- **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置动态组件与素材库仅作为局部编辑工具。SRT 场景只选择成片模板和字幕来源。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
 - **重置项目**：一键把 workspace 重置回骨架（丢失 AI 改写，仅测试/回退用）。
 - **打开项目文件夹**：从右上角在 Finder、Windows 资源管理器或 Linux 默认文件管理器中直接打开当前项目的 `workspace/`。
 - **本地导出**：`render.js` 使用 `@remotion/bundler` + `@remotion/renderer` 在本地 headless Chrome 中把项目 workspace 的 composition 渲染为 MP4，并归档为 Recut 媒体素材；每次完成导出自动将该 MP4 设为 Project 封面。
@@ -16,7 +16,7 @@
 
 ```text
 manifest.json   唯一运行时配置（operations、permissions、onboarding）
-background.js   Goja 沙箱业务后端：Brief、workspace seed/reset/open、组件目录（catalog.list）、素材登记、预览服务、终端、日志、渲染任务编排
+background.js   Goja 沙箱业务后端：Brief、workspace seed/reset/open、组件目录（catalog.list）、素材登记、预览服务（启动时同步系统拥有的无声 player.tsx）、终端、日志、渲染任务编排
 seed.js         骨架 remotion-skeleton → 项目私有 workspace/（含 node_modules 符号链接）
 skills/
   remotion-studio/  代码驱动主技能；场景技能与模板代码封装在 @recut/remotion-kit/src/scenarios/
@@ -37,7 +37,7 @@ remotion-skeleton/   每个项目工作区的骨架（seed 时整体复制，AI 
     captions/             字幕主题（remotion-captions-themes 13 套）
     components/ui/        本地 shadcn 原子（Button/Card/Badge/Input/Textarea）+ lib/utils 的 cn
     components/  remotion-templates 全部 81 个单文件组件 + README 目录
-    components/  video-shotcraft 的 lib 组件（PageCam/Caption/DigitRoll/… 与 helpers）
+    components/  内置动态组件（PageCam/Caption/DigitRoll/… 与 helpers）
     runtime/media.ts       resolveMediaUrl(assetId, media)——预览与导出统一走 props
 ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作与终端/日志分栏）
 ```
@@ -70,6 +70,6 @@ make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 
 - **remotion-templates**（reactvideoeditor.com，免费）：全部 81 个单文件模板组件拷贝到 `remotion-skeleton/src/components/`（含 README 目录表），背景特效已封装进 `src/effects/registry.tsx`、文字特效封装进 `src/effects/text.tsx`；目录见 `skills/remotion-studio/references/effects.md`。
 - **remotion-captions-themes**（vshukla7，MIT）：字幕主题源码整体拷贝到 `remotion-skeleton/src/captions/vendor/`（保持原结构），目录见 `references/captions.md`。
-- **video-shotcraft**（Vincentwei1021）：`assets/lib/` 组件拷贝到 `remotion-skeleton/src/components/`；`SKILL.md`、`references/`（八阶段流水线、104 张镜头配方卡、审美/声音/终检准则）、`template/TEMPLATE.md` 整体拷贝到 `skills/remotion-studio/references/video-shotcraft/`，供 skill 经 `recut.skills.reference` 读取；导演语言速查见 `references/directing.md`。
+- **创作参考资料**：镜头配方、制作流程、审美、声音、共同创作与终检资料均直接位于 `skills/remotion-studio/references/`；它们由唯一的 `remotion-studio` skill 按需读取，组件实现统一由 `@recut/remotion-kit` 提供。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

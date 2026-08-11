@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Three Texture、Remotion transition progress/time 与 R3F ShaderMaterial
- * [OUTPUT]: 对外提供 HtmlStorePeelMaterial，以 cylinder curl、adhesive back 与双层 shine 揭示当前内容纹理（转场）
+ * [OUTPUT]: 对外提供 HtmlStorePeelMaterial，以 cylinder curl、adhesive back 与贴合弧面的反射光揭示当前内容纹理（转场）
  * [POS]: remotion-kit/src/materials 的 transform Effect Node；从 opaque scene texture 取样，不创建额外 DOM 或独立时钟
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -24,12 +24,6 @@ const fragmentShader = `
   uniform float uCurlRadius;
   uniform vec2 uCorner;
   uniform vec2 uDirection;
-  uniform vec2 uBandNormal;
-  uniform float uBandT;
-  uniform float uHaloSigma;
-  uniform float uCoreSigma;
-  uniform float uHaloIntensity;
-  uniform float uCoreIntensity;
   varying vec2 vUv;
 
   const float PI = 3.14159265359;
@@ -38,14 +32,6 @@ const fragmentShader = `
   vec4 sampleFlat(vec2 uv) {
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) return vec4(0.0);
     return texture2D(uMap, uv);
-  }
-
-  float shineIntensity(vec2 point) {
-    vec2 fromCenter = point - uResolution * 0.5;
-    float distanceToBand = abs(dot(fromCenter, uBandNormal) - uBandT);
-    float halo = exp(-(distanceToBand * distanceToBand) / (uHaloSigma * uHaloSigma)) * uHaloIntensity;
-    float core = exp(-(distanceToBand * distanceToBand) / (uCoreSigma * uCoreSigma)) * uCoreIntensity;
-    return clamp(halo + core, 0.0, 1.0);
   }
 
   vec4 applyShine(vec4 color, float intensity) {
@@ -59,10 +45,9 @@ const fragmentShader = `
     vec2 perpendicular = fromCorner - projected * uDirection;
     float curlAxis = uProgress * uMaxAxisDistance;
     vec4 flatColor = sampleFlat(vUv);
-    float shine = shineIntensity(point);
 
     if (projected >= curlAxis) {
-      gl_FragColor = applyShine(flatColor, shine);
+      gl_FragColor = flatColor;
       return;
     }
 
@@ -81,13 +66,18 @@ const fragmentShader = `
     vec2 backUv = vec2(backPoint.x / uResolution.x, 1.0 - backPoint.y / uResolution.y);
     vec4 front = sampleFlat(frontUv);
     vec4 back = sampleFlat(backUv);
-    float frontShade = mix(1.0, 0.78, sin(frontArc / uCurlRadius));
+    float frontCurve = frontArc / uCurlRadius;
+    float backCurve = backArc / uCurlRadius;
+    float frontShade = mix(1.0, 0.78, sin(frontCurve));
     float backShade = mix(0.62, 0.42, (backArc / uCurlRadius - PI * 0.5) / (PI * 0.5));
+    // 反射只能出现于已经弯曲的纸面：位置由同一个 curlAxis + arc 推导，绝不再扫过平页。
+    float frontShine = exp(-pow((frontCurve - 0.48) / 0.16, 2.0)) * 0.46;
+    float backShine = exp(-pow((backCurve - 2.25) / 0.22, 2.0)) * 0.12;
 
     if (front.a > 0.02) {
-      gl_FragColor = applyShine(vec4(front.rgb * frontShade, front.a), shine);
+      gl_FragColor = applyShine(vec4(front.rgb * frontShade, front.a), frontShine);
     } else if (back.a > 0.02 && flatColor.a > 0.02) {
-      gl_FragColor = vec4(BACK_COLOR * backShade, back.a);
+      gl_FragColor = applyShine(vec4(BACK_COLOR * backShade, back.a), backShine);
     } else {
       gl_FragColor = vec4(0.0);
     }
@@ -103,7 +93,6 @@ export interface HtmlStorePeelMaterialProps {
   height: number;
   progress: number;
   texture: THREE.Texture;
-  time: number;
   width: number;
 }
 
@@ -111,23 +100,15 @@ export const HtmlStorePeelMaterial: React.FC<HtmlStorePeelMaterialProps> = ({
   height,
   progress,
   texture,
-  time,
   width,
 }) => {
   const direction = useMemo(
     () => new THREE.Vector2(-0.72, 0.69).normalize(),
     [],
   );
-  const bandNormal = useMemo(
-    () => new THREE.Vector2(0.87, -0.5).normalize(),
-    [],
-  );
   const support =
     Math.abs(direction.x) * width * 0.5 + Math.abs(direction.y) * height * 0.5;
   const curlRadius = Math.min(width, height) * 0.24;
-  const shineRange =
-    Math.abs(bandNormal.x) * width * 0.5 +
-    Math.abs(bandNormal.y) * height * 0.5;
 
   const { material, uniforms } = useMaterialUniforms<THREE.ShaderMaterial>(
     () => ({
@@ -143,12 +124,6 @@ export const HtmlStorePeelMaterial: React.FC<HtmlStorePeelMaterialProps> = ({
         ),
       ),
       uDirection: new THREE.Uniform(direction),
-      uBandNormal: new THREE.Uniform(bandNormal),
-      uBandT: new THREE.Uniform(-shineRange),
-      uHaloSigma: new THREE.Uniform(Math.min(width, height) * 0.28),
-      uCoreSigma: new THREE.Uniform(Math.min(width, height) * 0.09),
-      uHaloIntensity: new THREE.Uniform(0.3),
-      uCoreIntensity: new THREE.Uniform(0.4),
     }),
     (u) => {
       const reveal = eased(progress);
@@ -160,9 +135,7 @@ export const HtmlStorePeelMaterial: React.FC<HtmlStorePeelMaterialProps> = ({
         height * 0.5 - direction.y * support,
       );
       u.uDirection.value.copy(direction);
-      u.uBandNormal.value.copy(bandNormal);
       u.uProgress.value = 1 - reveal;
-      u.uBandT.value = -shineRange + 2 * shineRange * reveal;
     },
   );
 

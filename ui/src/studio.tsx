@@ -94,8 +94,8 @@ const FINE_TUNES: FineTuneConfig[] = [
   {
     kind: "effects" as const,
     title: "镜头层特效",
-    description: "模拟交互 / 聚焦内容：鼠标、聚焦、选择与放大镜。",
-    basePrompt: "请把当前视频的表达增强为我选择的 HTML-in-Canvas 镜头层效果。组件回答“画面里有什么”，特效回答“观众如何感受、注意和理解它”。",
+    description: "选择 Three 材质或真实相机：聚焦、放大镜、推进、移镜与 crane。",
+    basePrompt: "请把当前视频的表达增强为我选择的 Three 镜头层效果。组件回答“画面里有什么”，材质和相机回答“观众如何感受、注意和理解它”。",
     Icon: MousePointer2,
   },
   {
@@ -240,11 +240,9 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const submitFineTune = () => {
     if (!fineTune) return;
     if (!fineTuneReady) {
-      const message = fineTune.kind === "effects"
-        ? "HTML-in-Canvas 平台能力未就绪，无法提交原生镜头层效果。请由平台启用 CanvasDrawElement 后重试。"
-        : fineTune.kind === "srt"
-          ? "请上传一个 SRT 文件，或选择一个音视频素材。"
-          : "请至少选择一个要使用的素材。";
+      const message = fineTune.kind === "srt"
+        ? "请上传一个 SRT 文件，或选择一个音视频素材。"
+        : "请至少选择一个要使用的素材。";
       setStatus(message);
       return;
     }

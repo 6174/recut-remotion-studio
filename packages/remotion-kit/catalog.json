@@ -14,7 +14,7 @@
       ],
       "implemented": true,
       "motion": "荧光绿纸面新闻钩子 → 大字号事实/影响拆解 → 三条信号 → 一句结论；网格纸、marker、箭头与眼睛建立强风格表达。",
-      "skillBody": "# 科技新闻解读（faceless-explainer）\n\n> 场景技能：这是「科技新闻解读」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：每日 AI、芯片、软件、硬件和产品发布新闻；把一条消息讲成“发生了什么、为什么重要、接下来该看什么”。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、纯人物采访、没有明确新闻事件的泛知识课。\n- **叙事承诺**：不复述新闻稿，不制造焦虑；每个镜头替观众完成一次更清楚的判断。\n\n## 二、默认视觉：渐变荧光绿科技报纸\n\n这是一个高风格化的科技媒体视觉模板，借鉴“网格纸 + 黑色大字 + 荧光 marker + 手绘箭头”的强传播海报语言：\n\n- **纸面秩序**：暖白底与细黑网格是全片底色，像一张可被标记的新闻草稿；网格只做背景，绝不承载内容。\n- **层次渐变**：场景大底必须同时使用暖白到冷青的底色渐变、两处径向光晕和 marker 多 stop 渐变；大色块不能是单一纯色。渐变只属于本场景，不上升为平台默认。\n- **焦点色**：荧光绿（`FACELESS_EXPLAINER_PALETTE.accent`）与青绿、浅蓝组成 marker 和标题渐变；黑字永远保留清晰轮廓，渐变只增加视觉层次，不牺牲对比度。\n- **情绪符号**：不规则 marker 色块、粗笔曲线箭头和夸张眼睛都来自 `primitives.tsx` 的确定性 SVG，不用随机数、外部贴图或装饰性小字。\n- **大字纪律**：标题使用 88–126px；正文 ≥48px，逐词字幕 ≥40px，编号和 CTA ≥44px。字幕是无底框的下三分之一旁白层，采用白字黑描边、克制逐词放大，不能遮住正文或新闻卡。读不到的字必须删除，绝不能缩小塞进画面。\n- **反标签纪律**：`kicker` 只能作为 54px 以上的构图文字，不能做成 tag、chip 或胶囊；没有叙事价值的编号和元数据直接删除。\n- **内容密度**：一个 beat 只有一个新闻判断，文本过多时删减或拆镜头；不要用“新闻列表”和小字装出信息量。\n\n## 三、导演视角：一条新闻，三问读懂\n\n开场三秒先给新闻钩子，中段依次把标题拆为事实、影响与信号，结尾给观众一条可带走的判断。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 抓住今天值得读的一条消息 | 荧光 marker 上的超大新闻标题 + 眼睛 | 标题上浮、箭头推出 | 5s |\n| ② | `concept` | 给出阅读新闻的独特视角 | 居中大主张 + 三枚粗体判断标签 | 色块/标签错峰落定 | 6s |\n| ③ | `evidence` | 拆出标题背后的事实 | 三条大字号问题 + `WHY?` 新闻卡 | 步骤逐项落下 | 6s |\n| ④ | `example` | 让抽象判断落在一类真实事件 | 案件卡 + 一句具体追问 | 新闻卡从 marker 色块前弹入 | 5s |\n| ⑤ | `analogy` | 纠正观众的观看角度 | “看起来像 / 其实要看”箭头对照 | 曲线箭头推进 | 5s |\n| ⑥ | `data` | 给出值得持续追踪的信号 | 超大 `3` + 三个判断问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压缩成每日清单 | 三张黑框新闻便签 | 便签错峰落下 | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 荧光 marker 上的结论大字 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。\n\n**HTML-in-Canvas 表达镜头（默认开启，`FACELESS_EXPLAINER_STAGE_PLAN`）**：concept beat 上做 hover → text-selection（对 `claim` 标题与定义逐行荧光 reveal），data beat 上做 click → focus-spotlight（聚焦三个判断问题）。鼠标轨迹与语义状态由同一 `InteractionScript` 推导；改文案/坐标时保持 `template/ProjectVideo.tsx` 的 StagePlan 目标几何与 `beats.tsx` 排版同步。场景可经 `stagePlan` prop 关闭（null）或替换；此镜头只在浏览器/导出 Chromium 支持 HTML-in-Canvas 时可用，不支持时硬阻断，不降级。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `Grid`、`MarkerBlob`、`DoodleArrow`、`DoodleEyes`、`PaperCard`、`StepList` 与 `DataBars`。这些原语已经固化了渐变、对比度、字号和确定性；`MarkerChip` 仅为旧 workspace 保留，不得用于新镜头。\n- `DigitRoll` 只用于已确认的数字，`DataBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由程序化图形构成；不得伪造新闻截图、采访画面、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 evidence/example，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用荧光绿纸面 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一句新闻钩子、事实、影响、三条信号和结论；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildFacelessExplainerScenes` 的文案和真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：新闻钩子 → 阅读视角 → 事实 → 影响 → 信号 → 结论；每段只带来一个新判断。\n- 视觉：暖白到冷青的渐变网格、荧光绿多 stop marker、渐变黑字、箭头和眼睛形成统一的科技媒体个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 55s（5/6/6/6/5/5/5/6/6/5）；按具体新闻删减到 20–55s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
+      "skillBody": "# 科技新闻解读（faceless-explainer）\n\n> 场景技能：这是「科技新闻解读」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：每日 AI、芯片、软件、硬件和产品发布新闻；把一条消息讲成“发生了什么、为什么重要、接下来该看什么”。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、纯人物采访、没有明确新闻事件的泛知识课。\n- **叙事承诺**：不复述新闻稿，不制造焦虑；每个镜头替观众完成一次更清楚的判断。\n\n## 二、默认视觉：渐变荧光绿科技报纸\n\n这是一个高风格化的科技媒体视觉模板，借鉴“网格纸 + 黑色大字 + 荧光 marker + 手绘箭头”的强传播海报语言：\n\n- **纸面秩序**：暖白底与细黑网格是全片底色，像一张可被标记的新闻草稿；网格只做背景，绝不承载内容。\n- **层次渐变**：场景大底必须同时使用暖白到冷青的底色渐变、两处径向光晕和 marker 多 stop 渐变；大色块不能是单一纯色。渐变只属于本场景，不上升为平台默认。\n- **焦点色**：荧光绿（`FACELESS_EXPLAINER_PALETTE.accent`）与青绿、浅蓝组成 marker 和标题渐变；黑字永远保留清晰轮廓，渐变只增加视觉层次，不牺牲对比度。\n- **情绪符号**：不规则 marker 色块、粗笔曲线箭头和夸张眼睛都来自 `primitives.tsx` 的确定性 SVG，不用随机数、外部贴图或装饰性小字。\n- **大字纪律**：标题使用 88–126px；正文 ≥48px，逐词字幕 ≥40px，编号和 CTA ≥44px。字幕是无底框的下三分之一旁白层，采用白字黑描边、克制逐词放大，不能遮住正文或新闻卡。读不到的字必须删除，绝不能缩小塞进画面。\n- **反标签纪律**：`kicker` 只能作为 54px 以上的构图文字，不能做成 tag、chip 或胶囊；没有叙事价值的编号和元数据直接删除。\n- **内容密度**：一个 beat 只有一个新闻判断，文本过多时删减或拆镜头；不要用“新闻列表”和小字装出信息量。\n\n## 三、导演视角：一条新闻，三问读懂\n\n开场三秒先给新闻钩子，中段依次把标题拆为事实、影响与信号，结尾给观众一条可带走的判断。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 抓住今天值得读的一条消息 | 荧光 marker 上的超大新闻标题 + 眼睛 | 标题上浮、箭头推出 | 5s |\n| ② | `concept` | 给出阅读新闻的独特视角 | 居中大主张 + 三枚粗体判断标签 | 色块/标签错峰落定 | 6s |\n| ③ | `evidence` | 拆出标题背后的事实 | 三条大字号问题 + `WHY?` 新闻卡 | 步骤逐项落下 | 6s |\n| ④ | `example` | 让抽象判断落在一类真实事件 | 案件卡 + 一句具体追问 | 新闻卡从 marker 色块前弹入 | 5s |\n| ⑤ | `analogy` | 纠正观众的观看角度 | “看起来像 / 其实要看”箭头对照 | 曲线箭头推进 | 5s |\n| ⑥ | `data` | 给出值得持续追踪的信号 | 超大 `3` + 三个判断问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压缩成每日清单 | 三张黑框新闻便签 | 便签错峰落下 | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 荧光 marker 上的结论大字 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。\n\n**全片纹理镜头（默认开启）**：`buildFacelessExplainerGpuPlan` 为每个 beat 使用 `vintage` GPU 材质，以低强度颗粒、轻微褪色和暗角统一纸面质感；hook 使用轻量 `drift` 建立纸面，data 使用缓 `push-in` 收束数字，其余 beat 固定机位以保护阅读；不再绘制会压暗正文的 spotlight/focus overlay。内容表面经 HtmlSurface 光栅化，纹理由 Three-first GPU 后处理完成。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `Grid`、`MarkerBlob`、`DoodleArrow`、`DoodleEyes`、`PaperCard`、`StepList` 与 `DataBars`。这些原语已经固化了渐变、对比度、字号和确定性；`MarkerChip` 仅为旧 workspace 保留，不得用于新镜头。\n- `DigitRoll` 只用于已确认的数字，`DataBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由程序化图形构成；不得伪造新闻截图、采访画面、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 evidence/example，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用荧光绿纸面 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一句新闻钩子、事实、影响、三条信号和结论；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildFacelessExplainerScenes` 的文案和真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：新闻钩子 → 阅读视角 → 事实 → 影响 → 信号 → 结论；每段只带来一个新判断。\n- 视觉：暖白到冷青的渐变网格、荧光绿多 stop marker、渐变黑字、箭头和眼睛形成统一的科技媒体个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 55s（5/6/6/6/5/5/5/6/6/5）；按具体新闻删减到 20–55s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
     },
     "product-launch": {
       "id": "product-launch",
@@ -30,7 +30,7 @@
       ],
       "implemented": true,
       "motion": "结果承诺 → 痛点 → 功能证据 → 收束 CTA；每个功能只用一个可读的证据镜头。",
-      "skillBody": "# 产品发布片（product-launch）\n\n> 场景技能：这是「产品发布片」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、组件策略与动画语法来改写 composition。模板代码在 `scenarios/product-launch/template/ProjectVideo.tsx`，渲染器在 `beats.tsx`，两者必须与本手册一致。\n\n## 一、本场景适用什么\n\n- **适合**：产品发布、新功能介绍、产品更新、SaaS/App/硬件的 launch promo；有明确卖点、功能清单或可验证指标。\n- **不适合**：抽象知识讲解（用 `faceless-explainer`）、图文故事、口播重剪。\n- 上游参考：[HyperFrames product-launch-video](https://github.com/heygen-com/hyperframes/tree/main/skills/product-launch-video)。\n\n## 二、本场景内置视觉\n\n- 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。\n- **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。\n- 模板是完整视觉方案；需要改变表达时应选择更匹配的成片模板，或在具体镜头要求中描述变化，不提供独立设计系统迭代。\n\n## 三、导演视角：分镜画面与动画展示过程\n\n产品发布是「说服」叙事，节奏是**主张先落版，每个功能一个证据镜头，最后 CTA 收束**。全程一个节拍一个信息变化（约 5–6s），落定后呼吸（hold ≥ 0.5s），不堆叠。\n\n**铁律：每个 beat 有一个唯一视觉主角（eye-catch），全片不重复同一种表达方式**——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 / 超大数据 / 引述扫光 / 路线进度 / 发光 CTA，每种只出现一次。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` 结果承诺 | 开场三秒砸出结果 | 霓虹渐变 + 双旋转光环 + 超大主张 | 标题缩放弹出（scale 0.84→1），发光 Pill 错峰入场 | 5s |\n| ② | `pain` 痛点 | 数字冲击让人看清成本 | 超大成本数字飞入（140px+），左标题压小 | 数字放大落定（from 1.4），要点菱形错峰 | 5s |\n| ③ | `contrast` 对比 | 现状 vs 愿景此消彼长 | 左右分屏宽度动画（0.5→0.32/0.68） | 两栏宽度推移，AFTER 侧发光 | 6s |\n| ④ | `feature` 功能证据 | 每个功能一张可读证据 | 玻璃证据卡 + 产品截图 | 要点逐条滑入（每 6f 一条），产品画面稳定 | 6s |\n| ⑤ | `metric` 数据 | 用数字证明 | 超大 DigitRoll 翻牌 + 光晕 | 数字逐位滚入，细线延展 | 5s |\n| ⑥ | `testimonial` 证言 | 让客户替你说话 | 超大引号 + 一句证言 + 扫光掠过 | 引述卡缩放落定，扫光从左到右 | 5s |\n| ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |\n| ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |\n\n**HTML-in-Canvas UI 特写（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮，舞台计划 `buildProductLaunchStagePlan` 提供 cursor + magnifier 效果轨与按钮几何（`PRODUCT_LAUNCH_UI_GEOMETRY`）；鼠标 move → hover → click 后放大镜接管按钮，按钮 hover/pressed 语义状态由 `useInteractionMaybe()` 驱动。改文案/坐标时保持 `beats.tsx` 的几何常量与 `template/ProjectVideo.tsx` 的 StagePlan 同步；场景可经 `stagePlan` prop 关闭（null）或替换。此镜头只在浏览器/导出 Chromium 支持 HTML-in-Canvas 时可用，不支持时硬阻断，不降级。\n\n## 四、组件策略\n\n- **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。\n- 需要更强表达时，从 `{paths.appKitPath}/catalog.json` 的 `components` 选：`spotlight-reveal`（产品特写）、`card-flip`（功能卡正反面）、`end-card`（收尾）、`lower-third`（术语条）、`progress-steps`（步骤进度）。\n- 原则：**一种动画手法全片只当一次主角**；产品画面稳定优先于炫技运镜。\n\n## 五、素材纪律与登记\n\n- 有真实截图/录屏时用 `resolveMediaUrl(assetId, media)` 放进 feature 的证据卡，不手绘仿冒 UI；无素材时保留干净的程序化玻璃占位卡，并说明建议生成/上传哪些画面。\n- 改完代码后 `composition.assets({assetIds})` 登记所有 assetId。\n\n## 六、执行步骤\n\n1. `workflow.context` 拿路径，`workspace.ensure` 就绪。\n2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；保持模板的视觉语言，不引入独立设计系统。\n3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。\n4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。\n5. 保存后等待 Player 预览，用户逐帧评审后停下。\n\n## 七、验收\n\n- 结构：承诺 → 痛点 → 功能证据（可多段）→ 数据 → CTA；每段只证明一个卖点。\n- 视觉：每 beat 有独立布局与动效，颜色/字体吃 palette；不出现手写裸 div 排版。\n- 素材：真实截图完整可读；数字只强调已确认指标；assetId 已登记。\n- 时长：默认 31s（hook 5 / pain 5 / feature 6 / feature 6 / metric 5 / cta 4），落在 20–30s 量级。\n"
+      "skillBody": "# 产品发布片（product-launch）\n\n> 场景技能：这是「产品发布片」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、组件策略与动画语法来改写 composition。模板代码在 `scenarios/product-launch/template/ProjectVideo.tsx`，渲染器在 `beats.tsx`，两者必须与本手册一致。\n\n## 一、本场景适用什么\n\n- **适合**：产品发布、新功能介绍、产品更新、SaaS/App/硬件的 launch promo；有明确卖点、功能清单或可验证指标。\n- **不适合**：抽象知识讲解（用 `faceless-explainer`）、图文故事、口播重剪。\n- 上游参考：[HyperFrames product-launch-video](https://github.com/heygen-com/hyperframes/tree/main/skills/product-launch-video)。\n\n## 二、本场景内置视觉\n\n- 场景模板自带一套**内置调色板**（`PRODUCT_LAUNCH_PALETTE`，见 `template/ProjectVideo.tsx`）：深紫夜底 `#10002c` + 青/洋红霓虹强调（`#8af4ff` / `#ff8ace`），高能、玻璃、发光的产品发布视觉。\n- **AI 直接按内置 palette 实现，不读全局 recut-design-system skill。** 颜色/字体全部用 `p`（palette），不手写十六进制。\n- 模板是完整视觉方案；需要改变表达时应选择更匹配的成片模板，或在具体镜头要求中描述变化，不提供独立设计系统迭代。\n\n## 三、导演视角：分镜画面与动画展示过程\n\n产品发布是「说服」叙事，节奏是**主张先落版，每个功能一个证据镜头，最后 CTA 收束**。全程一个节拍一个信息变化（约 5–6s），落定后呼吸（hold ≥ 0.5s），不堆叠。\n\n**铁律：每个 beat 有一个唯一视觉主角（eye-catch），全片不重复同一种表达方式**——霓虹 hero / 数字冲击 / 对仗分屏 / 玻璃证据 / 超大数据 / 引述扫光 / 路线进度 / 发光 CTA，每种只出现一次。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` 结果承诺 | 开场三秒砸出结果 | 霓虹渐变 + 双旋转光环 + 超大主张 | 标题缩放弹出（scale 0.84→1），发光 Pill 错峰入场 | 5s |\n| ② | `pain` 痛点 | 数字冲击让人看清成本 | 超大成本数字飞入（140px+），左标题压小 | 数字放大落定（from 1.4），要点菱形错峰 | 5s |\n| ③ | `contrast` 对比 | 现状 vs 愿景此消彼长 | 左右分屏宽度动画（0.5→0.32/0.68） | 两栏宽度推移，AFTER 侧发光 | 6s |\n| ④ | `feature` 功能证据 | 每个功能一张可读证据 | 玻璃证据卡 + 产品截图 | 要点逐条滑入（每 6f 一条），产品画面稳定 | 6s |\n| ⑤ | `metric` 数据 | 用数字证明 | 超大 DigitRoll 翻牌 + 光晕 | 数字逐位滚入，细线延展 | 5s |\n| ⑥ | `testimonial` 证言 | 让客户替你说话 | 超大引号 + 一句证言 + 扫光掠过 | 引述卡缩放落定，扫光从左到右 | 5s |\n| ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |\n| ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |\n\n**UI 特写镜头（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮。Three-first GPU 路径下：按钮几何与鼠标 move → hover → click 由 `buildProductLaunchStagePlan`（StagePlan.interaction）提供；`PRODUCT_UI_INSPECT_CAMERA` 以 `push-in` 推向导出按钮，放大镜再由 `buildProductLaunchGpuPlan` 映射到 ShotGraph 的 `lens`（magnify 材质）检查同一个目标；按钮 hover/pressed 语义状态经内容表面注入的 `interaction`（`resolveInteractionState`）驱动。改文案/坐标时保持 `beats.tsx` 的 `PRODUCT_LAUNCH_UI_GEOMETRY` 与模板 StagePlan/camera subject/lens UV 同步；场景可经 `stagePlan` prop 关闭（null）或替换。内容表面经 HtmlSurface 光栅化（HTML-in-Canvas 主 / foreignObject 备）。\n\n## 四、组件策略\n\n- **必须复用 kit 组件，不手写裸 div**：`DigitRoll`（⑤ 超大数据）、`BackgroundFX`（背景特效层由引擎统一渲染）；每类 beat 的场景视觉原语见 `primitives.tsx`（霓虹/玻璃/光环/发光 Pill/CTA 按钮）。\n- 需要更强表达时，从 `{paths.appKitPath}/catalog.json` 的 `components` 选：`spotlight-reveal`（产品特写）、`card-flip`（功能卡正反面）、`end-card`（收尾）、`lower-third`（术语条）、`progress-steps`（步骤进度）。\n- 原则：**一种动画手法全片只当一次主角**；产品画面稳定优先于炫技运镜。\n\n## 五、素材纪律与登记\n\n- 有真实截图/录屏时用 `resolveMediaUrl(assetId, media)` 放进 feature 的证据卡，不手绘仿冒 UI；无素材时保留干净的程序化玻璃占位卡，并说明建议生成/上传哪些画面。\n- 改完代码后 `composition.assets({assetIds})` 登记所有 assetId。\n\n## 六、执行步骤\n\n1. `workflow.context` 拿路径，`workspace.ensure` 就绪。\n2. 确认使用场景内置调色板（PRODUCT_LAUNCH_PALETTE / FACELESS_EXPLAINER_PALETTE，见 template/ProjectVideo.tsx）；保持模板的视觉语言，不引入独立设计系统。\n3. 读 `beats.tsx` 确认 8 类 beat 渲染器，改写 `buildProductLaunchScenes`（60s：hook 5 / pain 5 / contrast 6 / feature×3 6 / metric×2 5 / testimonial 5 / roadmap 5 / cta 6）填充真实 topic/卖点/数字/素材。\n4. 按第三节分镜表保持叙事顺序；替换文案、数字、功能点，不破坏视觉与节奏。\n5. 保存后等待 Player 预览，用户逐帧评审后停下。\n\n## 七、验收\n\n- 结构：承诺 → 痛点 → 功能证据（可多段）→ 数据 → CTA；每段只证明一个卖点。\n- 视觉：每 beat 有独立布局与动效，颜色/字体吃 palette；不出现手写裸 div 排版。\n- 素材：真实截图完整可读；数字只强调已确认指标；assetId 已登记。\n- 时长：默认 31s（hook 5 / pain 5 / feature 6 / feature 6 / metric 5 / cta 4），落在 20–30s 量级。\n"
     },
     "doodle-explainer": {
       "id": "doodle-explainer",
@@ -45,7 +45,7 @@
       ],
       "implemented": true,
       "motion": "画出来 → 给形状 → 拆步骤 → 举例子 → 换角度 → 看信号 → 便签收束 → 结论；roughjs 手绘速写本 + 橙色 marker 建立强风格表达。",
-      "skillBody": "# 白板涂鸦讲解（doodle-explainer）\n\n> 场景技能：这是「白板涂鸦讲解」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：把一个抽象概念、方法或观点讲成“画出来就懂”的知识片；适合概念课、认知方法、工作流讲解、观点表达，以及需要把复杂信息拆成步骤的短内容。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、没有明确主概念的纯情绪剪辑、逐字读稿的演讲录像。\n- **叙事承诺**：不堆术语；每个镜头用一页速写本让观众看清楚“它在解决什么、怎么做到、意味着什么”。\n\n## 二、默认视觉：速写本 + 手绘原语（roughjs）\n\n这是高风格化的手绘速写本模板，底色与字体来自**全局 doodle 设计系统**（`recut.design_system.get({ styleId: \"doodle\" })`），所有图形由 **roughjs** 生成：\n\n- **暖纸底色**：`#fff8d7`（速写本纸）+ 点阵网格背景，全片统一；网格只做纸张秩序，绝不承载内容。\n- **墨色与橙色**：墨色 `#1d1836` 是阅读主角；橙色 `#ff6b00`（marker）只圈住一个主张、箭头、标签或数字。\n- **手绘原语**：`primitives.tsx` 的 `Sketch` 用 roughjs generator + **固定 seed** 生成歪扭双描边方框、手绘椭圆、箭头、曲线与圆形徽章，预览与导出逐帧一致；**禁止**用随机数、外部贴图或装饰性小字。\n- **字体**：Comic Sans MS / Chalkboard SE 等手写感字体；标题 88–120px，正文 ≥44px，逐词字幕 ≥40px，标签、编号、统计和 CTA ≥32px。\n- **内容密度**：一个 beat 只讲一个新信息；文本过多时删减或拆镜头，不要用列表和小字装出信息量。\n\n## 三、导演视角：一页速写本，把概念画清楚\n\n开场先画一个大问号抓住注意力，中段依次“给形状 → 拆步骤 → 举例子 → 换角度 → 看信号”，结尾收进三张便签再给结论。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 开场三秒证明“画出来就懂” | 手绘大标题 + 橙色下划线 + 铅笔拖影 | 方框先画出，标题浮起，箭头推出 | 5s |\n| ② | `concept` | 给概念画一个形状 | 中心高亮定义 + 三枚手绘标签 | 高亮先落，标签错峰落定 | 6s |\n| ③ | `sketch` | 把概念拆成三步 | 三枚编号徽章 + 手绘步骤 | 步骤逐项落下，右侧 STEP BY STEP 卡弹出 | 6s |\n| ④ | `example` | 让抽象落在一个例子上 | 一张手绘便签卡 | 便签卡从右侧弹入，箭头指向它 | 5s |\n| ⑤ | `analogy` | 纠正观看角度 | “看起来像 / 其实是”两根手绘框 | 两框错峰弹出，中间粗箭头推进 | 5s |\n| ⑥ | `data` | 给出值得追的信号 | 超大手绘圈数字 + 三个问题 | 数字落定，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压成三张便签 | 三张暖色便签卡 | 便签错峰落下（带胶带） | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 手绘大标题 + 进度条 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛该看的对象。** 箭头可以反复作为视觉语法，但每一处都只指向一个新判断；全片不重复让同一种动效成为主角。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `DotGrid`、`Sketch`、`SketchBox`、`SketchNote`、`SketchChip`、`SketchTitle`、`SketchHighlight`、`SketchSteps`、`SketchBars` 与 `SketchProgress`，并通过 `roughRect/roughEllipse/roughArrow/roughCurve/roughBadge` 取手绘路径。这些原语已固化对比度、字号与确定性 seed。\n- `DigitRoll` 只用于已确认的数字，`SketchBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由手绘程序化图形构成；不得伪造截图、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 example/sketch，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用速写本 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一个核心概念、它的形状、三步拆解、一个例子、类比与三条信号；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildDoodleExplainerScenes` 的文案与真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：画出来 → 形状 → 步骤 → 例子 → 类比 → 信号 → 便签 → 结论；每段只带来一个新信息。\n- 视觉：暖纸速写本、墨色大字、橙色 marker、手绘歪扭图形形成统一的手绘个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 确定性：所有 roughjs 图形由固定 seed 生成，预览与导出逐帧一致；无随机数。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 44s（5/6/6/5/5/6/6/5）；按具体内容删减到 20–44s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
+      "skillBody": "# 白板涂鸦讲解（doodle-explainer）\n\n> 场景技能：这是「白板涂鸦讲解」的导演手册。用户选中本场景后，AI 按本文件的分镜策略、视觉语法和动画纪律改写 composition。模板代码在 `template/ProjectVideo.tsx`，beat 渲染器在 `beats.tsx`，视觉源语在 `primitives.tsx`；三者必须保持一致。\n\n## 一、场景定位\n\n- **适合**：把一个抽象概念、方法或观点讲成“画出来就懂”的知识片；适合概念课、认知方法、工作流讲解、观点表达，以及需要把复杂信息拆成步骤的短内容。\n- **不适合**：需要展示真实产品界面或演示录屏的发布片（用 `product-launch`）、没有明确主概念的纯情绪剪辑、逐字读稿的演讲录像。\n- **叙事承诺**：不堆术语；每个镜头用一页速写本让观众看清楚“它在解决什么、怎么做到、意味着什么”。\n\n## 二、默认视觉：速写本 + 手绘原语（roughjs）\n\n这是高风格化的手绘速写本模板，底色与字体来自**全局 doodle 设计系统**（`recut.design_system.get({ styleId: \"doodle\" })`），所有图形由 **roughjs** 生成：\n\n- **暖纸底色**：`#fff8d7`（速写本纸）+ 点阵网格背景，全片统一；网格只做纸张秩序，绝不承载内容。\n- **墨色与橙色**：墨色 `#1d1836` 是阅读主角；橙色 `#ff6b00`（marker）只圈住一个主张、箭头、标签或数字。\n- **手绘原语**：`primitives.tsx` 的 `Sketch` 用 roughjs generator + **固定 seed** 生成歪扭双描边方框、手绘椭圆、箭头、曲线与圆形徽章，预览与导出逐帧一致；**禁止**用随机数、外部贴图或装饰性小字。\n- **字体**：Comic Sans MS / Chalkboard SE 等手写感字体；标题 88–120px，正文 ≥44px，逐词字幕 ≥40px，标签、编号、统计和 CTA ≥32px。\n- **内容密度**：一个 beat 只讲一个新信息；文本过多时删减或拆镜头，不要用列表和小字装出信息量。\n\n## 三、导演视角：一页速写本，把概念画清楚\n\n开场先画一个大问号抓住注意力，中段依次“给形状 → 拆步骤 → 举例子 → 换角度 → 看信号”，结尾收进三张便签再给结论。动效落定后至少留 0.5 秒阅读时间。\n\n| # | beat | 导演意图 | 唯一视觉主角 | 动画展开 | 时长 |\n|---|---|---|---|---|---|\n| ① | `hook` | 开场三秒证明“画出来就懂” | 手绘大标题 + 橙色下划线 + 铅笔拖影 | 方框先画出，标题浮起，箭头推出 | 5s |\n| ② | `concept` | 给概念画一个形状 | 中心高亮定义 + 三枚手绘标签 | 高亮先落，标签错峰落定 | 6s |\n| ③ | `sketch` | 把概念拆成三步 | 三枚编号徽章 + 手绘步骤 | 步骤逐项落下，右侧 STEP BY STEP 卡弹出 | 6s |\n| ④ | `example` | 让抽象落在一个例子上 | 一张手绘便签卡 | 便签卡从右侧弹入，箭头指向它 | 5s |\n| ⑤ | `analogy` | 纠正观看角度 | “看起来像 / 其实是”两根手绘框 | 两框错峰弹出，中间粗箭头推进 | 5s |\n| ⑥ | `data` | 给出值得追的信号 | 超大手绘圈数字 + 三个问题 | 温和 crane 收束数字，问题依次显现 | 6s |\n| ⑦ | `recap` | 把方法压成三张便签 | 三张暖色便签卡 | 便签错峰落下（带胶带） | 6s |\n| ⑧ | `conclusion` | 留下一句可转述的判断 | 手绘大标题 + 进度条 | 结论落定、进度条推进 | 5s |\n\n**铁律：每个 beat 只有一个眼睛该看的对象。** 箭头可以反复作为视觉语法，但每一处都只指向一个新判断；全片不重复让同一种动效成为主角。\n\n## 四、组件与素材纪律\n\n- 必须复用 `primitives.tsx` 的 `DotGrid`、`Sketch`、`SketchBox`、`SketchNote`、`SketchChip`、`SketchTitle`、`SketchHighlight`、`SketchSteps`、`SketchBars` 与 `SketchProgress`，并通过 `roughRect/roughEllipse/roughArrow/roughCurve/roughBadge` 取手绘路径。这些原语已固化对比度、字号与确定性 seed。\n- `DigitRoll` 只用于已确认的数字，`SketchBars` 只用于真实占比或趋势；没有可靠数据时，改用三个判断问题，绝不填示例百分比。\n- 没有真实素材时，画面全部由手绘程序化图形构成；不得伪造截图、产品界面、数据图表或公司事实。\n- 有真实媒体 assetId 时，用 `resolveMediaUrl(assetId, media)` 放进对应 example/sketch，并调用 `composition.assets` 登记；不要把聊天预览 URL 当素材。\n\n## 五、执行步骤\n\n1. 调用 `workflow.context` 获取路径，调用 `workspace.ensure` 确保工程就绪。\n2. 先读 `template/ProjectVideo.tsx`、`beats.tsx`、`primitives.tsx` 与本手册；确认使用速写本 palette，而不是回退为普通蓝色讲解卡。\n3. 写 `SCENE_PLAN.md`：一个核心概念、它的形状、三步拆解、一个例子、类比与三条信号；运行 `validate-scene-plan.mjs` 校验。\n4. 改写 `buildDoodleExplainerScenes` 的文案与真实数据，不改坏八类 beat 的信息层级与阅读时间。\n5. 保存后在 Player 逐帧检查。缩到约 480px 宽时，所有要读的文字仍必须清楚；不清楚就删、拆或放大。\n\n## 六、验收\n\n- 结构：画出来 → 形状 → 步骤 → 例子 → 类比 → 信号 → 便签 → 结论；每段只带来一个新信息。\n- 视觉：暖纸速写本、墨色大字、橙色 marker、手绘歪扭图形形成统一的手绘个性；无默认蓝色信息卡回退。\n- 可读性：主信息有效字高 ≥56px，逐词字幕 ≥40px，辅助信息 ≥32px；没有“似乎有内容、却读不清”的小字。\n- 确定性：所有 roughjs 图形由固定 seed 生成，预览与导出逐帧一致；无随机数。\n- 真实性：无伪造指标与图表；真实素材已登记 assetId。\n- 时长：默认 44s（5/6/6/5/5/6/6/5）；按具体内容删减到 20–44s，但不压缩阅读时间。\n\n[PROTOCOL]: 变更时更新此头部，然后检查 README.md\n"
     }
   },
   "captionThemes": [
@@ -872,7 +872,7 @@
       "id": "PageCam",
       "label": "PageCam",
       "description": "页面镜头与相机运动",
-      "kind": "shotcraft",
+      "kind": "motion",
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/PageCam.tsx",
       "workspacePath": "src/components/PageCam.tsx"
@@ -881,7 +881,7 @@
       "id": "DigitRoll",
       "label": "DigitRoll",
       "description": "数字滚动强调",
-      "kind": "shotcraft",
+      "kind": "motion",
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/DigitRoll.tsx",
       "workspacePath": "src/components/DigitRoll.tsx"
@@ -890,7 +890,7 @@
       "id": "VerticalTicker",
       "label": "VerticalTicker",
       "description": "纵向信息流",
-      "kind": "shotcraft",
+      "kind": "motion",
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/VerticalTicker.tsx",
       "workspacePath": "src/components/VerticalTicker.tsx"
@@ -899,16 +899,25 @@
       "id": "FlashCut",
       "label": "FlashCut",
       "description": "闪切与节奏转场",
-      "kind": "shotcraft",
+      "kind": "motion",
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/FlashCut.tsx",
       "workspacePath": "src/components/FlashCut.tsx"
     },
     {
+      "id": "FlameFrame",
+      "label": "Flame Frame",
+      "description": "居中内容框 + 自适应橙黄火焰边框",
+      "kind": "motion",
+      "category": "动态组件",
+      "path": "packages/remotion-kit/src/components/FlameFrame.tsx",
+      "workspacePath": "src/components/FlameFrame.tsx"
+    },
+    {
       "id": "FlatPanel",
       "label": "FlatPanel",
       "description": "扁平信息面板（需 3D 渲染环境）",
-      "kind": "shotcraft",
+      "kind": "motion",
       "category": "动态组件",
       "path": "packages/remotion-kit/src/components/FlatPanel.tsx",
       "workspacePath": "src/components/FlatPanel.tsx"
@@ -918,17 +927,17 @@
     {
       "id": "cursor",
       "label": "Cursor Director",
-      "description": "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail；作为 HTML surface 内的 React 层与排版同帧栅格化。",
+      "description": "模拟鼠标轨迹：move/hover/click/drag/scroll 的可见光标、hover halo、click ripple 与 drag trail。",
       "engine": "html-canvas",
       "layer": "interaction",
       "intent": "guide",
+      "requires": [
+        "html-in-canvas"
+      ],
       "placement": [
         "scene-play",
         "target",
         "video-background"
-      ],
-      "requires": [
-        "html-in-canvas"
       ],
       "preview": {
         "compositionId": "product-ui-demo",
@@ -953,17 +962,24 @@
     {
       "id": "focus-spotlight",
       "label": "Focus Spotlight",
-      "description": "聚焦引导：把注意力压向一个目标区域（dim + spotlight）；作为 HTML surface 内的 React 层。",
+      "description": "聚焦引导：内容纹理外压暗、目标区域清晰，带羽化与边缘光；可由 hover/click 接管 target。",
       "engine": "html-canvas",
-      "layer": "interaction",
-      "intent": "focus",
+      "layer": "content",
+      "intent": "emphasize",
+      "requires": [
+        "html-in-canvas"
+      ],
       "placement": [
         "target",
         "scene-play"
       ],
-      "requires": [
-        "html-in-canvas"
-      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "focus-spotlight"
+        }
+      },
       "source": {
         "exportName": "focusSpotlightEffect",
         "path": "packages/remotion-kit/src/html-canvas/effects/focus-spotlight.tsx",
@@ -971,25 +987,33 @@
       },
       "prompt": {
         "constraints": [
-          "目标几何由排版时产出",
-          "效果只消费已知几何"
-        ]
+          "target 使用设计像素",
+          "一个 target 起步"
+        ],
+        "recommendedDurationFrames": 90
       }
     },
     {
       "id": "text-selection",
       "label": "Text Selection",
-      "description": "文本选择：荧光 marker 逐词揭示；作为 HTML surface 内的 React 层与排版同帧光栅化。",
+      "description": "文本选择与荧光笔：按 token Rect[] 逐词/逐行 reveal，可选扫读光；文本保留在 source HTML。",
       "engine": "html-canvas",
-      "layer": "interaction",
+      "layer": "content",
       "intent": "emphasize",
+      "requires": [
+        "html-in-canvas"
+      ],
       "placement": [
         "target",
         "scene-play"
       ],
-      "requires": [
-        "html-in-canvas"
-      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "text-selection"
+        }
+      },
       "source": {
         "exportName": "textSelectionEffect",
         "path": "packages/remotion-kit/src/html-canvas/effects/text-selection.tsx",
@@ -997,9 +1021,150 @@
       },
       "prompt": {
         "constraints": [
-          "目标几何由排版时产出",
-          "效果只消费已知几何"
-        ]
+          "输入 token Rect[]",
+          "不做 DOM 文本搜索"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "magnifier",
+      "label": "Magnifier",
+      "description": "GPU 细节放大镜：采样当前 HTML texture，透镜、HUD、色差与 click ripple 走同一合成 pass。",
+      "engine": "html-canvas",
+      "layer": "content",
+      "intent": "inspect",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "magnifier"
+        }
+      },
+      "source": {
+        "exportName": "magnifierEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/magnifier.tsx",
+        "workspacePath": "src/html-canvas/effects/magnifier.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "一个 lens",
+          "必须走 GpuCompositor source texture",
+          "折射强度受预算限制"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "glitch",
+      "label": "Glitch Burst",
+      "description": "GPU 广播故障：实时 HTML texture 水平撕裂、RGB split、损坏块与模拟噪点。",
+      "engine": "html-canvas",
+      "layer": "scene",
+      "intent": "emphasize",
+      "requires": [
+        "html-in-canvas",
+        "webgl2"
+      ],
+      "placement": [
+        "scene-enter",
+        "scene-play",
+        "scene-exit"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "glitch"
+        }
+      },
+      "source": {
+        "exportName": "GpuCompositor",
+        "path": "packages/remotion-kit/src/html-canvas/GpuCompositor.ts",
+        "workspacePath": "src/html-canvas/GpuCompositor.ts"
+      },
+      "prompt": {
+        "constraints": [
+          "burst 区间与 seed 必须帧驱动",
+          "不得使用 Math.random 或 interval"
+        ],
+        "recommendedDurationFrames": 24
+      }
+    },
+    {
+      "id": "bubble",
+      "label": "Bubble",
+      "description": "GPU 液态气泡：脚本轨迹驱动 metaball trail、折射与高光，读取真实 HTML texture。",
+      "engine": "html-canvas",
+      "layer": "interaction",
+      "intent": "inspect",
+      "requires": [
+        "html-in-canvas",
+        "webgl2"
+      ],
+      "placement": [
+        "target",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "bubble"
+        }
+      },
+      "source": {
+        "exportName": "GpuCompositor",
+        "path": "packages/remotion-kit/src/html-canvas/GpuCompositor.ts",
+        "workspacePath": "src/html-canvas/GpuCompositor.ts"
+      },
+      "prompt": {
+        "constraints": [
+          "trail 从 InteractionScript 历史采样得到",
+          "每镜头最多一个 heavy effect"
+        ],
+        "recommendedDurationFrames": 120
+      }
+    },
+    {
+      "id": "ambient",
+      "label": "Ambient Canvas FX",
+      "description": "轻量背景材质：确定性 grain、vignette 与冷色调；默认不与强透镜叠加。",
+      "engine": "html-canvas",
+      "layer": "background",
+      "intent": "atmosphere",
+      "requires": [
+        "html-in-canvas"
+      ],
+      "placement": [
+        "video-background",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "product-ui-demo",
+        "durationInFrames": 240,
+        "defaultProps": {
+          "effect": "ambient"
+        }
+      },
+      "source": {
+        "exportName": "ambientEffect",
+        "path": "packages/remotion-kit/src/html-canvas/effects/ambient.tsx",
+        "workspacePath": "src/html-canvas/effects/ambient.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "每场景最多一个",
+          "默认关闭"
+        ],
+        "recommendedDurationFrames": 240
       }
     },
     {
@@ -1007,16 +1172,23 @@
       "label": "Glitch",
       "description": "横向 tearing、RGB split 与噪声 burst；突发型效果使用确定性时间窗口。",
       "engine": "three",
-      "layer": "scene",
-      "intent": "distort",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "video-background",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "glitch",
+        "label": "Glitch",
         "category": "post",
+        "description": "横向 tearing、RGB split 与噪声 burst；突发型效果使用确定性时间窗口。",
+        "consumesMap": true,
         "schema": {
           "intensity": {
             "type": "number",
@@ -1027,13 +1199,13 @@
         }
       },
       "source": {
-        "exportName": "HtmlGlitchMaterial",
-        "path": "packages/remotion-kit/src/materials/post/glitch-material.tsx",
-        "workspacePath": "src/materials/post/glitch-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1042,35 +1214,54 @@
     {
       "id": "crt",
       "label": "CRT",
-      "description": "barrel、scanline、RGB aperture、vignette 与 flicker 的老式显像管效果。",
+      "description": "barrel、滚动刷新带、行级轻抖、scanline、RGB aperture 与微闪的老式显像管效果。",
       "engine": "three",
-      "layer": "scene",
-      "intent": "retro",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "video-background",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "crt",
+        "label": "CRT",
         "category": "post",
+        "description": "barrel、滚动刷新带、行级轻抖、scanline、RGB aperture 与微闪的老式显像管效果。",
+        "consumesMap": true,
         "schema": {
           "scan": {
             "type": "number",
             "min": 0,
             "max": 1,
             "default": 0.24
+          },
+          "vignette": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.68
+          },
+          "motion": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
           }
         }
       },
       "source": {
-        "exportName": "HtmlCrtMaterial",
-        "path": "packages/remotion-kit/src/materials/post/crt-material.tsx",
-        "workspacePath": "src/materials/post/crt-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1081,33 +1272,102 @@
       "label": "Vintage",
       "description": "gate weave、grain、scratch、dust、light leak 与 faded print 的胶片效果。",
       "engine": "three",
-      "layer": "scene",
-      "intent": "retro",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "video-background",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "vintage",
+        "label": "Vintage",
         "category": "post",
+        "description": "gate weave、grain、scratch、dust、light leak 与 faded print 的胶片效果。",
+        "consumesMap": true,
         "schema": {
           "grain": {
             "type": "number",
             "min": 0,
             "max": 0.5,
             "default": 0.126
+          },
+          "vignette": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.6
+          },
+          "warmth": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.28
+          },
+          "fade": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.385
           }
         }
       },
       "source": {
-        "exportName": "HtmlVintageMaterial",
-        "path": "packages/remotion-kit/src/materials/post/vintage-material.tsx",
-        "workspacePath": "src/materials/post/vintage-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "vhs",
+      "label": "VHS",
+      "description": "横向抖动、scanline、色偏、dropout 与 tracking bar 的老式录像带效果。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "vhs",
+        "label": "VHS",
+        "category": "post",
+        "description": "横向抖动、scanline、色偏、dropout 与 tracking bar 的老式录像带效果。",
+        "consumesMap": true,
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 3,
+            "default": 1
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1116,18 +1376,25 @@
     {
       "id": "magnify",
       "label": "Magnify",
-      "description": "带像素 HUD、AA、haze 与 chromatic aberration 的放大镜镜头；中心由 shot progress 扫描派生。",
+      "description": "带像素 HUD、AA、haze 与 chromatic aberration 的放大镜镜头。",
       "engine": "three",
-      "layer": "content",
-      "intent": "inspect",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "target",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "magnify",
+        "label": "Magnify",
         "category": "post",
+        "description": "带像素 HUD、AA、haze 与 chromatic aberration 的放大镜镜头。",
+        "consumesMap": true,
         "schema": {
           "zoom": {
             "type": "number",
@@ -1140,17 +1407,35 @@
             "min": 60,
             "max": 400,
             "default": 140
+          },
+          "hud": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.8
+          },
+          "aberration": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 0.8
+          },
+          "haze": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.2
           }
         }
       },
       "source": {
-        "exportName": "HtmlMagnifyMaterial",
-        "path": "packages/remotion-kit/src/materials/post/magnify-material.tsx",
-        "workspacePath": "src/materials/post/magnify-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1161,33 +1446,58 @@
       "label": "Glass",
       "description": "rounded-SDF、rim normal、六波长折射、fresnel 与 GGX 反射的玻璃卡片。",
       "engine": "three",
-      "layer": "content",
-      "intent": "inspect",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "target",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "glass",
+        "label": "Glass",
         "category": "post",
+        "description": "rounded-SDF、rim normal、六波长折射、fresnel 与 GGX 反射的玻璃卡片。",
+        "consumesMap": true,
         "schema": {
           "zoom": {
             "type": "number",
             "min": 1,
             "max": 4,
             "default": 1.34
+          },
+          "ior": {
+            "type": "number",
+            "min": 1,
+            "max": 2.5,
+            "default": 1.5
+          },
+          "depth": {
+            "type": "number",
+            "min": 60,
+            "max": 500,
+            "default": 250
+          },
+          "reflect": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 1
           }
         }
       },
       "source": {
-        "exportName": "HtmlGlassMaterial",
-        "path": "packages/remotion-kit/src/materials/post/glass-material.tsx",
-        "workspacePath": "src/materials/post/glass-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1196,18 +1506,417 @@
     {
       "id": "bubble",
       "label": "Bubble",
-      "description": "metaball trail ray-march 水滴：平滑融合、折射、色散与动态 glints；轨迹由可 seek 时间重建。",
+      "description": "metaball trail ray-march 水滴，保留平滑融合、折射、色散与动态 glints。",
       "engine": "three",
-      "layer": "content",
-      "intent": "distort",
+      "layer": "post",
+      "intent": "emphasize",
       "placement": [
-        "target",
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "bubble",
+        "label": "Bubble",
         "category": "post",
+        "description": "metaball trail ray-march 水滴，保留平滑融合、折射、色散与动态 glints。",
+        "consumesMap": true,
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          },
+          "refraction": {
+            "type": "number",
+            "min": 0,
+            "max": 200,
+            "default": 80
+          },
+          "dispersion": {
+            "type": "number",
+            "min": 0,
+            "max": 3,
+            "default": 1
+          },
+          "iridescence": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "ripple",
+      "label": "Ripple",
+      "description": "以镜头中心为源的径向涟漪折射扰动，水波式画面。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "ripple",
+        "label": "Ripple",
+        "category": "post",
+        "description": "以镜头中心为源的径向涟漪折射扰动，水波式画面。",
+        "consumesMap": true,
+        "schema": {
+          "strength": {
+            "type": "number",
+            "min": 0,
+            "max": 0.15,
+            "default": 0.045
+          },
+          "radius": {
+            "type": "number",
+            "min": 80,
+            "max": 900,
+            "default": 320
+          },
+          "frequency": {
+            "type": "number",
+            "min": 0.5,
+            "max": 6,
+            "default": 2.2
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "article-highlight",
+      "label": "Article Highlight",
+      "description": "黄色 marker 从左向右划出焦点文字，同时渐进模糊上下信息的 9x9 Gaussian blur。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "article-highlight",
+        "label": "Article Highlight",
+        "category": "post",
+        "description": "黄色 marker 从左向右划出焦点文字，同时渐进模糊上下信息的 9x9 Gaussian blur。",
+        "consumesMap": true,
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          },
+          "markerWidth": {
+            "type": "number",
+            "min": 0.1,
+            "max": 1,
+            "default": 0.54
+          },
+          "markerHeight": {
+            "type": "number",
+            "min": 0.02,
+            "max": 0.3,
+            "default": 0.115
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "asciify",
+      "label": "Asciify",
+      "description": "内容按亮度短暂字符化，再严格解码回无像素化的原始画面。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "asciify",
+        "label": "Asciify",
+        "category": "post",
+        "description": "内容按亮度短暂字符化，再严格解码回无像素化的原始画面。",
+        "consumesMap": true,
+        "schema": {
+          "cell": {
+            "type": "number",
+            "min": 6,
+            "max": 40,
+            "default": 12
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "retro-dither",
+      "label": "Retro Dither",
+      "description": "Bayer 有序抖动 + 色阶量化的复古像素化效果。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "retro-dither",
+        "label": "Retro Dither",
+        "category": "post",
+        "description": "Bayer 有序抖动 + 色阶量化的复古像素化效果。",
+        "consumesMap": true,
+        "schema": {
+          "levels": {
+            "type": "number",
+            "min": 2,
+            "max": 12,
+            "default": 4
+          },
+          "grid": {
+            "type": "number",
+            "min": 2,
+            "max": 12,
+            "default": 4
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "displacement",
+      "label": "Displacement",
+      "description": "以 fBm 域扭曲 UV 的内容扭曲效果。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "displacement",
+        "label": "Displacement",
+        "category": "post",
+        "description": "以 fBm 域扭曲 UV 的内容扭曲效果。",
+        "consumesMap": true,
+        "schema": {
+          "amount": {
+            "type": "number",
+            "min": 0,
+            "max": 0.15,
+            "default": 0.035
+          },
+          "scale": {
+            "type": "number",
+            "min": 0.5,
+            "max": 8,
+            "default": 2.4
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "droplets",
+      "label": "Droplets",
+      "description": "CanvasUI 双层下落雨滴场：主滴、连续拖痕、静滴与法线折射。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "droplets",
+        "label": "Droplets",
+        "category": "post",
+        "description": "CanvasUI 双层下落雨滴场：主滴、连续拖痕、静滴与法线折射。",
+        "consumesMap": true,
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          },
+          "speed": {
+            "type": "number",
+            "min": 0.2,
+            "max": 3,
+            "default": 1
+          },
+          "scale": {
+            "type": "number",
+            "min": 0.15,
+            "max": 1.25,
+            "default": 0.4
+          },
+          "dropWidth": {
+            "type": "number",
+            "min": 0.4,
+            "max": 1.8,
+            "default": 1
+          },
+          "dropLength": {
+            "type": "number",
+            "min": 0.4,
+            "max": 2.2,
+            "default": 1
+          },
+          "refraction": {
+            "type": "number",
+            "min": 0,
+            "max": 0.8,
+            "default": 0.2
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "frost",
+      "label": "Frost",
+      "description": "霜玻璃模糊 + 冷色调 + 霜晶噪点。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "frost",
+        "label": "Frost",
+        "category": "post",
+        "description": "霜玻璃模糊 + 冷色调 + 霜晶噪点。",
+        "consumesMap": true,
         "schema": {
           "intensity": {
             "type": "number",
@@ -1218,42 +1927,181 @@
         }
       },
       "source": {
-        "exportName": "HtmlBubbleMaterial",
-        "path": "packages/remotion-kit/src/materials/post/bubble-material.tsx",
-        "workspacePath": "src/materials/post/bubble-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
       }
     },
     {
-      "id": "article-highlight",
-      "label": "Article Highlight",
-      "description": "中心文字保持锐利时渐进模糊上下信息的 9x9 progressive Gaussian blur。",
+      "id": "decrypt-reveal",
+      "label": "Decrypt Reveal",
+      "description": "由 shot 进度驱动的 7-segment 密码字 → 正文单次解锁揭示（文本专属）。",
       "engine": "three",
-      "layer": "content",
+      "layer": "post",
       "intent": "emphasize",
       "placement": [
-        "scene-play"
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
-        "id": "article-highlight",
+        "id": "decrypt-reveal",
+        "label": "Decrypt Reveal",
         "category": "post",
-        "schema": {}
+        "description": "由 shot 进度驱动的 7-segment 密码字 → 正文单次解锁揭示（文本专属）。",
+        "consumesMap": true,
+        "schema": {
+          "cell": {
+            "type": "number",
+            "min": 10,
+            "max": 80,
+            "default": 26
+          }
+        }
       },
       "source": {
-        "exportName": "HtmlArticleHighlightMaterial",
-        "path": "packages/remotion-kit/src/materials/post/article-highlight-material.tsx",
-        "workspacePath": "src/materials/post/article-highlight-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "particle-reveal",
+      "label": "Particle Reveal",
+      "description": "由 shot 进度驱动的粒子汇聚揭示：散射碎片 + 悬浮光点最终无损落入原画面（入场动画）。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "particle-reveal",
+        "label": "Particle Reveal",
+        "category": "post",
+        "description": "由 shot 进度驱动的粒子汇聚揭示：散射碎片 + 悬浮光点最终无损落入原画面（入场动画）。",
+        "consumesMap": true,
+        "schema": {
+          "cell": {
+            "type": "number",
+            "min": 8,
+            "max": 60,
+            "default": 22
+          },
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "text-focus",
+      "label": "Text Focus",
+      "description": "相机拉焦：以可调圆角焦点框锁定目标文字或卡片，背景景深渐进虚化（文本专属）。",
+      "engine": "three",
+      "layer": "post",
+      "intent": "emphasize",
+      "placement": [
+        "scene-play",
+        "scene-enter",
+        "scene-exit"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "text-focus",
+        "label": "Text Focus",
+        "category": "post",
+        "description": "相机拉焦：以可调圆角焦点框锁定目标文字或卡片，背景景深渐进虚化（文本专属）。",
+        "consumesMap": true,
+        "schema": {
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          },
+          "focusLeft": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.05
+          },
+          "focusTop": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.51
+          },
+          "focusWidth": {
+            "type": "number",
+            "min": 0.04,
+            "max": 1,
+            "default": 0.28
+          },
+          "focusHeight": {
+            "type": "number",
+            "min": 0.03,
+            "max": 1,
+            "default": 0.18
+          },
+          "focusFeather": {
+            "type": "number",
+            "min": 0.005,
+            "max": 0.18,
+            "default": 0.035
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1264,15 +2112,21 @@
       "label": "Bend",
       "description": "页面卷曲语义的顶点变形转场。",
       "engine": "three",
-      "layer": "scene",
+      "layer": "transform",
       "intent": "transition",
       "placement": [
-        "scene-transition"
+        "transition"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "bend",
+        "label": "Bend",
         "category": "transform",
+        "description": "页面卷曲语义的顶点变形转场。",
+        "consumesMap": true,
         "schema": {
           "bend": {
             "type": "number",
@@ -1283,13 +2137,13 @@
         }
       },
       "source": {
-        "exportName": "HtmlBendMaterial",
-        "path": "packages/remotion-kit/src/materials/transform/bend-material.tsx",
-        "workspacePath": "src/materials/transform/bend-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1298,27 +2152,81 @@
     {
       "id": "store-peel",
       "label": "Store Peel",
-      "description": "cylinder curl、adhesive back 与双层 shine 的卷页转场。",
+      "description": "cylinder curl、adhesive back 与贴合翻页弧面的反射光卷页转场。",
       "engine": "three",
-      "layer": "scene",
+      "layer": "transform",
       "intent": "transition",
       "placement": [
-        "scene-transition"
+        "transition"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "store-peel",
+        "label": "Store Peel",
         "category": "transform",
+        "description": "cylinder curl、adhesive back 与贴合翻页弧面的反射光卷页转场。",
+        "consumesMap": true,
         "schema": {}
       },
       "source": {
-        "exportName": "HtmlStorePeelMaterial",
-        "path": "packages/remotion-kit/src/materials/transform/store-peel-material.tsx",
-        "workspacePath": "src/materials/transform/store-peel-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "cloth",
+      "label": "Cloth",
+      "description": "以顶点正弦波动模拟布料起伏的变形转场。",
+      "engine": "three",
+      "layer": "transform",
+      "intent": "transition",
+      "placement": [
+        "transition"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "cloth",
+        "label": "Cloth",
+        "category": "transform",
+        "description": "以顶点正弦波动模拟布料起伏的变形转场。",
+        "consumesMap": true,
+        "schema": {
+          "amplitude": {
+            "type": "number",
+            "min": 0,
+            "max": 0.6,
+            "default": 0.18
+          },
+          "speed": {
+            "type": "number",
+            "min": 0.2,
+            "max": 4,
+            "default": 1.4
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
@@ -1329,15 +2237,22 @@
       "label": "Clouds",
       "description": "无历史帧依赖的程序化 fBm 雾场环境。",
       "engine": "three",
-      "layer": "background",
+      "layer": "ambient",
       "intent": "atmosphere",
       "placement": [
-        "video-background"
+        "ambient",
+        "scene-play"
       ],
-      "requires": [],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
       "material": {
         "id": "clouds",
+        "label": "Clouds",
         "category": "ambient",
+        "description": "无历史帧依赖的程序化 fBm 雾场环境。",
+        "consumesMap": false,
         "schema": {
           "opacity": {
             "type": "number",
@@ -1348,16 +2263,1489 @@
         }
       },
       "source": {
-        "exportName": "CanvasUiCloudsMaterial",
-        "path": "packages/remotion-kit/src/materials/ambient/clouds-material.tsx",
-        "workspacePath": "src/materials/ambient/clouds-material.tsx"
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
       },
       "prompt": {
         "constraints": [
-          "material 只消费 uMap 纹理与语义参数",
+          "material 只消费内容纹理与 schema 声明的语义参数",
           "逐帧只更新 uniform，不重建 shader",
           "确定性：固定 seed，禁 random/Date.now"
         ]
+      }
+    },
+    {
+      "id": "grid",
+      "label": "Grid",
+      "description": "持续斜向掠过的程序化编辑网格（纸面/蓝图），细线与主格线保持对齐。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "grid",
+        "label": "Grid",
+        "category": "ambient",
+        "description": "持续斜向掠过的程序化编辑网格（纸面/蓝图），细线与主格线保持对齐。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.5
+          },
+          "cell": {
+            "type": "number",
+            "min": 24,
+            "max": 320,
+            "default": 96
+          },
+          "speed": {
+            "type": "number",
+            "min": 0.1,
+            "max": 3,
+            "default": 0.75
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "liquid",
+      "label": "Liquid",
+      "description": "域扭曲 fBm 流动场，双色渐变液面环境。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "liquid",
+        "label": "Liquid",
+        "category": "ambient",
+        "description": "域扭曲 fBm 流动场，双色渐变液面环境。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.8
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "glyph-rain",
+      "label": "Glyph Rain",
+      "description": "确定性下落字符列（矩阵风）环境。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "glyph-rain",
+        "label": "Glyph Rain",
+        "category": "ambient",
+        "description": "确定性下落字符列（矩阵风）环境。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.8
+          },
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "laser",
+      "label": "Laser",
+      "description": "确定性扫描激光线环境氛围。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "laser",
+        "label": "Laser",
+        "category": "ambient",
+        "description": "确定性扫描激光线环境氛围。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.85
+          },
+          "intensity": {
+            "type": "number",
+            "min": 0,
+            "max": 2,
+            "default": 1
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "blaze",
+      "label": "Blaze",
+      "description": "域扭曲 fBm 火焰/能量场环境。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "blaze",
+        "label": "Blaze",
+        "category": "ambient",
+        "description": "域扭曲 fBm 火焰/能量场环境。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.85
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "particle-scroll",
+      "label": "Particle Scroll",
+      "description": "确定性漂浮微粒流环境。",
+      "engine": "three",
+      "layer": "ambient",
+      "intent": "atmosphere",
+      "placement": [
+        "ambient",
+        "scene-play"
+      ],
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "material": {
+        "id": "particle-scroll",
+        "label": "Particle Scroll",
+        "category": "ambient",
+        "description": "确定性漂浮微粒流环境。",
+        "consumesMap": false,
+        "schema": {
+          "opacity": {
+            "type": "number",
+            "min": 0,
+            "max": 1,
+            "default": 0.8
+          }
+        }
+      },
+      "source": {
+        "exportName": "MaterialElement",
+        "path": "packages/remotion-kit/src/materials/MaterialElement.tsx",
+        "workspacePath": "src/materials/MaterialElement.tsx"
+      },
+      "prompt": {
+        "constraints": [
+          "material 只消费内容纹理与 schema 声明的语义参数",
+          "逐帧只更新 uniform，不重建 shader",
+          "确定性：固定 seed，禁 random/Date.now"
+        ]
+      }
+    },
+    {
+      "id": "camera-drift",
+      "label": "Camera Drift",
+      "description": "纸面以微倾姿态快速落位，再由轻量平移建立呼吸感；动作后保留阅读。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "guide",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-play",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-drift"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "drift",
+        "subject": {
+          "anchor": [
+            0.52,
+            0.48
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.26,
+              0.14,
+              8.25
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.2,
+              -0.08,
+              7.9
+            ],
+            "fov": 33,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.2,
+              -0.08,
+              7.9
+            ],
+            "fov": 33,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.42,
+              0.2,
+              -0.8
+            ],
+            "rotation": [
+              0.05,
+              -0.14,
+              -0.03
+            ],
+            "scale": [
+              0.88,
+              0.88,
+              1
+            ],
+            "bend": 0.18
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "动作应在约 1 秒内完成",
+          "落位后保留阅读 hold",
+          "不得与大运动并列"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "camera-push-in",
+      "label": "Push In",
+      "description": "页面从斜后方弯曲落位，同时沿视线推进并锁定主体；用于快速收束到具体主张。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "emphasize",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-play",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-push-in"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "push-in",
+        "subject": {
+          "anchor": [
+            0.54,
+            0.5
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0,
+              0,
+              8.2
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.1,
+              -0.04,
+              5.9
+            ],
+            "fov": 30,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.1,
+              -0.04,
+              5.9
+            ],
+            "fov": 30,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.6,
+              0.28,
+              -1.25
+            ],
+            "rotation": [
+              0.08,
+              -0.22,
+              -0.05
+            ],
+            "scale": [
+              0.78,
+              0.78,
+              1
+            ],
+            "bend": 0.35
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "终点纹理必须高清",
+          "动作结束后至少 hold 15f",
+          "不与 crash zoom 同段叠加"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "camera-pull-out",
+      "label": "Pull Out",
+      "description": "从细节快速释放，页面后撤并轻弯离开，重新交代系统全貌。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "connect",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-play",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-pull-out"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "pull-out",
+        "subject": {
+          "anchor": [
+            0.52,
+            0.48
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.08,
+              -0.03,
+              5.9
+            ],
+            "fov": 30
+          },
+          {
+            "at": 0.16,
+            "position": [
+              -0.12,
+              0.1,
+              8.3
+            ],
+            "fov": 34,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              -0.12,
+              0.1,
+              8.3
+            ],
+            "fov": 34,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.5,
+              -0.22,
+              -1
+            ],
+            "rotation": [
+              -0.06,
+              0.16,
+              0.04
+            ],
+            "scale": [
+              0.82,
+              0.82,
+              1
+            ],
+            "bend": 0.22,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "只用于完成一个信息点后的释放",
+          "不得作为无意义的缩小"
+        ],
+        "recommendedDurationFrames": 72
+      }
+    },
+    {
+      "id": "camera-truck",
+      "label": "Camera Truck",
+      "description": "横向移镜，适合比较与扫描；多平面场景会产生真实视差，单平面只保留轻视角变化。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "guide",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-truck"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "truck",
+        "subject": {
+          "anchor": [
+            0.46,
+            0.5
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.5,
+              0.02,
+              8
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.5,
+              -0.02,
+              8
+            ],
+            "fov": 34,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.5,
+              -0.02,
+              8
+            ],
+            "fov": 34,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.62,
+              0.12,
+              -0.9
+            ],
+            "rotation": [
+              0.04,
+              -0.2,
+              -0.04
+            ],
+            "scale": [
+              0.84,
+              0.84,
+              1
+            ],
+            "bend": 0.24
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "动作应在约 1 秒内完成",
+          "单平面用倾斜与曲面制造透视",
+          "保持文字可读"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "camera-crane",
+      "label": "Camera Crane",
+      "description": "从略高机位平滑落向主体，适合开场揭示或把数据、对象带入观看中心。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "guide",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-enter",
+        "scene-play",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-crane"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "crane",
+        "subject": {
+          "anchor": [
+            0.5,
+            0.46
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.12,
+              0.42,
+              8.45
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.1,
+              -0.14,
+              7.55
+            ],
+            "fov": 32,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.1,
+              -0.14,
+              7.55
+            ],
+            "fov": 32,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.1,
+              0.56,
+              -1.2
+            ],
+            "rotation": [
+              0.16,
+              -0.08,
+              -0.05
+            ],
+            "scale": [
+              0.79,
+              0.79,
+              1
+            ],
+            "bend": 0.32
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "有地板或背景参照时更成立",
+          "不要和同段页面大位移叠加"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "camera-lens-inspect",
+      "label": "Lens Inspect",
+      "description": "先推进到具体主体，再以放大镜检查同一个细节；用于产品 UI、数据与需要确认的证据。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "inspect",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-play",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "camera-lens-inspect"
+        }
+      },
+      "source": {
+        "exportName": "CameraDirector",
+        "path": "packages/remotion-kit/src/three/CameraDirector.tsx",
+        "workspacePath": "src/three/CameraDirector.tsx"
+      },
+      "camera": {
+        "verb": "push-in",
+        "subject": {
+          "anchor": [
+            0.68,
+            0.58
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0,
+              0,
+              8.2
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.16,
+              -0.08,
+              5.9
+            ],
+            "fov": 30,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.16,
+              -0.08,
+              5.9
+            ],
+            "fov": 30,
+            "easing": "linear"
+          }
+        ],
+        "lens": {
+          "zoom": 1.75,
+          "radius": 138
+        }
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.54,
+              0.22,
+              -1.2
+            ],
+            "rotation": [
+              0.07,
+              -0.2,
+              -0.04
+            ],
+            "scale": [
+              0.8,
+              0.8,
+              1
+            ],
+            "bend": 0.3
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "camera subject 与 descriptor.lens.anchor 必须同源",
+          "先到焦点再显示 lens",
+          "每镜头最多一个强光学主角"
+        ],
+        "recommendedDurationFrames": 90
+      }
+    },
+    {
+      "id": "surface-corner-curl",
+      "label": "Corner Curl Land",
+      "description": "页面从右上纸角卷起、带 yaw 与 roll 落入镜头；适合章节卡、报价卡或一张需要被揭开的关键信息。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "reveal",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-enter",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "surface-corner-curl"
+        }
+      },
+      "source": {
+        "exportName": "SurfaceMotion",
+        "path": "packages/remotion-kit/src/three/SurfaceMotion.ts",
+        "workspacePath": "src/three/SurfaceMotion.ts"
+      },
+      "camera": {
+        "verb": "push-in",
+        "subject": {
+          "anchor": [
+            0.66,
+            0.34
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.1,
+              0.02,
+              8.3
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.08,
+              -0.04,
+              6.7
+            ],
+            "fov": 32,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.08,
+              -0.04,
+              6.7
+            ],
+            "fov": 32,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.58,
+              0.3,
+              -1.28
+            ],
+            "rotation": [
+              0.14,
+              0.46,
+              0.18
+            ],
+            "scale": [
+              0.76,
+              0.76,
+              1
+            ],
+            "bend": 0.14,
+            "corner": "top-right",
+            "cornerCurl": 0.82
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "corner": "top-right",
+            "cornerCurl": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "只卷一个明确角",
+          "动作应在约 1 秒内完成",
+          "落位后保持平整可读"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "surface-dutch-settle",
+      "label": "Dutch Settle",
+      "description": "页面以大幅 roll 与侧向 yaw 进入，最后正面归位；用于强调、警报、立场反转或章节断点。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "impact",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-enter",
+        "scene-play"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "surface-dutch-settle"
+        }
+      },
+      "source": {
+        "exportName": "SurfaceMotion",
+        "path": "packages/remotion-kit/src/three/SurfaceMotion.ts",
+        "workspacePath": "src/three/SurfaceMotion.ts"
+      },
+      "camera": {
+        "verb": "locked",
+        "subject": {
+          "anchor": [
+            0.5,
+            0.5
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0,
+              0,
+              8
+            ],
+            "fov": 34
+          },
+          {
+            "at": 1,
+            "position": [
+              0,
+              0,
+              8
+            ],
+            "fov": 34,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.32,
+              0.16,
+              -1.05
+            ],
+            "rotation": [
+              0.08,
+              -0.62,
+              -0.48
+            ],
+            "scale": [
+              0.82,
+              0.82,
+              1
+            ],
+            "bend": 0.2
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "只用于一次强调",
+          "不与 glitch 或第二次大转动同段叠加",
+          "归位后至少 hold 20f"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "surface-browser-rise",
+      "label": "Browser Rise",
+      "description": "有厚度的浏览器外框从俯视角升起并正面落定；适合 SaaS 功能、网页成果或操作步骤。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "showcase",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-enter",
+        "target"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "surface-browser-rise"
+        }
+      },
+      "source": {
+        "exportName": "BrowserSurfaceShell",
+        "path": "packages/remotion-kit/src/three/SurfaceShell.tsx",
+        "workspacePath": "src/three/SurfaceShell.tsx"
+      },
+      "camera": {
+        "verb": "crane",
+        "subject": {
+          "anchor": [
+            0.5,
+            0.48
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.1,
+              0.32,
+              8.4
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.06,
+              -0.06,
+              7.25
+            ],
+            "fov": 32,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.06,
+              -0.06,
+              7.25
+            ],
+            "fov": 32,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "shell": "browser",
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.08,
+              -0.58,
+              -1.3
+            ],
+            "rotation": [
+              0.34,
+              -0.14,
+              0.04
+            ],
+            "scale": [
+              0.76,
+              0.76,
+              1
+            ],
+            "bend": 0.12
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "shell 与页面必须共享同一 surface 轨",
+          "动作应在约 1 秒内完成",
+          "screen title 不进入外框透视"
+        ],
+        "recommendedDurationFrames": 54
+      }
+    },
+    {
+      "id": "surface-cloth-breathe",
+      "label": "Cloth Breathe",
+      "description": "轻布料波动叠加弯曲落位，再以微推镜呼吸；适合海报、品牌卡或情绪段，不用于密集阅读。",
+      "engine": "three-camera",
+      "layer": "camera",
+      "intent": "atmosphere",
+      "requires": [
+        "three",
+        "html-surface"
+      ],
+      "placement": [
+        "scene-enter"
+      ],
+      "preview": {
+        "compositionId": "camera-preview",
+        "durationInFrames": 180,
+        "defaultProps": {
+          "effect": "surface-cloth-breathe"
+        }
+      },
+      "source": {
+        "exportName": "SurfacePlaneGeometry",
+        "path": "packages/remotion-kit/src/three/HtmlSurface.tsx",
+        "workspacePath": "src/three/HtmlSurface.tsx"
+      },
+      "camera": {
+        "verb": "drift",
+        "subject": {
+          "anchor": [
+            0.5,
+            0.5
+          ]
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              -0.08,
+              0.06,
+              8.15
+            ],
+            "fov": 34
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0.08,
+              -0.04,
+              7.75
+            ],
+            "fov": 33,
+            "easing": "ease-out"
+          },
+          {
+            "at": 1,
+            "position": [
+              0.08,
+              -0.04,
+              7.75
+            ],
+            "fov": 33,
+            "easing": "linear"
+          }
+        ]
+      },
+      "surface": {
+        "cloth": {
+          "amplitude": 0.035,
+          "speed": 1.1,
+          "scale": 1.25
+        },
+        "keyframes": [
+          {
+            "at": 0,
+            "position": [
+              0.12,
+              0.26,
+              -1.05
+            ],
+            "rotation": [
+              0.08,
+              -0.16,
+              0.03
+            ],
+            "scale": [
+              0.84,
+              0.84,
+              1
+            ],
+            "bend": 0.28
+          },
+          {
+            "at": 0.16,
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotation": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ],
+            "bend": 0,
+            "easing": "ease-out"
+          }
+        ]
+      },
+      "prompt": {
+        "constraints": [
+          "只用于少字的品牌/情绪画面",
+          "cloth amplitude 不超过 0.05",
+          "不与 lens 或 displacement 同段叠加"
+        ],
+        "recommendedDurationFrames": 54
       }
     }
   ],
@@ -2470,5 +4858,5 @@
       "motion": ""
     }
   },
-  "kitVersion": "0.7.0"
+  "kitVersion": "0.6.0"
 }

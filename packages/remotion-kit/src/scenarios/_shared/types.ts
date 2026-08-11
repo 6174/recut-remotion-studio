@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；场景引擎与各场景 beat 渲染器共享的类型契约
- * [OUTPUT]: 对外提供 Scene、BeatRenderer、SceneEngineProps 等场景层类型
+ * [OUTPUT]: 对外提供 Scene、BeatRenderer、BeatLayer、SceneEngineProps 等场景层类型
  * [POS]: scenarios/_shared 的类型层；每个场景定义自己的 beat kinds 与渲染器，
  *        共享引擎只负责背景/淡入淡出/字幕/时序，把每帧画面交给场景的 beat 渲染器
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
@@ -18,9 +18,14 @@ export interface Scene {
   kicker?: string;
   narration?: string;
   imageAssetId?: string | null;
+  /** 可选的屏幕层 renderer key。声明后，该 beat 会在 Three 输出之后额外渲染一次屏幕空间内容。 */
+  screenKind?: string;
   /** beat 专属载荷：数字翻牌、要点列表、引述、CTA 等，由场景的 beat 渲染器消费。 */
   [key: string]: unknown;
 }
+
+/** 同一 beat 的两个稳定输出面：world 进入 HtmlSurface，screen 直接叠加到最终画面。 */
+export type BeatLayer = "world" | "screen";
 
 /** beat 渲染器收到的上下文：已解析 palette、帧、fps、画布尺寸。 */
 export interface BeatContext {
@@ -33,6 +38,8 @@ export interface BeatContext {
   resolveMediaUrl?: (assetId: string) => string | undefined;
   /** 帧驱动的互动语义状态（Three-first 内容表面注入；无互动脚本时为 undefined）。 */
   interaction?: InteractionState;
+  /** 当前 renderer 所在的输出面；screen 不经过 PerspectiveCamera 或材质后处理。 */
+  layer?: BeatLayer;
 }
 
 export type BeatRenderer = React.FC<BeatContext>;

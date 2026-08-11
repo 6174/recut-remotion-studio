@@ -4,14 +4,14 @@
  * [OUTPUT]: 对外提供 DOODLE_EXPLAINER_PALETTE、buildDoodleExplainerScenes、DOODLE_EXPLAINER_STAGE_PLAN、
  *           buildDoodleExplainerGpuPlan 与 DoodleExplainerVideo
  * [POS]: scenarios/doodle-explainer 的白板涂鸦讲解模板代码（Three-first 模式）。内容层（roughjs
- *        手绘速写本）经 HtmlSurface 光栅化为 GPU 纹理；镜头间用 store-peel 卷页转场（速写本翻页）；
- *        conclusion 的 focus 交互作为内容表面 overlay 与排版同帧。
+ *        手绘速写本）经 HtmlSurface 光栅化为 GPU 纹理；镜头间用 store-peel 卷页转场（速写本翻页），data 以俯倾纸面快速落位 + crane；
+ *        conclusion 的 cursor 交互作为内容表面 overlay 与排版同帧，不绘制聚焦遮罩。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
 import { AbsoluteFill, Audio, useVideoConfig } from "remotion";
 import { ShotGraph } from "../../../three";
-import type { ShotGraphPlan } from "../../../three/types";
+import type { CameraMoveDescriptor, ShotGraphPlan, SurfaceMoveDescriptor } from "../../../three/types";
 import { buildGpuScenePlan, createSceneContent, SceneCaptionOverlay } from "../../_shared/GpuSceneEngine";
 import { DOODLE_EXPLAINER_BEATS } from "../beats";
 import type { StagePlan } from "../../../html-canvas/types";
@@ -36,7 +36,7 @@ export interface DoodleExplainerVideoProps {
   scenes?: Scene[];
   resolveMediaUrl?: (assetId: string) => string | undefined;
   bgmAssetId?: string | null;
-  /** 帧驱动互动脚本 + 目标几何；undefined = 启用内置 focus 用例，null = 关闭。 */
+  /** 帧驱动互动脚本；undefined = 启用内置 cursor 用例，null = 关闭。 */
   stagePlan?: StagePlan | null;
 }
 
@@ -55,11 +55,8 @@ export const buildDoodleExplainerScenes = (topic?: string): Scene[] => [
   { id: "conclusion", kind: "conclusion", title: "复杂的事，一笔一笔画清楚", kicker: "THE TAKEAWAY", durationSec: 5 },
 ];
 
-/** 白板涂鸦的帧驱动互动脚本（conclusion focus）。paper-grain 由内容表面承载。 */
+/** 白板涂鸦的帧驱动互动脚本（conclusion cursor）。paper-grain 由内容表面承载。 */
 export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
-  targets: {
-    "conclusion-title": { kind: "rect", rect: { x: 260, y: 380, width: 1400, height: 320 }, radius: 40 },
-  },
   interaction: [
     { kind: "move", frame: 36, x: 240, y: 900 },
     { kind: "move", frame: 1195, x: 960, y: 520, easing: "easeInOut" },
@@ -68,11 +65,34 @@ export const DOODLE_EXPLAINER_STAGE_PLAN: StagePlan = {
   ],
 };
 
+/** 数据页一秒内完成 crane；手绘纸面自身从俯倾姿态落稳，之后让观众读数字。 */
+const DOODLE_DATA_CRANE_CAMERA: CameraMoveDescriptor = {
+  verb: "crane",
+  subject: { anchor: [0.5, 0.45] },
+  keyframes: [
+    { at: 0, position: [-0.08, 0.28, 8.35], fov: 34 },
+    { at: 0.16, position: [0.08, -0.06, 7.65], fov: 33, easing: "ease-out" },
+    { at: 1, position: [0.08, -0.06, 7.65], fov: 33, easing: "linear" },
+  ],
+};
+
+const DOODLE_DATA_LAND_SURFACE: SurfaceMoveDescriptor = {
+  keyframes: [
+    { at: 0, position: [0.08, 0.58, -1.22], rotation: [0.16, -0.08, -0.05], scale: [0.79, 0.79, 1], bend: 0.34 },
+    { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" },
+    { at: 1, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "linear" },
+  ],
+};
+
 /** 白板涂鸦 GPU 镜头图：镜头间用 store-peel 卷页转场（速写本翻页）。 */
 export const buildDoodleExplainerGpuPlan = (scenes: Scene[], fps: number): ShotGraphPlan =>
   buildGpuScenePlan({ scenes }, fps, {
     transitionDurationFrames: 22,
     transitionFor: () => "store-peel",
+    cameraFor: (scene) =>
+      scene.kind === "data" ? DOODLE_DATA_CRANE_CAMERA : undefined,
+    surfaceFor: (scene) =>
+      scene.kind === "data" ? DOODLE_DATA_LAND_SURFACE : undefined,
   });
 
 export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topic, scenes, resolveMediaUrl, bgmAssetId, stagePlan }) => {
@@ -86,7 +106,6 @@ export const DoodleExplainerVideo: React.FC<DoodleExplainerVideoProps> = ({ topi
     beats: DOODLE_EXPLAINER_BEATS,
     resolveMediaUrl,
     interaction: plan?.interaction,
-    targets: plan?.targets,
     width,
     height,
   });

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖下面的 SCENARIO_SPEC（成片模板目录）
- * [OUTPUT]: 生成 catalog.json（scenarios + captionThemes/canvasSizes/components/directives）
- * [POS]: remotion-kit 目录生成器；成片模板、组件、字幕主题、画布与导演指令从下方内联目录拼接
+ * [INPUT]: 依赖下面的 SCENARIO_SPEC（成片模板目录）与 materials 的 registry/schema
+ * [OUTPUT]: 生成 catalog.json（scenarios + captionThemes/canvasSizes/components/effects〔materials + camera〕/directives）
+ * [POS]: remotion-kit 目录生成器；内联内容目录与 Three 材质注册表共同投影为 UI 目录
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -19,6 +19,24 @@ const readExistingCatalog = () => {
     return {};
   }
 };
+
+/** 目录不能手抄 Three effect：从 TS 注册表取同一份定义，避免重新生成 catalog 时悄悄删掉材质。 */
+const readMaterialSchema = () => {
+  const source = readFileSync(join(ROOT, "src", "materials", "schema.ts"), "utf8")
+    .replace(/^import[^\n]*\n/gm, "")
+    .replace("export const MATERIAL_SCHEMA: Record<MaterialId, Record<string, MaterialParamSchema>> =", "const MATERIAL_SCHEMA =");
+  return Function(`${source}\nreturn MATERIAL_SCHEMA;`)();
+};
+
+const readMaterialRegistry = (schema) => {
+  const source = readFileSync(join(ROOT, "src", "materials", "registry.ts"), "utf8")
+    .replace(/^import[^\n]*\n/gm, "")
+    .split("export const getMaterialDefinition")[0]
+    .replace("export const MATERIAL_REGISTRY: MaterialRegistry =", "const MATERIAL_REGISTRY =");
+  return Function("MATERIAL_SCHEMA", `${source}\nreturn MATERIAL_REGISTRY;`)(schema);
+};
+
+const THREE_MATERIALS = Object.values(readMaterialRegistry(readMaterialSchema()));
 // 场景即成片模板：brief.template 存模板 id，模板内置视觉、组件和导演规划。
 const SCENARIO_SPEC = [
   {
@@ -236,20 +254,21 @@ const COMPONENTS = [
   ["picture-in-picture", "Picture in Picture", "PiP overlay layout", "template", "图片媒体"],
   ["polaroid-frame", "Polaroid Frame", "Polaroid-style photo with drop-in", "template", "图片媒体"],
   ["split-screen", "Split Screen", "Two panels sliding to meet", "template", "图片媒体"],
-  // 动态组件（shotcraft）
-  ["PageCam", "PageCam", "页面镜头与相机运动", "shotcraft", "动态组件"],
-  ["DigitRoll", "DigitRoll", "数字滚动强调", "shotcraft", "动态组件"],
-  ["VerticalTicker", "VerticalTicker", "纵向信息流", "shotcraft", "动态组件"],
-  ["FlashCut", "FlashCut", "闪切与节奏转场", "shotcraft", "动态组件"],
-  ["FlatPanel", "FlatPanel", "扁平信息面板（需 3D 渲染环境）", "shotcraft", "动态组件"],
+  // 动态组件
+  ["PageCam", "PageCam", "页面镜头与相机运动", "motion", "动态组件"],
+  ["DigitRoll", "DigitRoll", "数字滚动强调", "motion", "动态组件"],
+  ["VerticalTicker", "VerticalTicker", "纵向信息流", "motion", "动态组件"],
+  ["FlashCut", "FlashCut", "闪切与节奏转场", "motion", "动态组件"],
+  ["FlameFrame", "Flame Frame", "居中内容框 + 自适应橙黄火焰边框", "motion", "动态组件"],
+  ["FlatPanel", "FlatPanel", "扁平信息面板（需 3D 渲染环境）", "motion", "动态组件"],
 ].map(([id, label, description, kind, category]) => ({
   id,
   label,
   description,
   kind,
   category,
-  path: kind === "shotcraft" ? `packages/remotion-kit/src/components/${id}.tsx` : `packages/remotion-kit/src/components/${id}.tsx`,
-  workspacePath: kind === "shotcraft" ? `src/components/${id}.tsx` : `src/components/${id}.tsx`,
+  path: `packages/remotion-kit/src/components/${id}.tsx`,
+  workspacePath: `src/components/${id}.tsx`,
 }));
 
 const DIRECTIVES = [
@@ -265,7 +284,7 @@ const DIRECTIVES = [
 
 // HTML-in-Canvas 表达镜头层（首批实现）。engine/layer/placement 决定它如何与鼠标、
 // 场景进出、背景或组件内生命周期组合；source.path 是 Agent 改写 composition 时读取的源码。
-const EFFECTS = [
+const HTML_CANVAS_EFFECTS = [
   {
     id: "cursor",
     label: "Cursor Director",
@@ -358,6 +377,196 @@ const EFFECTS = [
     prompt: { constraints: ["每场景最多一个", "默认关闭"], recommendedDurationFrames: 240 },
   },
 ];
+
+const THREE_EFFECTS = THREE_MATERIALS.map((material) => ({
+  id: material.id,
+  label: material.label,
+  description: material.description,
+  engine: "three",
+  layer: material.category,
+  intent: material.category === "ambient" ? "atmosphere" : material.category === "transform" ? "transition" : "emphasize",
+  placement: material.category === "ambient" ? ["ambient", "scene-play"] : material.category === "transform" ? ["transition"] : ["scene-play", "scene-enter", "scene-exit"],
+  requires: ["three", "html-surface"],
+  material,
+  source: {
+    exportName: "MaterialElement",
+    path: "packages/remotion-kit/src/materials/MaterialElement.tsx",
+    workspacePath: "src/materials/MaterialElement.tsx",
+  },
+  prompt: {
+    constraints: [
+      "material 只消费内容纹理与 schema 声明的语义参数",
+      "逐帧只更新 uniform，不重建 shader",
+      "确定性：固定 seed，禁 random/Date.now",
+    ],
+  },
+}));
+
+// Shot Language v3 属于镜头层特效：camera 观看、surface 快速落位/弯曲、focus/lens 管注意力。
+// 因此单独声明 engine/layer，UI 可在同一个弹框中分组、用真实 Three fixture 预览。
+const QUICK_SURFACE_LANDS = {
+  "camera-drift": { keyframes: [{ at: 0, position: [-0.42, 0.2, -0.8], rotation: [0.05, -0.14, -0.03], scale: [0.88, 0.88, 1], bend: 0.18 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+  "camera-push-in": { keyframes: [{ at: 0, position: [-0.6, 0.28, -1.25], rotation: [0.08, -0.22, -0.05], scale: [0.78, 0.78, 1], bend: 0.35 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+  "camera-pull-out": { keyframes: [{ at: 0, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0 }, { at: 0.16, position: [0.5, -0.22, -1], rotation: [-0.06, 0.16, 0.04], scale: [0.82, 0.82, 1], bend: 0.22, easing: "ease-out" }] },
+  "camera-truck": { keyframes: [{ at: 0, position: [-0.62, 0.12, -0.9], rotation: [0.04, -0.2, -0.04], scale: [0.84, 0.84, 1], bend: 0.24 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+  "camera-crane": { keyframes: [{ at: 0, position: [0.1, 0.56, -1.2], rotation: [0.16, -0.08, -0.05], scale: [0.79, 0.79, 1], bend: 0.32 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+  "camera-lens-inspect": { keyframes: [{ at: 0, position: [-0.54, 0.22, -1.2], rotation: [0.07, -0.2, -0.04], scale: [0.8, 0.8, 1], bend: 0.3 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+};
+
+const CAMERA_EFFECTS = [
+  {
+    id: "camera-drift",
+    label: "Camera Drift",
+    description: "纸面以微倾姿态快速落位，再由轻量平移建立呼吸感；动作后保留阅读。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "guide",
+    requires: ["three", "html-surface"],
+    placement: ["scene-play", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-drift" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "drift", subject: { anchor: [0.52, 0.48] }, keyframes: [{ at: 0, position: [-0.26, 0.14, 8.25], fov: 34 }, { at: 0.16, position: [0.2, -0.08, 7.9], fov: 33, easing: "ease-out" }, { at: 1, position: [0.2, -0.08, 7.9], fov: 33, easing: "linear" }] },
+    surface: QUICK_SURFACE_LANDS["camera-drift"],
+    prompt: { constraints: ["动作应在约 1 秒内完成", "落位后保留阅读 hold", "不得与大运动并列"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "camera-push-in",
+    label: "Push In",
+    description: "页面从斜后方弯曲落位，同时沿视线推进并锁定主体；用于快速收束到具体主张。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "emphasize",
+    requires: ["three", "html-surface"],
+    placement: ["scene-play", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-push-in" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "push-in", subject: { anchor: [0.54, 0.5] }, keyframes: [{ at: 0, position: [0, 0, 8.2], fov: 34 }, { at: 0.16, position: [0.1, -0.04, 5.9], fov: 30, easing: "ease-out" }, { at: 1, position: [0.1, -0.04, 5.9], fov: 30, easing: "linear" }] },
+    surface: QUICK_SURFACE_LANDS["camera-push-in"],
+    prompt: { constraints: ["终点纹理必须高清", "动作结束后至少 hold 15f", "不与 crash zoom 同段叠加"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "camera-pull-out",
+    label: "Pull Out",
+    description: "从细节快速释放，页面后撤并轻弯离开，重新交代系统全貌。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "connect",
+    requires: ["three", "html-surface"],
+    placement: ["scene-play", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-pull-out" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "pull-out", subject: { anchor: [0.52, 0.48] }, keyframes: [{ at: 0, position: [0.08, -0.03, 5.9], fov: 30 }, { at: 0.16, position: [-0.12, 0.1, 8.3], fov: 34, easing: "ease-out" }, { at: 1, position: [-0.12, 0.1, 8.3], fov: 34, easing: "linear" }] },
+    surface: QUICK_SURFACE_LANDS["camera-pull-out"],
+    prompt: { constraints: ["只用于完成一个信息点后的释放", "不得作为无意义的缩小"], recommendedDurationFrames: 72 },
+  },
+  {
+    id: "camera-truck",
+    label: "Camera Truck",
+    description: "横向移镜，适合比较与扫描；多平面场景会产生真实视差，单平面只保留轻视角变化。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "guide",
+    requires: ["three", "html-surface"],
+    placement: ["scene-play"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-truck" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "truck", subject: { anchor: [0.46, 0.5] }, keyframes: [{ at: 0, position: [-0.5, 0.02, 8], fov: 34 }, { at: 0.16, position: [0.5, -0.02, 8], fov: 34, easing: "ease-out" }, { at: 1, position: [0.5, -0.02, 8], fov: 34, easing: "linear" }] },
+    surface: QUICK_SURFACE_LANDS["camera-truck"],
+    prompt: { constraints: ["动作应在约 1 秒内完成", "单平面用倾斜与曲面制造透视", "保持文字可读"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "camera-crane",
+    label: "Camera Crane",
+    description: "从略高机位平滑落向主体，适合开场揭示或把数据、对象带入观看中心。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "guide",
+    requires: ["three", "html-surface"],
+    placement: ["scene-enter", "scene-play", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-crane" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "crane", subject: { anchor: [0.5, 0.46] }, keyframes: [{ at: 0, position: [-0.12, 0.42, 8.45], fov: 34 }, { at: 0.16, position: [0.1, -0.14, 7.55], fov: 32, easing: "ease-out" }, { at: 1, position: [0.1, -0.14, 7.55], fov: 32, easing: "linear" }] },
+    surface: QUICK_SURFACE_LANDS["camera-crane"],
+    prompt: { constraints: ["有地板或背景参照时更成立", "不要和同段页面大位移叠加"], recommendedDurationFrames: 90 },
+  },
+  {
+    id: "camera-lens-inspect",
+    label: "Lens Inspect",
+    description: "先推进到具体主体，再以放大镜检查同一个细节；用于产品 UI、数据与需要确认的证据。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "inspect",
+    requires: ["three", "html-surface"],
+    placement: ["scene-play", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "camera-lens-inspect" } },
+    source: { exportName: "CameraDirector", path: "packages/remotion-kit/src/three/CameraDirector.tsx", workspacePath: "src/three/CameraDirector.tsx" },
+    camera: { verb: "push-in", subject: { anchor: [0.68, 0.58] }, keyframes: [{ at: 0, position: [0, 0, 8.2], fov: 34 }, { at: 0.16, position: [0.16, -0.08, 5.9], fov: 30, easing: "ease-out" }, { at: 1, position: [0.16, -0.08, 5.9], fov: 30, easing: "linear" }], lens: { zoom: 1.75, radius: 138 } },
+    surface: QUICK_SURFACE_LANDS["camera-lens-inspect"],
+    prompt: { constraints: ["camera subject 与 descriptor.lens.anchor 必须同源", "先到焦点再显示 lens", "每镜头最多一个强光学主角"], recommendedDurationFrames: 90 },
+  },
+  {
+    id: "surface-corner-curl",
+    label: "Corner Curl Land",
+    description: "页面从右上纸角卷起、带 yaw 与 roll 落入镜头；适合章节卡、报价卡或一张需要被揭开的关键信息。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "reveal",
+    requires: ["three", "html-surface"],
+    placement: ["scene-enter", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "surface-corner-curl" } },
+    source: { exportName: "SurfaceMotion", path: "packages/remotion-kit/src/three/SurfaceMotion.ts", workspacePath: "src/three/SurfaceMotion.ts" },
+    camera: { verb: "push-in", subject: { anchor: [0.66, 0.34] }, keyframes: [{ at: 0, position: [0.1, 0.02, 8.3], fov: 34 }, { at: 0.16, position: [0.08, -0.04, 6.7], fov: 32, easing: "ease-out" }, { at: 1, position: [0.08, -0.04, 6.7], fov: 32, easing: "linear" }] },
+    surface: { keyframes: [{ at: 0, position: [0.58, 0.3, -1.28], rotation: [0.14, 0.46, 0.18], scale: [0.76, 0.76, 1], bend: 0.14, corner: "top-right", cornerCurl: 0.82 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, corner: "top-right", cornerCurl: 0, easing: "ease-out" }] },
+    prompt: { constraints: ["只卷一个明确角", "动作应在约 1 秒内完成", "落位后保持平整可读"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "surface-dutch-settle",
+    label: "Dutch Settle",
+    description: "页面以大幅 roll 与侧向 yaw 进入，最后正面归位；用于强调、警报、立场反转或章节断点。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "impact",
+    requires: ["three", "html-surface"],
+    placement: ["scene-enter", "scene-play"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "surface-dutch-settle" } },
+    source: { exportName: "SurfaceMotion", path: "packages/remotion-kit/src/three/SurfaceMotion.ts", workspacePath: "src/three/SurfaceMotion.ts" },
+    camera: { verb: "locked", subject: { anchor: [0.5, 0.5] }, keyframes: [{ at: 0, position: [0, 0, 8], fov: 34 }, { at: 1, position: [0, 0, 8], fov: 34, easing: "linear" }] },
+    surface: { keyframes: [{ at: 0, position: [-0.32, 0.16, -1.05], rotation: [0.08, -0.62, -0.48], scale: [0.82, 0.82, 1], bend: 0.2 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+    prompt: { constraints: ["只用于一次强调", "不与 glitch 或第二次大转动同段叠加", "归位后至少 hold 20f"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "surface-browser-rise",
+    label: "Browser Rise",
+    description: "有厚度的浏览器外框从俯视角升起并正面落定；适合 SaaS 功能、网页成果或操作步骤。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "showcase",
+    requires: ["three", "html-surface"],
+    placement: ["scene-enter", "target"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "surface-browser-rise" } },
+    source: { exportName: "BrowserSurfaceShell", path: "packages/remotion-kit/src/three/SurfaceShell.tsx", workspacePath: "src/three/SurfaceShell.tsx" },
+    camera: { verb: "crane", subject: { anchor: [0.5, 0.48] }, keyframes: [{ at: 0, position: [-0.1, 0.32, 8.4], fov: 34 }, { at: 0.16, position: [0.06, -0.06, 7.25], fov: 32, easing: "ease-out" }, { at: 1, position: [0.06, -0.06, 7.25], fov: 32, easing: "linear" }] },
+    surface: { shell: "browser", keyframes: [{ at: 0, position: [0.08, -0.58, -1.3], rotation: [0.34, -0.14, 0.04], scale: [0.76, 0.76, 1], bend: 0.12 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+    prompt: { constraints: ["shell 与页面必须共享同一 surface 轨", "动作应在约 1 秒内完成", "screen title 不进入外框透视"], recommendedDurationFrames: 54 },
+  },
+  {
+    id: "surface-cloth-breathe",
+    label: "Cloth Breathe",
+    description: "轻布料波动叠加弯曲落位，再以微推镜呼吸；适合海报、品牌卡或情绪段，不用于密集阅读。",
+    engine: "three-camera",
+    layer: "camera",
+    intent: "atmosphere",
+    requires: ["three", "html-surface"],
+    placement: ["scene-enter"],
+    preview: { compositionId: "camera-preview", durationInFrames: 180, defaultProps: { effect: "surface-cloth-breathe" } },
+    source: { exportName: "SurfacePlaneGeometry", path: "packages/remotion-kit/src/three/HtmlSurface.tsx", workspacePath: "src/three/HtmlSurface.tsx" },
+    camera: { verb: "drift", subject: { anchor: [0.5, 0.5] }, keyframes: [{ at: 0, position: [-0.08, 0.06, 8.15], fov: 34 }, { at: 0.16, position: [0.08, -0.04, 7.75], fov: 33, easing: "ease-out" }, { at: 1, position: [0.08, -0.04, 7.75], fov: 33, easing: "linear" }] },
+    surface: { cloth: { amplitude: 0.035, speed: 1.1, scale: 1.25 }, keyframes: [{ at: 0, position: [0.12, 0.26, -1.05], rotation: [0.08, -0.16, 0.03], scale: [0.84, 0.84, 1], bend: 0.28 }, { at: 0.16, position: [0, 0, 0], rotation: [0, 0, 0], scale: [1, 1, 1], bend: 0, easing: "ease-out" }] },
+    prompt: { constraints: ["只用于少字的品牌/情绪画面", "cloth amplitude 不超过 0.05", "不与 lens 或 displacement 同段叠加"], recommendedDurationFrames: 54 },
+  },
+];
+
+const EFFECTS = [...HTML_CANVAS_EFFECTS, ...THREE_EFFECTS, ...CAMERA_EFFECTS];
 
 const scenarios = Object.fromEntries(
   SCENARIO_SPEC.filter((s) => s.implemented).map((s) => {

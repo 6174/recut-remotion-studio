@@ -37,7 +37,7 @@
 
 **铁律：每个 beat 只有一个眼睛应该看的对象。** 全片不重复让同一种动效成为主角；箭头可以反复作为视觉语法，但每一处都只指向一个新判断。
 
-**互动引导镜头（默认开启，`FACELESS_EXPLAINER_STAGE_PLAN`）**：concept beat 上 hover → focus（对 `claim` 标题聚焦），data beat 上 click → focus（聚焦三个判断问题）。Three-first GPU 路径下，鼠标轨迹与语义状态由同一帧驱动 `InteractionScript` 推导，交互 overlay（focus dim + accent ring + cursor）作为内容表面 React 层与排版同帧栅格化；evidence 镜头用 `article-highlight` 材质保持中心锐利，concept/data 入场用 `bend` 转场（`buildFacelessExplainerGpuPlan`）。改文案/坐标时保持 `template/ProjectVideo.tsx` 的 StagePlan 目标几何与 `beats.tsx` 排版同步。场景可经 `stagePlan` prop 关闭（null）或替换。内容表面经 HtmlSurface 光栅化（HTML-in-Canvas 主 / foreignObject 备）。
+**全片纹理镜头（默认开启）**：`buildFacelessExplainerGpuPlan` 为每个 beat 使用 `vintage` GPU 材质，以低强度颗粒、轻微褪色和暗角统一纸面质感；hook 使用轻量 `drift` 建立纸面，data 使用缓 `push-in` 收束数字，其余 beat 固定机位以保护阅读；不再绘制会压暗正文的 spotlight/focus overlay。内容表面经 HtmlSurface 光栅化，纹理由 Three-first GPU 后处理完成。
 
 ## 四、组件与素材纪律
 

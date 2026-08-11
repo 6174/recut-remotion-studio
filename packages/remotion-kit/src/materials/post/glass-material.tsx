@@ -113,6 +113,8 @@ export interface HtmlGlassMaterialProps {
   ior?: number;
   depth?: number;
   reflect?: number;
+  /** 玻璃卡半宽（px），缺省 170 → 340px 圆角卡 */
+  half?: number;
 }
 
 export const HtmlGlassMaterial: React.FC<HtmlGlassMaterialProps> = ({
@@ -124,6 +126,7 @@ export const HtmlGlassMaterial: React.FC<HtmlGlassMaterialProps> = ({
   ior = 1.5,
   depth = 250,
   reflect = 1,
+  half = 170,
 }) => {
   const { material, uniforms } = useMaterialUniforms<THREE.ShaderMaterial>(
     () => ({
@@ -132,8 +135,8 @@ export const HtmlGlassMaterial: React.FC<HtmlGlassMaterialProps> = ({
       uCenter: new THREE.Uniform(
         new THREE.Vector2(center[0] * width, center[1] * height),
       ),
-      uHalf: new THREE.Uniform(new THREE.Vector2(120, 120)),
-      uCorner: new THREE.Uniform(120),
+      uHalf: new THREE.Uniform(new THREE.Vector2(half, half)),
+      uCorner: new THREE.Uniform(half),
       uEdge: new THREE.Uniform(0.7),
       uBevel: new THREE.Uniform(4),
       uIor: new THREE.Uniform(ior),
@@ -147,6 +150,8 @@ export const HtmlGlassMaterial: React.FC<HtmlGlassMaterialProps> = ({
     (u) => {
       u.uResolution.value.set(width, height);
       u.uCenter.value.set(center[0] * width, center[1] * height);
+      u.uHalf.value.set(half, half);
+      u.uCorner.value = half;
       u.uIor.value = ior;
       u.uDepth.value = depth;
       u.uReflect.value = reflect;

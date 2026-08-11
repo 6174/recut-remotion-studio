@@ -19,7 +19,7 @@ name: smear-multiples
 - 位置写成纯函数 `posAt(f)`（如 12f inOut cubic 到过冲点 + 6f 回弹）；
   第 k 个分身直接求 `posAt(frame − k·2)`——同一条插值换帧号求值，
   天然帧独立可算（disney 延迟采样拖拽层级的同一模式；模式已沉为
-  assets/lib/helpers/motion.ts velocityAt/lagged）
+  /remotion-kit/components/helpers/motion.ts velocityAt/lagged）
 - 分身 opacity 0.45/0.30/0.18/0.09 递减，是完整元素副本（不拉伸不变形）
 - 速度门限：`v = posAt(f) − posAt(f−1)`，v>25px/f 才渲染分身，
   用 [25,60] 线性渐入避免分身瞬间跳出——低速段无残像是"快才有分身"

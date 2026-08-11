@@ -1,20 +1,21 @@
 /**
  * [INPUT]: 依赖 Remotion spring/interpolate、palette、字幕构建、html-canvas 帧驱动互动推导
  *         与 three/ShotGraph 的镜头声明式模型
- * [OUTPUT]: 对外提供 createSceneContent（纯内容渲染函数）与 buildGpuScenePlan（ShotGraph plan），
- *           把场景 beats 以「HTML surface 内容」的形式接入 Three-first GPU 合成
- * [POS]: scenarios/_shared 的 GPU 编排层。内容层 = 当前场景 beat + 字幕 + 交互 overlay（纯 frame 驱动）；
- *        效果层（post/transform/ambient 材质）由 buildGpuScenePlan 的 mapper 映射。
- *        字幕主题内部使用 Remotion hook，作为 DOM overlay 由 ProjectVideo 渲染，不进入纹理。
+ * [OUTPUT]: 对外提供 createSceneContent（世界层内容函数）、SceneScreenLayer（屏幕层）与 buildGpuScenePlan（ShotGraph plan），
+ *           把场景 beats 以明确的 world / screen 两层接入 Three-first GPU 合成
+ * [POS]: scenarios/_shared 的 GPU 编排层。世界层 = 当前场景 beat + 交互 overlay（纯 frame 驱动）；
+ *        效果层（post/transform/ambient 材质）与 Three camera / surface 轨由 buildGpuScenePlan 的 mapper 映射。
+ *        screen beat 与字幕主题内部使用 Remotion hook，作为 DOM overlay 由 ProjectVideo 渲染，不进入纹理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React from "react";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Palette } from "../../palette";
 import { buildGlobalCaptions, computeTimings, DefaultContentBeat, totalDurationFrames } from "./SceneEngine";
 import type { BeatRenderer, Scene } from "./types";
 import { resolveInteractionState } from "../../html-canvas/interaction";
-import type { InteractionEvent, InteractionState, TargetMap } from "../../html-canvas/types";
-import type { LensDescriptor, ShotGraphPlan } from "../../three/types";
+import type { InteractionEvent, InteractionState } from "../../html-canvas/types";
+import type { CameraMoveDescriptor, LensDescriptor, ShotGraphPlan, SurfaceMoveDescriptor } from "../../three/types";
 import type { MaterialId } from "../../materials/types";
 import { CaptionTheme } from "../../captions";
 
@@ -26,53 +27,54 @@ export interface SceneGpuOptions {
   resolveMediaUrl?: (assetId: string) => string | undefined;
   /** 帧驱动互动脚本（StagePlan.interaction） */
   interaction?: InteractionEvent[];
-  /** 目标几何（StagePlan.targets）：供交互 overlay 聚焦 */
-  targets?: TargetMap;
-  /** 是否绘制交互 overlay（cursor + focus dim）到内容表面；缺省 true */
+  /** 是否绘制交互 overlay（仅 cursor）到内容表面；缺省 true */
   overlay?: boolean;
   width: number;
   height: number;
 }
 
-/** 场景 → ShotGraph 镜头的映射：效果/转场/环境/镜头均由场景决定，缺省 clean。 */
+/** 场景 → ShotGraph 镜头的映射：效果/转场/环境/相机轨均由场景决定，缺省 clean。 */
 export interface SceneGpuPlanMappers {
   effectFor?: (scene: Scene) => MaterialId | undefined;
   transitionFor?: (scene: Scene) => MaterialId | undefined;
   ambientFor?: (scene: Scene) => MaterialId | undefined;
   lensFor?: (scene: Scene) => LensDescriptor | undefined;
+  cameraFor?: (scene: Scene) => CameraMoveDescriptor | undefined;
+  surfaceFor?: (scene: Scene) => SurfaceMoveDescriptor | undefined;
   optionsFor?: (scene: Scene) => Record<string, unknown> | undefined;
   transitionDurationFrames?: number;
 }
 
-/** 帧驱动互动 overlay：focus dim（box-shadow 挖孔）+ cursor dot，纯 frame 输入。
- *  active=false（当前帧在互动窗口之外）时整体不渲染，避免 cursor 提前出现、
- *  hover 语义残留导致后续镜头被聚焦。 */
+interface ActiveScene {
+  scene: Scene;
+  local: number;
+  frames: number;
+}
+
+/** 世界层与屏幕层共用同一个时序解析，避免两层在 cut 边界漂移。 */
+const activeSceneAt = (fps: number, scenes: Scene[], frame: number): ActiveScene => {
+  const timings = computeTimings(fps, scenes);
+  let current = timings[timings.length - 1];
+  let local = frame;
+  for (const timing of timings) {
+    if (frame < timing.start + timing.frames) {
+      current = timing;
+      local = frame - timing.start;
+      break;
+    }
+  }
+  return { scene: current.scene, local, frames: current.frames };
+};
+
+/** 帧驱动互动 overlay：只保留 cursor dot，纯 frame 输入。
+ *  聚焦由场景自己的 GPU lens/material 表达，交互层不再压暗内容。 */
 export const InteractionOverlay: React.FC<{
   interaction: InteractionState;
-  targets?: TargetMap;
-  accent: string;
   active: boolean;
-}> = ({ interaction, targets, accent, active }) => {
+}> = ({ interaction, active }) => {
   if (!active) return null;
-  const focusTargetId = interaction.hoveredTargetId ?? interaction.pressedTargetId;
-  const target = focusTargetId ? targets?.[focusTargetId] : undefined;
-  const rect = target?.kind === "rect" ? target.rect : undefined;
-  const radius = target?.kind === "rect" ? target.radius : 12;
   return (
     <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-      {rect ? (
-        <div
-          style={{
-            position: "absolute",
-            left: rect.x,
-            top: rect.y,
-            width: rect.width,
-            height: rect.height,
-            borderRadius: radius,
-            boxShadow: `0 0 0 10000px rgba(0, 0, 0, 0.5), 0 0 0 3px ${accent}`,
-          }}
-        />
-      ) : null}
       {interaction.pointer ? (
         <div
           style={{
@@ -82,8 +84,9 @@ export const InteractionOverlay: React.FC<{
             width: 18,
             height: 18,
             borderRadius: "50%",
-            background: accent,
-            boxShadow: `0 0 0 2px ${accent}, 0 0 18px ${accent}`,
+            background: "#ffffff",
+            border: "2px solid rgba(17, 17, 17, 0.88)",
+            boxShadow: "0 2px 8px rgba(17, 17, 17, 0.28)",
           }}
         />
       ) : null}
@@ -121,7 +124,43 @@ export const SceneCaptionOverlay: React.FC<{
   );
 };
 
-/** 把场景序列变成 (frame, fps) => ReactNode 的纯内容渲染函数（供 HtmlSurface 捕获）。 */
+/** 通用的标题/说明屏幕 beat；场景也可传入任意 BeatRenderer 取代它。 */
+export const ScreenTitleBeat: BeatRenderer = ({ scene, p }) => (
+  <AbsoluteFill style={{ pointerEvents: "none", color: p.text, fontFamily: p.fontFamily }}>
+    <div style={{ position: "absolute", top: "7%", right: "6%", maxWidth: "38%", textAlign: "right" }}>
+      {scene.kicker ? <div style={{ color: p.accent, fontSize: 24, fontWeight: 900, letterSpacing: "0.14em", marginBottom: 14 }}>{scene.kicker}</div> : null}
+      {scene.title ? <div style={{ fontSize: 56, fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em", textShadow: "0 2px 16px rgba(0, 0, 0, 0.2)" }}>{scene.title}</div> : null}
+      {scene.subtitle ? <div style={{ marginTop: 16, fontSize: 27, fontWeight: 650, lineHeight: 1.35, opacity: 0.9 }}>{scene.subtitle as string}</div> : null}
+    </div>
+  </AbsoluteFill>
+);
+
+/**
+ * 可选的屏幕空间 beat 层。仅 Scene.screenKind 指向的 renderer 会输出，
+ * 因此世界层与屏幕层的内容归属始终由场景明确声明，而不是引擎猜测文字角色。
+ */
+export const SceneScreenLayer: React.FC<{
+  palette: Palette;
+  scenes: Scene[];
+  beats: Record<string, BeatRenderer>;
+  defaultBeat?: BeatRenderer;
+  resolveMediaUrl?: (assetId: string) => string | undefined;
+}> = ({ palette: p, scenes, beats, defaultBeat, resolveMediaUrl }) => {
+  const frame = useCurrentFrame();
+  const { fps, width, height } = useVideoConfig();
+  const { scene, local, frames } = activeSceneAt(fps, scenes, frame);
+  if (!scene.screenKind) return null;
+  const Renderer = beats[scene.screenKind] ?? defaultBeat;
+  if (!Renderer) return null;
+  const opacity = Math.min(1, Math.max(0, local / 8), Math.max(0, (frames - local) / 8));
+  return (
+    <AbsoluteFill style={{ zIndex: 20, opacity, pointerEvents: "none" }}>
+      <Renderer scene={scene} p={p} frame={local} fps={fps} width={width} height={height} resolveMediaUrl={resolveMediaUrl} layer="screen" />
+    </AbsoluteFill>
+  );
+};
+
+/** 把场景序列变成 (frame, fps) => ReactNode 的纯世界层内容渲染函数（供 HtmlSurface 捕获）。 */
 export const createSceneContent = ({
   palette: p,
   scenes,
@@ -129,28 +168,18 @@ export const createSceneContent = ({
   defaultBeat,
   resolveMediaUrl,
   interaction: interactionEvents,
-  targets,
   overlay = true,
   width,
   height,
 }: SceneGpuOptions) => {
   return (frame: number, fps: number): React.ReactNode => {
-    const timings = computeTimings(fps, scenes);
-    let current = timings[timings.length - 1];
-    let local = frame;
-    for (const timing of timings) {
-      if (frame < timing.start + timing.frames) {
-        current = timing;
-        local = frame - timing.start;
-        break;
-      }
-    }
+    const { scene, local, frames } = activeSceneAt(fps, scenes, frame);
     const interaction = resolveInteractionState(interactionEvents, frame);
-    const Renderer = beats[current.scene.kind] ?? defaultBeat ?? DefaultContentBeat;
+    const Renderer = beats[scene.kind] ?? defaultBeat ?? DefaultContentBeat;
     const fadeIn = Math.min(1, local / 8);
-    const fadeOut = Math.min(1, Math.max(0, (current.frames - local) / 8));
-    const imageUrl = current.scene.imageAssetId
-      ? resolveMediaUrl?.(current.scene.imageAssetId)
+    const fadeOut = Math.min(1, Math.max(0, (frames - local) / 8));
+    const imageUrl = scene.imageAssetId
+      ? resolveMediaUrl?.(scene.imageAssetId)
       : undefined;
     const { active: interactionActive } = interactionWindow(interactionEvents);
     return (
@@ -165,8 +194,8 @@ export const createSceneContent = ({
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.24), rgba(0,0,0,0) 30%, rgba(0,0,0,0.5))" }} />
           </div>
         ) : null}
-        <Renderer scene={current.scene} p={p} frame={local} fps={fps} width={width} height={height} resolveMediaUrl={resolveMediaUrl} interaction={interaction} />
-        {overlay ? <InteractionOverlay interaction={interaction} targets={targets} accent={p.accent} active={interactionActive(frame)} /> : null}
+        <Renderer scene={scene} p={p} frame={local} fps={fps} width={width} height={height} resolveMediaUrl={resolveMediaUrl} interaction={interaction} layer="world" />
+        {overlay ? <InteractionOverlay interaction={interaction} active={interactionActive(frame)} /> : null}
       </div>
     );
   };
@@ -194,6 +223,8 @@ export const buildGpuScenePlan = (
         : undefined,
       ambient: mappers.ambientFor?.(timing.scene),
       lens,
+      camera: mappers.cameraFor?.(timing.scene),
+      surface: mappers.surfaceFor?.(timing.scene),
       effectOptions: mappers.optionsFor?.(timing.scene),
     };
   });

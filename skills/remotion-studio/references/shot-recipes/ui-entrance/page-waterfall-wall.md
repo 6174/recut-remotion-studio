@@ -16,7 +16,7 @@ name: page-waterfall-wall
 可用那卡入场后交棒本卡续流。
 
 ## 动效核心
-- lib 组件 `assets/lib/VerticalTicker.tsx`：父层 perspective(1000px)
+- lib 组件 `/remotion-kit/components/VerticalTicker.tsx`：父层 perspective(1000px)
   rotateX(20°) scale(1.2) 后仰成墙；每列 [...items,...items] 翻倍 +
   progress 取模 translateY 0→-50% 无缝循环；上下渐变遮罩收边
 - 差速反向是视差命门：3 列 loop 时长错开（如 12/9/14s），中列反向——
@@ -48,5 +48,5 @@ name: page-waterfall-wall
   瀑布墙只出现一次，二次出现读作凑时长
 
 ## 参考实现
-assets/lib/VerticalTicker.tsx（核心组件）；
+/remotion-kit/components/VerticalTicker.tsx（核心组件）；
 demo 见 demos/ui-entrance/page-waterfall-wall/（PageWaterfallWall.tsx / VerticalTicker.tsx）。

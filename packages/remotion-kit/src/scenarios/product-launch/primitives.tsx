@@ -3,7 +3,7 @@
  * [OUTPUT]: 对外提供 product-launch 的场景专属动画原语：
  *           霓虹渐变、玻璃浮层、发光 Pill、光环、证据卡、数字卡、CTA 按钮。
  *           每个原语参数化、吃设计系统 palette，是产品发布片的视觉语言。
- * [POS]: scenarios/product-launch 的视觉原语层；beats 只组合这些原语 + shotcraft 组件，
+ * [POS]: scenarios/product-launch 的视觉原语层；beats 只组合这些原语 + kit 动态组件，
  *        不手写裸 div。原语是场景专属的（产品发布 = 高能、玻璃、发光、证据）。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */

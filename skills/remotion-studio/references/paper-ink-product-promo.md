@@ -1,4 +1,4 @@
-# template/ — 成片模板 Ink Press：纸墨晨读风产品宣传片（36.2s）
+# template/ — 成片模板 纸墨编辑风产品片：纸墨晨读风产品宣传片（36.2s）
 
 一支已验收的完整宣传片工程，作为"极度相似复现"的模板：换一个 web/桌面
 产品的截图素材，按本文档逐镜头替换适配，即可得到同等质感的成片。
@@ -56,9 +56,9 @@
 
 ## 四、换产品复现指南（保质量的最短路径）
 
-1. **采集素材**（具体采集方法见 ../references/pipeline.md 阶段 4；模板路线只借用
+1. **采集素材**（具体采集方法见 ../production-workflow.md 阶段 4；模板路线只借用
    采集方法，不执行自由创作的阶段 0–3）：
-   复制 `../assets/scripts/capture-template.mjs` 进目标产品项目，改 BASE_URL
+   复制 `../scripts/capture-product.mjs` 进目标产品项目，改 BASE_URL
    与选择器，产出三件套——整页 2x 截图、元素透明底切片、layout.json。
    素材命名对齐本模板（projects-full/detail-full/…），可直接覆盖 public/。
 2. **换 layout 坐标**：用新 layout.json 替换 `src/aifl/live-layout.json`。

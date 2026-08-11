@@ -1,7 +1,7 @@
 /*
  * Remotion Studio — generate catalog.json `components` from the kit's
- * remotion-templates README (categories + descriptions) plus the shotcraft
- * components. Run after adding/renaming templates:
+ * remotion-templates README (categories + descriptions) plus the built-in
+ * motion components. Run after adding/renaming templates:
  *   node scripts/generate-catalog.js
  * Keeps the component catalog in sync with the actual kit sources.
  */
@@ -24,12 +24,12 @@ const CATEGORY_LABELS = {
   "Image & Media": "图片媒体",
 };
 
-const SHOTCRAFT = [
-  { id: "PageCam", label: "PageCam", description: "页面镜头与相机运动", kind: "shotcraft", category: "动态组件" },
-  { id: "DigitRoll", label: "DigitRoll", description: "数字滚动强调", kind: "shotcraft", category: "动态组件" },
-  { id: "VerticalTicker", label: "VerticalTicker", description: "纵向信息流", kind: "shotcraft", category: "动态组件" },
-  { id: "FlashCut", label: "FlashCut", description: "闪切与节奏转场", kind: "shotcraft", category: "动态组件" },
-  { id: "FlatPanel", label: "FlatPanel", description: "扁平信息面板（需 3D 渲染环境）", kind: "shotcraft", category: "动态组件" },
+const MOTION_COMPONENTS = [
+  { id: "PageCam", label: "PageCam", description: "页面镜头与相机运动", kind: "motion", category: "动态组件" },
+  { id: "DigitRoll", label: "DigitRoll", description: "数字滚动强调", kind: "motion", category: "动态组件" },
+  { id: "VerticalTicker", label: "VerticalTicker", description: "纵向信息流", kind: "motion", category: "动态组件" },
+  { id: "FlashCut", label: "FlashCut", description: "闪切与节奏转场", kind: "motion", category: "动态组件" },
+  { id: "FlatPanel", label: "FlatPanel", description: "扁平信息面板（需 3D 渲染环境）", kind: "motion", category: "动态组件" },
 ];
 
 const rowRe = /^\|\s*(.+?)\s*\|\s*`([^`]+\.tsx)`\s*\|\s*(.+?)\s*\|$/;
@@ -50,24 +50,24 @@ for (const line of fs.readFileSync(readmePath, "utf8").split("\n")) {
 }
 
 function entry({ id, label, description, kind, category }) {
-  const dir = kind === "template" ? "remotion-templates" : "shotcraft";
+  const dir = kind === "template" ? "remotion-templates" : "";
   return {
     id,
     label,
     description,
     kind,
     category,
-    path: `packages/remotion-kit/src/components/${dir}/${id}.tsx`,
-    workspacePath: `src/components/${dir}/${id}.tsx`,
+    path: `packages/remotion-kit/src/components/${dir ? `${dir}/` : ""}${id}.tsx`,
+    workspacePath: `src/components/${dir ? `${dir}/` : ""}${id}.tsx`,
   };
 }
 
 const components = [
   ...templates.map((item) => entry({ ...item, kind: "template" })),
-  ...SHOTCRAFT.map((item) => entry({ ...item, kind: "shotcraft" })),
+  ...MOTION_COMPONENTS.map((item) => entry({ ...item, kind: "motion" })),
 ];
 
 const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8"));
 catalog.components = components;
 fs.writeFileSync(catalogPath, JSON.stringify(catalog, null, 2) + "\n");
-console.log(`generate-catalog: components updated (${components.length}: ${templates.length} templates + ${SHOTCRAFT.length} shotcraft)`);
+console.log(`generate-catalog: components updated (${components.length}: ${templates.length} templates + ${MOTION_COMPONENTS.length} motion components)`);

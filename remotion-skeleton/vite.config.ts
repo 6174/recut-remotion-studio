@@ -39,7 +39,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: "@recut/remotion-kit/templates", replacement: kitAlias("src/components/remotion-templates") },
-      { find: "@recut/remotion-kit/shotcraft", replacement: kitAlias("src/components") },
+      { find: "@recut/remotion-kit/components", replacement: kitAlias("src/components") },
       { find: "@recut/remotion-kit/captions", replacement: kitAlias("src/captions/index.ts") },
       { find: "@recut/remotion-kit/effects", replacement: kitAlias("src/effects/index.ts") },
       { find: "@recut/remotion-kit/html-canvas", replacement: kitAlias("src/html-canvas/index.ts") },

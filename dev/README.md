@@ -3,6 +3,7 @@
 > L2 | 父级: /apps/remotion-studio/README.md
 
 成员清单
+2026-08-11-three-camera-shot-system-design.md: Three 镜头序列系统设计；统一 Camera Director、镜头语义、焦点/放大镜组合、A/B flip 边界与分阶段实施。
 2026-08-09-html-in-canvas-expression-effects-plan.md: HTML-in-Canvas 表达镜头组件的架构决策、分阶段实施计划、验收矩阵与风险约束。
 2026-08-09-gpu-expression-compositor-redesign.md: GPU 合成器重设计；定义单捕获 WebGL pass、独立实现的 CanvasUI 视觉参考、双场景转场、性能预算与迁移验收。
 2026-08-09-html-in-canvas-platform-contract.md: CanvasUI Origin Trial 与 Recut 动态预览的能力边界；定义宿主 Chromium、Vite 预览与 renderer 的共同启用责任。

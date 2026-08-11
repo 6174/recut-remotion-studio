@@ -48,4 +48,4 @@ name: wall-reveal-moves
 demos/ui-entrance/wall-reveal-moves/
 （BentoLightUp.tsx / GridWaveFlip.tsx / WireframeDrawOn.tsx）
 
-实现状态：三式均有参考实现与 Gallery 动态样片。
+实现状态：三式均有参考实现与 动态参考样片。

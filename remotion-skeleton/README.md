@@ -11,14 +11,14 @@
 - `vite-server.js` 以 ESM config runner 启动 Vite dev server，端口写 `serve/status.json`（预览 = HMR）
 - `render.js` 服务端导出：先用 `postcss + @tailwindcss/postcss` 预编译 `src/index.css`，再 bundle（入口经临时 composition.entry.ts 引入编译后 CSS）；Three 合成默认走 ANGLE，可用 `RECUT_REMOTION_GL=swangle` 诊断无 GPU 环境。
 - `src/index.css` **Tailwind v4 + Recut 设计系统 token**（预览/导出同源，禁止手写十六进制色值）
-- `src/player.tsx` 预览 React 根：读取 props 并渲染 ProjectVideo；Player 内容区最大 960×540 居中（`@remotion/player` 按 composition 比例自动留黑边，Phone/横屏等任意比例都适配）；预览服务可用性由 Studio 应用层确认
+- `src/player.tsx` 预览 React 根：读取 props 并渲染 ProjectVideo；Player 内容区最大 960×540 居中（`@remotion/player` 按 composition 比例自动留黑边，Phone/横屏等任意比例都适配）；预览固定为无声视觉验收，避免宿主无音频设备时创建 WebAudio，预览服务可用性由 Studio 应用层确认
 - `src/index.ts` registerRoot 入口（不含 CSS import；预览走 index.html `<link>`，导出走 render.js 预编译）
 - `src/compositions/ProjectVideo.tsx` 成片模板（主编辑对象）：默认走 Three-first GPU 根（`ThreeVideoCanvas` + `HtmlSurface`），供 AI 按所选模板重建；相对引用 `src/effects`/`src/captions`（seed 时从 `@recut/remotion-kit` 拷贝的冻结副本）
 - `src/effects/` BackgroundFX / TextFX / useImageMotion（表达特效；默认 clean-editorial 使用白底 editorial-lines）
 - `src/captions/` 13 套字幕主题（vendor/ 保原始结构；中文旁白按短语切分）
 - `src/components/ui/` 本地 shadcn 原子（Button/Card/Badge/Input/Textarea）+ `src/lib/utils.ts` 的 `cn`
 - `src/components/` 81 个单文件模板（含 README 目录表）
-- `src/components/` video-shotcraft lib 组件
+- `src/components/` 内置动态组件
 - `src/runtime/media.ts` resolveMediaUrl(assetId, media)
 - `src/composition-graph/` HTML texture、动态图像 texture、3D object 与 effect 的统一节点**实验**（dev fixture）；通过 `composition-graph.html` 访问；生产合成走 `@recut/remotion-kit/three`
 

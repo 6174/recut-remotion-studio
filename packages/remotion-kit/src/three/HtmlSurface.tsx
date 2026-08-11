@@ -1,11 +1,13 @@
 /**
  * [INPUT]: 依赖 Chromium HTML-in-Canvas（layoutSubtree/captureElementImage）或 foreignObject、
  *         Remotion 帧时钟、Sequence 与 Three CanvasTexture
- * [OUTPUT]: 对外提供 HtmlSurfaceProvider（把内容渲染进真实 React 树并光栅化为 GPU 纹理）、
- *           HtmlSurfacePlane（R3F 内容平面）与 useHtmlSurfaceTexture（读共享纹理）
+ * [OUTPUT]: 对外提供 HtmlSurfaceProvider（内容渲染进真实 React 树并光栅化为 GPU 纹理）、
+ *           HtmlSurfacePlane（带真实 Three 姿态的 R3F 内容平面）、FrozenSurface（一次性冻结捕获，供 A/B 转场用）
+ *          与 useHtmlSurfaceTexture / useFrozenSurfaceTexture
  * [POS]: remotion-kit/src/three 的内容纹理层。内容渲染在**真实 React 树**（Player/合成 context
  *        内，Remotion hooks 可用），是 layoutSubtree canvas 的子节点；每帧 requestPaint 后经
  *        captureElementImage 上传到 CanvasTexture。HIC 不支持时回退 foreignObject。
+ *        FrozenSurface 捕获一次即冻结，作为 A/B 转场的“前镜头”输入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { createContext, useContext, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -33,6 +35,15 @@ export const HtmlSurfaceContext = createContext<HtmlSurfaceContextValue>({
 
 export const useHtmlSurfaceTexture = () => useContext(HtmlSurfaceContext);
 
+export const FrozenSurfaceContext = createContext<HtmlSurfaceContextValue>({
+  texture: null,
+  width: 1920,
+  height: 1080,
+  captureVersion: 0,
+});
+
+export const useFrozenSurfaceTexture = () => useContext(FrozenSurfaceContext);
+
 export const supportsHtmlInCanvas = () => HtmlInCanvas.isSupported();
 
 type CaptureCanvas = HTMLCanvasElement & {
@@ -50,37 +61,29 @@ type CaptureContext = OffscreenCanvasRenderingContext2D & {
 const toSvgSource = (markup: string, width: number, height: number) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px">${markup}</div></foreignObject></svg>`;
 
-export interface HtmlSurfaceProviderProps {
-  /** 待光栅化的内容（真实 React 树内渲染；hooks 可用） */
+export interface SurfaceCaptureOptions {
   content: React.ReactNode;
-  frame: number;
-  fps: number;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   rasterizer?: HtmlSurfaceRasterizer;
   onRasterized?: (metrics: {
     adapter: HtmlSurfaceRasterizer;
     status: HtmlSurfaceStatus;
     duration?: number;
   }) => void;
-  /** 覆盖在捕获面之上的真实树内容（ThreeVideoCanvas 等，负责遮挡捕获 canvas） */
-  children: React.ReactNode;
+  /** frozen=true 时只在挂载捕获一次，不再随帧刷新。 */
+  frozen?: boolean;
 }
 
-/**
- * HtmlSurfaceProvider：把内容渲染进真实 React 树（layoutSubtree canvas 子节点），
- * 每帧 requestPaint → captureElementImage → OffscreenCanvas → CanvasTexture，经 context 共享给 R3F。
- */
-export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
+/** 共享捕获逻辑：HIC（主）/ foreignObject（备）→ CanvasTexture。 */
+const useSurfaceCapture = ({
   content,
-  frame,
-  fps,
-  width = 1920,
-  height = 1080,
+  width,
+  height,
   rasterizer = "html-in-canvas",
   onRasterized,
-  children,
-}) => {
+  frozen = false,
+}: SurfaceCaptureOptions) => {
   const captureCanvasRef = useRef<HTMLCanvasElement>(null);
   const fallbackDivRef = useRef<HTMLDivElement>(null);
   const onRasterizedRef = useRef(onRasterized);
@@ -97,10 +100,6 @@ export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
     output.magFilter = THREE.LinearFilter;
     return output;
   });
-  const contextValue = useMemo(
-    () => ({ texture, width, height, captureVersion }),
-    [captureVersion, height, texture, width],
-  );
   const notify = (adapter: HtmlSurfaceRasterizer, status: HtmlSurfaceStatus, duration?: number) => {
     onRasterizedRef.current?.({ adapter, status, duration });
   };
@@ -139,7 +138,7 @@ export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
         notify("html-in-canvas", "verified", performance.now() - startedAt);
       } catch (cause) {
         notify("html-in-canvas", "failed", performance.now() - startedAt);
-        console.error("[HtmlSurfaceProvider] capture failed", cause);
+        console.error("[HtmlSurface] capture failed", cause);
       } finally {
         image.close();
       }
@@ -152,10 +151,11 @@ export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texture, useHic, width, height]);
 
-  // 帧/内容变化 → 请求一次 paint 捕获最新画面。
+  // 帧/内容变化 → 请求一次 paint 捕获最新画面（frozen 时只在挂载捕获一次）。
   useLayoutEffect(() => {
     if (useHic) captureCanvasRef.current?.requestPaint?.();
-  }, [useHic, frame, content]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, frozen ? [] : [useHic, content]);
 
   // foreignObject 回退：序列化已渲染内容的 innerHTML → SVG → Image → 上传纹理。
   useLayoutEffect(() => {
@@ -182,31 +182,126 @@ export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
     const markup = `<div style="width:${width}px;height:${height}px">${node.innerHTML}</div>`;
     image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(toSvgSource(markup, width, height))}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rasterizer, texture, useHic, width, height, frame, content]);
+  }, [rasterizer, texture, useHic, width, height, content]);
 
+  return { texture, width, height, captureVersion, useHic, captureCanvasRef, fallbackDivRef };
+};
+
+/** 捕获面的 DOM 结构：layoutSubtree canvas（或回退 div）承载 content。 */
+const CaptureDom: React.FC<{
+  content: React.ReactNode;
+  width: number;
+  height: number;
+  useHic: boolean;
+  captureCanvasRef: React.RefObject<HTMLCanvasElement>;
+  fallbackDivRef: React.RefObject<HTMLDivElement>;
+}> = ({ content, width, height, useHic, captureCanvasRef, fallbackDivRef }) =>
+  useHic ? (
+    <canvas
+      ref={captureCanvasRef}
+      width={width}
+      height={height}
+      style={{ position: "absolute", left: 0, top: 0, width, height, pointerEvents: "none" }}
+    >
+      {content}
+    </canvas>
+  ) : (
+    <div
+      ref={fallbackDivRef}
+      style={{ position: "absolute", left: 0, top: 0, width, height, visibility: "hidden", pointerEvents: "none" }}
+    >
+      {content}
+    </div>
+  );
+
+export interface HtmlSurfaceProviderProps {
+  /** 待光栅化的内容（真实 React 树内渲染；hooks 可用） */
+  content: React.ReactNode;
+  frame: number;
+  fps: number;
+  width?: number;
+  height?: number;
+  rasterizer?: HtmlSurfaceRasterizer;
+  onRasterized?: (metrics: {
+    adapter: HtmlSurfaceRasterizer;
+    status: HtmlSurfaceStatus;
+    duration?: number;
+  }) => void;
+  /** 覆盖在捕获面之上的真实树内容（ThreeVideoCanvas 等，负责遮挡捕获 canvas） */
+  children: React.ReactNode;
+}
+
+/** HtmlSurfaceProvider：实时捕获当前内容，提供 HtmlSurfaceContext（A/B 转场的“B”输入）。 */
+export const HtmlSurfaceProvider: React.FC<HtmlSurfaceProviderProps> = ({
+  content,
+  frame,
+  fps,
+  width = 1920,
+  height = 1080,
+  rasterizer,
+  onRasterized,
+  children,
+}) => {
+  const capture = useSurfaceCapture({ content, width, height, rasterizer, onRasterized });
+  const contextValue = useMemo(
+    () => ({ texture: capture.texture, width, height, captureVersion: capture.captureVersion }),
+    [capture.captureVersion, capture.texture, height, width],
+  );
   return (
     <HtmlSurfaceContext.Provider value={contextValue}>
       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        {useHic ? (
-          <canvas
-            ref={captureCanvasRef}
-            width={width}
-            height={height}
-            style={{ position: "absolute", left: 0, top: 0, width, height, pointerEvents: "none" }}
-          >
-            {content}
-          </canvas>
-        ) : (
-          <div
-            ref={fallbackDivRef}
-            style={{ position: "absolute", left: 0, top: 0, width, height, visibility: "hidden", pointerEvents: "none" }}
-          >
-            {content}
-          </div>
-        )}
+        <CaptureDom
+          content={content}
+          fallbackDivRef={capture.fallbackDivRef}
+          height={height}
+          useHic={capture.useHic}
+          width={width}
+          captureCanvasRef={capture.captureCanvasRef}
+        />
         {children}
       </div>
     </HtmlSurfaceContext.Provider>
+  );
+};
+
+export interface FrozenSurfaceProps {
+  /** 待冻结光栅化的内容（真实 React 树内渲染；hooks 可用） */
+  content: React.ReactNode;
+  width?: number;
+  height?: number;
+  rasterizer?: HtmlSurfaceRasterizer;
+  onRasterized?: HtmlSurfaceProviderProps["onRasterized"];
+  children: React.ReactNode;
+}
+
+/** FrozenSurface：挂载时捕获一次并冻结，提供 FrozenSurfaceContext（A/B 转场的“A”输入）。 */
+export const FrozenSurface: React.FC<FrozenSurfaceProps> = ({
+  content,
+  width = 1920,
+  height = 1080,
+  rasterizer,
+  onRasterized,
+  children,
+}) => {
+  const capture = useSurfaceCapture({ content, width, height, rasterizer, onRasterized, frozen: true });
+  const contextValue = useMemo(
+    () => ({ texture: capture.texture, width, height, captureVersion: capture.captureVersion }),
+    [capture.captureVersion, capture.texture, height, width],
+  );
+  return (
+    <FrozenSurfaceContext.Provider value={contextValue}>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+        <CaptureDom
+          content={content}
+          fallbackDivRef={capture.fallbackDivRef}
+          height={height}
+          useHic={capture.useHic}
+          width={width}
+          captureCanvasRef={capture.captureCanvasRef}
+        />
+        {children}
+      </div>
+    </FrozenSurfaceContext.Provider>
   );
 };
 
@@ -214,19 +309,81 @@ export interface HtmlSurfacePlaneProps {
   /** 覆盖材质；缺省为 meshBasicMaterial 直接贴纹理 */
   material?: (texture: THREE.Texture) => React.ReactNode;
   planeHeight?: number;
+  /** 表面而非相机的真实 Three 姿态；用于单页的快速倾斜、远近与落位。 */
+  position?: readonly [number, number, number];
+  rotation?: readonly [number, number, number];
+  scale?: readonly [number, number, number];
+  /** 实际网格曲率（非屏幕 shader）：与 mesh 姿态一起构成单页 2.5D 表达。 */
+  bend?: number;
+  cornerCurl?: number;
+  corner?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  cloth?: { amplitude: number; speed: number; scale: number };
+  time?: number;
 }
 
 /**
- * HtmlSurfacePlane：R3F 内容平面。从 context 读共享纹理，画在 Three 场景中；
- * 每次 captureVersion 变化时 invalidate 触发重绘。
+ * 真实网格弯曲：同一张纹理沿 Y 轴卷起。它保留与所有后处理材质的组合能力，
+ * 因为曲率发生在 geometry，而不是占用 effect material 插槽。
  */
-export const HtmlSurfacePlane: React.FC<HtmlSurfacePlaneProps> = ({ material, planeHeight = 4.9 }) => {
+export const SurfacePlaneGeometry: React.FC<{
+  width: number;
+  height: number;
+  bend: number;
+  cornerCurl?: number;
+  corner?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  cloth?: { amplitude: number; speed: number; scale: number };
+  time?: number;
+}> = ({ width, height, bend, cornerCurl = 0, corner, cloth, time = 0 }) => {
+  const geometry = useRef<THREE.PlaneGeometry>(null);
+  const { invalidate } = useThree();
+  useLayoutEffect(() => {
+    const current = geometry.current;
+    if (!current) return;
+    const positions = current.attributes.position;
+    const uvs = current.attributes.uv;
+    const halfHeight = height / 2;
+    for (let index = 0; index < positions.count; index += 1) {
+      const y = (uvs.getY(index) - 0.5) * height;
+      const fold = (y / halfHeight) * bend * 2.1;
+      const u = uvs.getX(index);
+      const v = uvs.getY(index);
+      const cornerWeight = corner === "top-left" ? (1 - u) * v
+        : corner === "top-right" ? u * v
+          : corner === "bottom-left" ? (1 - u) * (1 - v)
+            : corner === "bottom-right" ? u * (1 - v)
+              : 0;
+      const curl = Math.pow(cornerWeight, 1.6) * cornerCurl;
+      const wave = cloth
+        ? Math.sin(u * cloth.scale * Math.PI * 2 + time * cloth.speed)
+          * Math.cos(v * cloth.scale * Math.PI * 1.5 + time * cloth.speed * 0.7)
+          * cloth.amplitude
+        : 0;
+      positions.setXYZ(
+        index,
+        (u - 0.5) * width + wave * 0.3,
+        y * Math.cos(fold),
+        Math.abs(y) * Math.sin(Math.abs(fold)) * 0.92 + curl * height * 0.32 + wave,
+      );
+    }
+    positions.needsUpdate = true;
+    current.computeVertexNormals();
+    invalidate();
+  }, [bend, cloth, corner, cornerCurl, height, invalidate, time, width]);
+  return <planeGeometry ref={geometry} args={[width, height, 32, 32]} />;
+};
+
+/** HtmlSurfacePlane：R3F 内容平面。从 HtmlSurfaceContext 读共享纹理，画在 Three 场景中。 */
+export const HtmlSurfacePlane: React.FC<HtmlSurfacePlaneProps> = ({ material, planeHeight = 4.9, position, rotation, scale, bend = 0, cornerCurl, corner, cloth, time }) => {
   const { texture, width, height, captureVersion } = useHtmlSurfaceTexture();
   const { invalidate } = useThree();
   useLayoutEffect(() => invalidate(), [captureVersion, invalidate]);
   return (
-    <mesh>
-      <planeGeometry args={[(width / height) * planeHeight, planeHeight, 32, 1]} />
+    <mesh
+      position={position as [number, number, number] | undefined}
+      rotation={rotation as [number, number, number] | undefined}
+      scale={scale as [number, number, number] | undefined}
+    >
+      <SurfacePlaneGeometry bend={bend} cloth={cloth} corner={corner} cornerCurl={cornerCurl} height={planeHeight} time={time} width={(width / height) * planeHeight} />
       {texture
         ? material
           ? material(texture)

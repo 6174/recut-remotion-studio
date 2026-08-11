@@ -31,7 +31,7 @@
 | ⑦ | `roadmap` 路线 | 让观众看到下一步 | 横向发光进度条 + 节点点亮 | 进度条推进，节点逐点发光 | 5s |
 | ⑧ | `cta` 行动号召 | 明确落点 | 双光环 + 发光按钮 + 扫光 | 整组放大落定，按钮发光 | 6s |
 
-**UI 特写镜头（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮。Three-first GPU 路径下：按钮几何与鼠标 move → hover → click 由 `buildProductLaunchStagePlan`（StagePlan.interaction）提供；放大镜由 `buildProductLaunchGpuPlan` 映射到 ShotGraph 的 `lens`（magnify 材质，锚定导出按钮）；按钮 hover/pressed 语义状态经内容表面注入的 `interaction`（`resolveInteractionState`）驱动。改文案/坐标时保持 `beats.tsx` 的 `PRODUCT_LAUNCH_UI_GEOMETRY` 与模板 StagePlan/lens UV 同步；场景可经 `stagePlan` prop 关闭（null）或替换。内容表面经 HtmlSurface 光栅化（HTML-in-Canvas 主 / foreignObject 备）。
+**UI 特写镜头（`ui-detail`，默认在 `metric-1` 与 `feature-3` 之间）**：产品设置面板 + 「导出」按钮。Three-first GPU 路径下：按钮几何与鼠标 move → hover → click 由 `buildProductLaunchStagePlan`（StagePlan.interaction）提供；`PRODUCT_UI_INSPECT_CAMERA` 以 `push-in` 推向导出按钮，放大镜再由 `buildProductLaunchGpuPlan` 映射到 ShotGraph 的 `lens`（magnify 材质）检查同一个目标；按钮 hover/pressed 语义状态经内容表面注入的 `interaction`（`resolveInteractionState`）驱动。改文案/坐标时保持 `beats.tsx` 的 `PRODUCT_LAUNCH_UI_GEOMETRY` 与模板 StagePlan/camera subject/lens UV 同步；场景可经 `stagePlan` prop 关闭（null）或替换。内容表面经 HtmlSurface 光栅化（HTML-in-Canvas 主 / foreignObject 备）。
 
 ## 四、组件策略
 
