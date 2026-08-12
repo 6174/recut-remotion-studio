@@ -2,6 +2,7 @@
   "name": "@recut-app/remotion-studio-render",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@8.15.0",
   "description": "Remotion server-side render workspace for the Recut Remotion Studio app",
   "scripts": {
     "build": "vite build --configLoader runner",

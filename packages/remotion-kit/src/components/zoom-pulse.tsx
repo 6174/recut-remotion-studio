@@ -3,49 +3,86 @@
  * [OUTPUT]: 对外提供 ZoomPulse，为图片提供可导出、可寻帧的循环缩放效果
  * [POS]: remotion-templates 的电影感图片运动组件；与 KenBurns、ParallaxPan 共用图片动效职责
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
-import React from "react";
 import { Img, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-interface ZoomPulseProps {
-  imageUrl?: string;
-  duration?: number;
-  minScale?: number;
-  maxScale?: number;
-}
+import { kitFont, kitGradient, kitTheme } from "./helpers/theme";
 
-export const ZoomPulse: React.FC<ZoomPulseProps> = ({
-  imageUrl = "https://images.pexels.com/photos/1726310/pexels-photo-1726310.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
-  duration = 4,
-  minScale = 1,
-  maxScale = 1.1,
-}) => {
+export default function ZoomPulse() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
+
+  const imageUrl = "https://images.pexels.com/photos/1726310/pexels-photo-1726310.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2";
+  const duration = 4;
+  const minScale = 1;
+  const maxScale = 1.1;
+
   const cycle = Math.max(1, duration * fps);
   const phase = (frame % cycle) / cycle;
   const scale = interpolate(phase, [0, 0.5, 1], [minScale, maxScale, minScale]);
+
   return (
     <div
       style={{
-        flex: 1,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "black",
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        backgroundColor: kitTheme.dark,
         overflow: "hidden",
       }}
     >
       <Img
         src={imageUrl}
         style={{
+          position: "absolute",
+          inset: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
           transform: `scale(${scale})`,
         }}
       />
+      {/* Bottom scrim for label contrast */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: Math.round(height * 0.28),
+          background: "linear-gradient(180deg, rgba(12, 16, 13, 0) 0%, rgba(12, 16, 13, 0.82) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: Math.round(width * 0.05),
+          bottom: Math.round(height * 0.06),
+        }}
+      >
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[300],
+            fontWeight: 600,
+          }}
+        >
+          ZOOM PULSE
+        </span>
+        <div
+          style={{
+            width: Math.round(width * 0.06),
+            height: 3,
+            marginTop: Math.round(height * 0.012),
+            background: kitGradient.green,
+            borderRadius: 999,
+          }}
+        />
+      </div>
     </div>
   );
-};
-
-export default ZoomPulse;
+}

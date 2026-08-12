@@ -49,7 +49,7 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 - **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入）。
 - **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、组件、画布和素材重剪等局部编辑工具；SRT 或视频叙事来源由 Brief 作为首版成片输入持久化。打开项目文件夹、导出、构建预览、重启与重置为次级操作。
 - **场景计划先于成片代码**：无真人解说和产品发布片先由 workspace 内的 `remotion-kit/scripts/validate-scene-plan.mjs` 校验 `SCENE_PLAN.md`；它直接改编 HyperFrames 两个场景共用的 storyboard parser，计划通过后才落成 `SCENES`，避免 Prompt 直接跳到散乱代码。
-- **日志与终端**：右侧下半分栏。`logs.list` 只回填当前预览服务与最近两个任务的最新片段（服务端最多 300 行，界面首屏最多 120 行）；其后由 `shell.job.log` 实时追加，界面总量封顶 300 行。列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件连接 Service PTY，在项目 `workspace/` 启动用户本机的交互式 zsh，原样转发输入、输出与窗口尺寸，因此补全、`cd`、历史和作业控制均由 shell 自己完成。服务统一注入登录 shell 环境与 `xterm-256color` 终端能力。
+- **日志与终端**：右侧下半分栏。日志以 iframe 本次加载时间划定当前 session：`logs.list` 只回填该时刻之后当前预览服务与最近两个任务的片段（服务端最多 300 行，界面首屏最多 120 行），项目事件流重放的历史日志会被丢弃；其后由 `shell.job.log` 实时追加，界面总量封顶 300 行。列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件连接 Service PTY，在项目 `workspace/` 启动用户本机的交互式 zsh，原样转发输入、输出与窗口尺寸，因此补全、`cd`、历史和作业控制均由 shell 自己完成。服务统一注入登录 shell 环境与 `xterm-256color` 终端能力。
 - **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
 - **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
 - **HTML-in-Canvas 平台契约**：Cursor、Magnifier、Glitch、Bubble 等读取 live DOM texture 的镜头层依赖 `CanvasDrawElement`。CanvasUI 通过仅对 `canvasui.dev` 有效的 Origin Trial 启用它；Recut 的动态项目预览必须由桌面/渲染宿主统一启用该 feature，不能复用第三方 token 或让用户手动改 flag。完整契约见 `dev/2026-08-09-html-in-canvas-platform-contract.md`。
@@ -57,16 +57,16 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 ## 本地开发
 
 ```bash
-cd remotion-skeleton && npm install   # 首次；生产上由 render.setup 自动执行 npm ci
+cd remotion-skeleton && corepack pnpm@8.15.0 install   # 首次；生产上由首次预览的 bootstrap 自动准备
 cd ui && npm install && npm run build   # 产出 ui/dist（提交到仓库，作为 projectView）
 make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 ```
 
-导出与预览需要本机 `node`（18+）；首次会 `npm ci` 安装 Remotion/Vite 依赖，并下载 headless Chrome（约 90MB）。调试看项目页底部「日志/终端」，或直接 `make dev` 起服务后查看。
+导出与预览需要本机带 Corepack 的 `node`（18+）；首次启动预览会启动可见的 Shell Job，用锁定版本的 pnpm 安装 Remotion/Vite 依赖，并将实时 stdout/stderr 写进工作台「日志」标签。依赖写入 App 包外的 pnpm content-addressed store；以后新项目和 App 代码更新优先离线复用它，只有新增 lockfile 依赖才联网。调试看项目页底部「日志/终端」，或直接 `make dev` 起服务后查看。
 
 ## 内置发布
 
-`distribution.builtin.include` 是本 App 随 Recut binary 分发的唯一白名单。它只保留运行所需的 UI 成品、workspace 骨架、组件 kit 和 Skill；`node_modules`、Git 元数据、缓存与演示输出由通用打包器拒绝。修改运行时目录时，必须同时更新该列表。
+`distribution.builtin.include` 默认覆盖整个 App，`exclude` 只列 App 自己的生成物。因此新增源码会自动随 binary 发布，不会因漏维护白名单而丢失；`node_modules`、Git 元数据和缓存由通用打包器强制拒绝。App 更新会替换包目录，但 pnpm store 位于包外，锁文件未变时依赖可离线恢复。
 
 ## 复用来源与授权
 

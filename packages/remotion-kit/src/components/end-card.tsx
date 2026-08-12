@@ -6,21 +6,18 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): paper canvas,
+ * white card, ink type, green CTA.
  */
 
 "use client";
 
-import {
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function EndCard() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   const scale = spring({
     frame,
@@ -42,12 +39,6 @@ export default function EndCard() {
     durationInFrames: 30,
   });
 
-  const glowOpacity = interpolate(
-    Math.sin(frame * 0.08),
-    [-1, 1],
-    [0.3, 0.7]
-  );
-
   const buttonOpacity = spring({
     frame: Math.max(0, frame - 20),
     fps,
@@ -64,17 +55,10 @@ export default function EndCard() {
     durationInFrames: 25,
   });
 
-  const socialColors = ["#3b82f6", "#4361ee", "#7209b7", "#9333ea"];
-
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(135deg, #111827 0%, #1a1a2e 100%)",
+        background: `linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -87,20 +71,37 @@ export default function EndCard() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          padding: 48,
-          borderRadius: 16,
-          border: `2px solid rgba(67, 97, 238, ${glowOpacity})`,
-          boxShadow: `0 0 40px rgba(67, 97, 238, ${glowOpacity * 0.3})`,
-          background: "rgba(17, 24, 39, 0.8)",
+          width: "min(76%, 980px)",
+          padding: `${Math.round(height * 0.06)}px ${Math.round(width * 0.05)}px`,
+          borderRadius: kitRadius.lg,
+          border: `1px solid ${kitTheme.line}`,
+          boxShadow: kitShadow.lg,
+          background: kitTheme.paper,
         }}
       >
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            fontWeight: 600,
+            letterSpacing: "0.4em",
+            textTransform: "uppercase",
+            color: kitTheme.green[600],
+          }}
+        >
+          Fin
+        </span>
         <h1
           style={{
-            color: "white",
-            fontSize: "3.5rem",
-            fontWeight: "bold",
             margin: 0,
-            letterSpacing: "0.03em",
+            marginTop: Math.round(height * 0.02),
+            color: kitTheme.ink,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.055),
+            fontWeight: 900,
+            letterSpacing: "-0.035em",
+            lineHeight: 1,
+            textAlign: "center",
           }}
         >
           Thanks for Watching
@@ -108,19 +109,21 @@ export default function EndCard() {
         <div
           style={{
             opacity: buttonOpacity,
-            marginTop: 32,
-            padding: "14px 40px",
-            background: "linear-gradient(90deg, #4361ee, #7209b7)",
-            borderRadius: 8,
+            marginTop: Math.round(height * 0.035),
+            padding: `${Math.round(height * 0.018)}px ${Math.round(width * 0.035)}px`,
+            background: kitGradient.green,
+            borderRadius: kitRadius.full,
             cursor: "pointer",
+            boxShadow: kitShadow.md,
           }}
         >
           <span
             style={{
-              color: "white",
-              fontSize: "1.2rem",
-              fontWeight: 600,
-              letterSpacing: "0.05em",
+              color: "#ffffff",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.018),
+              fontWeight: 700,
+              letterSpacing: "0.02em",
             }}
           >
             Subscribe for More
@@ -129,35 +132,40 @@ export default function EndCard() {
         <div
           style={{
             display: "flex",
-            gap: 16,
-            marginTop: 32,
+            gap: Math.round(width * 0.012),
+            marginTop: Math.round(height * 0.035),
             opacity: iconsOpacity,
           }}
         >
-          {socialColors.map((color, i) => (
-            <div
-              key={i}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                background: color,
-              }}
-            />
-          ))}
+          {[kitTheme.green[400], kitTheme.gray[300], kitTheme.gray[200], kitTheme.gray[300]].map(
+            (color, i) => (
+              <div
+                key={i}
+                style={{
+                  width: Math.round(width * 0.02),
+                  height: Math.round(width * 0.02),
+                  borderRadius: "50%",
+                  background: color,
+                  boxShadow: kitShadow.sm,
+                }}
+              />
+            )
+          )}
         </div>
         <p
           style={{
-            color: "rgba(255, 255, 255, 0.5)",
-            fontSize: "0.9rem",
-            marginTop: 28,
-            letterSpacing: "0.1em",
-            fontWeight: 300,
+            margin: 0,
+            marginTop: Math.round(height * 0.03),
+            color: kitTheme.faint,
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.01),
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
           }}
         >
-          STUDIO CREATIVE
+          Studio Creative
         </p>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

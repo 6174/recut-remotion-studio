@@ -82,7 +82,7 @@ export function BriefForm({ catalog, status, onStart }: BriefFormProps) {
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
       <div className="mx-auto max-w-3xl px-5 py-6">
-        <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION STUDIO / NEW BRIEF</p>
+        <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION 视频 / 新建</p>
         <h2 className="mt-1.5 text-xl font-semibold tracking-tight">新建一支程序化视频</h2>
         <p className="mt-1 text-sm leading-5 text-muted-foreground">从一个完整模板开始：模板已经定义了视觉、节奏和组件组合。然后给出选题并按需加入素材，AI 会直接把它写成成片。</p>
 

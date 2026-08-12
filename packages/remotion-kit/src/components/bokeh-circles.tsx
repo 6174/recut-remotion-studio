@@ -1,6 +1,19 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * soft white + green bokeh circles, frame-derived drift and pulse.
+ */
+
 "use client";
 
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { kitTheme } from "./helpers/theme";
 
 export default function BokehCircles() {
   const frame = useCurrentFrame();
@@ -20,21 +33,17 @@ export default function BokehCircles() {
     const x = baseX * width + driftX;
     const y = baseY * height + driftY;
 
-    // Pulsing size
-    const baseSize = 40 + ((i * 37 + 11) % 80); // 40-120px
+    // Pulsing size, scaled to the canvas
+    const baseSize = Math.round(width * 0.045) + ((i * 37 + 11) % Math.max(20, Math.round(width * 0.05)));
     const pulse = Math.sin(t * 0.4 + i * 0.7) * 0.2 + 1;
     const size = baseSize * pulse;
 
     // Varying opacity between 0.1-0.3
     const opacity = 0.1 + ((i * 19 + 7) % 20) / 100;
 
-    // Color selection: soft blues, purples, teals
-    const colorOptions = [
-      [59, 130, 246],  // blue
-      [139, 92, 246],  // purple
-      [20, 184, 166],  // teal
-    ];
-    const rgb = colorOptions[i % 3];
+    // Alternate between soft white and green-tinted bokeh
+    const isGreen = i % 3 === 1;
+    const rgb = isGreen ? [60, 192, 106] : [255, 255, 255];
 
     return { x, y, size, opacity, rgb, key: i };
   });
@@ -44,7 +53,7 @@ export default function BokehCircles() {
       style={{
         width: "100%",
         height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         position: "relative",
         overflow: "hidden",
       }}

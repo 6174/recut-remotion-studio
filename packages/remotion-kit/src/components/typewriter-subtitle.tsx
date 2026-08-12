@@ -6,71 +6,61 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * terminal-style typewriter with a green block cursor (fully frame-derived).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitTheme } from "./helpers/theme";
 
 export default function TypewriterSubtitle() {
   const frame = useCurrentFrame();
-
+  const { width, height } = useVideoConfig();
   const text = "I like typing...";
-  const visibleCharacters = Math.floor(
-    interpolate(frame, [0, 45], [0, text.length], {
-      extrapolateRight: "clamp",
-    })
-  );
+  const visibleCharacters = Math.floor(interpolate(frame, [0, 45], [0, text.length], { extrapolateRight: "clamp" }));
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        textAlign: "center",
-        padding: "2rem",
+        background: `radial-gradient(120% 90% at 50% 40%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 66%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
-      {text
-        .slice(0, visibleCharacters)
-        .split("")
-        .map((char, index) => {
-          const hue = 210 + (index * 40) / text.length;
-          const isGlitching = frame % 30 === 0 && Math.random() > 0.7;
-
-          return (
-            <span
-              key={index}
-              style={{
-                display: "inline-block",
-                fontFamily: "'Courier New', monospace",
-                fontSize: "3rem",
-                fontWeight: "bold",
-                color: `white`,
-
-                transition: "all 0.05s ease-out",
-              }}
-            >
-              {char === " " ? "\u00A0" : char}
-            </span>
-          );
-        })}
-      <span
-        style={{
-          fontSize: "3rem",
-          color: "#60a5fa",
-          opacity: frame % 15 < 7 ? 1 : 0,
-
-          marginLeft: "0.2rem",
-          verticalAlign: "middle",
-        }}
-      >
-        ▌
-      </span>
-    </div>
+      <div style={{ position: "absolute", top: height * 0.13, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: kitTheme.green[400], fontWeight: 600 }}>TYPEWRITER</span>
+      </div>
+      <div style={{ textAlign: "center", padding: "0 8%" }}>
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.04),
+            fontWeight: 600,
+            letterSpacing: "-0.01em",
+            color: "#ffffff",
+            textShadow: `0 ${Math.round(height * 0.004)}px ${Math.round(height * 0.016)}px rgba(0,0,0,0.4)`,
+          }}
+        >
+          {text.slice(0, visibleCharacters)}
+        </span>
+        <span
+          style={{
+            display: "inline-block",
+            marginLeft: Math.round(width * 0.006),
+            width: Math.round(width * 0.006),
+            height: Math.round(width * 0.028),
+            verticalAlign: "middle",
+            background: kitTheme.green[400],
+            opacity: frame % 15 < 7 ? 1 : 0,
+          }}
+        />
+      </div>
+      <div style={{ position: "absolute", bottom: height * 0.1, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.013), color: kitTheme.darkMuted, letterSpacing: "0.3em" }}>TYPEWRITER · BLOCK CURSOR</span>
+      </div>
+    </AbsoluteFill>
   );
 }

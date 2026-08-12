@@ -13,7 +13,7 @@ src/preview/: Remotion Player 样片选择器；字幕大预览使用完整白�
 src/player-panel.tsx: 轮询每项目 Vite 预览服务器；仅在应用层 HTTP 健康检查和浏览器连通性均通过后显示 iframe，启动/重启的 15 秒轮询窗口始终展示 Loading，超时或真实失败才显示错误诊断。
 src/export-panel.tsx: 轻量导出入口；用模态框承载本地导出设置、环境检查、渲染进度与历史产物。
 src/terminal-panel.tsx: xterm 终端，对接 service 层已有 terminal.exec 协议：行编辑、↑↓ 历史、cd 切换与清屏。
-src/log-panel.tsx: 有界日志回填（最近 3 个任务、界面首屏最新 120 行）+ shell.job.log 实时追加，支持按任务过滤、复制、清空。
+src/log-panel.tsx: 仅显示 iframe 当前页面会话的有界日志回填（最近 3 个任务、界面首屏最新 120 行）+ shell.job.log 实时追加，支持按当前会话任务过滤、复制、清空。
 src/recut-sdk.ts: iframe 与 Recut Host 通信、状态和媒体 API 适配层；子页在监听器就绪后向父页 origin 重试握手，避免刷新时丢失 MessageChannel。
 
 设计规范

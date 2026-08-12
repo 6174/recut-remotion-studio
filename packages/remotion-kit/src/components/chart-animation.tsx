@@ -12,15 +12,17 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function ChartAnimation() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
   // Sample data points (can be replaced with your actual data)
   const data = [
@@ -36,24 +38,10 @@ export default function ChartAnimation() {
     { x: 9, y: 85, label: "Oct" },
   ];
 
-  // Color palette for bars
-  const colors = [
-    "#4361ee",
-    "#3a0ca3",
-    "#7209b7",
-    "#f72585",
-    "#4cc9f0",
-    "#4895ef",
-    "#560bad",
-    "#b5179e",
-    "#f15bb5",
-    "#00b4d8",
-  ];
-
-  // Chart dimensions
-  const chartWidth = 900;
-  const chartHeight = 500;
-  const padding = 60;
+  // Chart dimensions (viewBox units, scales responsively)
+  const chartWidth = 880;
+  const chartHeight = 400;
+  const padding = 52;
 
   // Scale data to fit chart dimensions
   const xScale = (x: number) =>
@@ -61,45 +49,100 @@ export default function ChartAnimation() {
   const yScale = (y: number) =>
     chartHeight - padding - (y / 100) * (chartHeight - padding * 2);
 
-  const barWidth = ((chartWidth - padding * 2) / data.length) * 0.7;
+  const barWidth = ((chartWidth - padding * 2) / data.length) * 0.58;
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(circle at 1px 1px, ${kitTheme.line} 1px, transparent 0) 0 0 / 26px 26px, linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: `${chartWidth}px`,
-          height: `${chartHeight}px`,
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          overflow: "hidden",
-          padding: "20px",
+          width: "min(88%, 1080px)",
+          padding: `${Math.round(height * 0.05)}px ${Math.round(width * 0.04)}px`,
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
         }}
       >
-        <svg width={chartWidth} height={chartHeight}>
-          {/* X-axis line */}
+        <div style={{ textAlign: "left" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[600],
+              fontWeight: 600,
+            }}
+          >
+            ANNUAL REPORT
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.012),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.035),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+            }}
+          >
+            Monthly Performance
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.008),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.015),
+              color: kitTheme.faint,
+            }}
+          >
+            Data visualization for 2023
+          </p>
+        </div>
+
+        <svg
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+          width="100%"
+          style={{ display: "block", marginTop: Math.round(height * 0.02) }}
+        >
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={kitTheme.green[400]} />
+              <stop offset="100%" stopColor={kitTheme.green[600]} />
+            </linearGradient>
+          </defs>
+
+          {/* Horizontal grid lines */}
+          {[0, 25, 50, 75, 100].map((val) => (
+            <line
+              key={`grid-${val}`}
+              x1={padding}
+              y1={yScale(val)}
+              x2={chartWidth - padding}
+              y2={yScale(val)}
+              stroke={kitTheme.line}
+              strokeWidth="1"
+            />
+          ))}
+
+          {/* X-axis baseline */}
           <line
             x1={padding}
             y1={chartHeight - padding}
             x2={chartWidth - padding}
             y2={chartHeight - padding}
-            stroke="rgba(255, 255, 255, 0.2)"
-            strokeWidth="2"
+            stroke={kitTheme.lineStrong}
+            strokeWidth="1.5"
           />
 
           {/* X-axis labels */}
@@ -107,28 +150,25 @@ export default function ChartAnimation() {
             <text
               key={`x-label-${i}`}
               x={xScale(point.x)}
-              y={chartHeight - padding + 25}
+              y={chartHeight - padding + 26}
               textAnchor="middle"
-              fill="rgba(255, 255, 255, 0.8)"
-              fontSize="14"
-              fontWeight="500"
+              fill={kitTheme.faint}
+              fontFamily={kitFont.mono}
+              fontSize="13"
             >
               {point.label}
             </text>
           ))}
 
-          {/* Bar chart with animation and different colors */}
+          {/* Bar chart with frame-driven growth */}
           {data.map((point, i) => {
             const barHeight = (point.y / 100) * (chartHeight - padding * 2);
-
-            // Animation that grows bars from bottom
             const barProgress = interpolate(
               frame,
               [i * 3, 15 + i * 3],
               [0, 1],
               { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
-
             const currentHeight = barHeight * barProgress;
             const currentY = chartHeight - padding - currentHeight;
 
@@ -139,18 +179,17 @@ export default function ChartAnimation() {
                   y={currentY}
                   width={barWidth}
                   height={currentHeight}
-                  fill={colors[i % colors.length]}
-                  rx="6"
-                  ry="6"
-                  filter="url(#shadow)"
+                  fill="url(#barGradient)"
+                  rx={kitRadius.sm}
                 />
                 <text
                   x={xScale(point.x)}
-                  y={currentY - 10}
+                  y={currentY - 12}
                   textAnchor="middle"
-                  fill="white"
-                  fontSize="14"
-                  fontWeight="bold"
+                  fill={kitTheme.muted}
+                  fontFamily={kitFont.mono}
+                  fontSize="13"
+                  fontWeight="600"
                   opacity={barProgress > 0.9 ? 1 : 0}
                 >
                   {point.y}
@@ -158,47 +197,8 @@ export default function ChartAnimation() {
               </g>
             );
           })}
-
-          {/* Define shadow filter */}
-          <defs>
-            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.3" />
-            </filter>
-          </defs>
         </svg>
-
-        {/* Chart title */}
-        <div
-          style={{
-            position: "absolute",
-            top: "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          Monthly Performance
-        </div>
-
-        {/* Chart subtitle */}
-        <div
-          style={{
-            position: "absolute",
-            top: "60px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "16px",
-            color: "rgba(255, 255, 255, 0.7)",
-            textShadow: "0 1px 2px rgba(0,0,0,0.2)",
-          }}
-        >
-          Data visualization for 2023
-        </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

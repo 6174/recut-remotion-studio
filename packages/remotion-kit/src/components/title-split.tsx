@@ -1,16 +1,29 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * split display type, green accent.
+ */
+
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function TitleSplit() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   const topY = spring({
     frame,
     fps,
     config: { damping: 14, stiffness: 80 },
-    from: -120,
+    from: -Math.round(height * 0.1),
     to: 0,
   });
 
@@ -18,68 +31,69 @@ export default function TitleSplit() {
     frame,
     fps,
     config: { damping: 14, stiffness: 80 },
-    from: 120,
+    from: Math.round(height * 0.1),
     to: 0,
   });
-
-  const glowOpacity = interpolate(
-    Math.sin(frame * 0.1),
-    [-1, 1],
-    [0.3, 0.8],
-  );
 
   const meetProgress = interpolate(frame, [0, 20], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
+  const fontSize = Math.round(width * 0.08);
+  const strokeWidth = Math.max(1, Math.round(width * 0.002));
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
-        gap: "0.25rem",
+        gap: Math.round(height * 0.012),
       }}
     >
       <h1
         style={{
-          color: "transparent",
-          fontSize: "5rem",
-          fontWeight: 800,
           margin: 0,
-          letterSpacing: "0.15em",
-          WebkitTextStroke: "2px white",
+          color: "transparent",
+          fontFamily: kitFont.sans,
+          fontSize,
+          fontWeight: 900,
+          letterSpacing: "-0.03em",
+          lineHeight: 1,
+          WebkitTextStroke: `${strokeWidth}px ${kitTheme.gray[100]}`,
           transform: `translateY(${topY}px)`,
-          fontFamily: "Inter, sans-serif",
-          textShadow: meetProgress === 1
-            ? `0 0 ${20 * glowOpacity}px rgba(59, 130, 246, ${glowOpacity})`
-            : "none",
         }}
       >
         CREATIVE
       </h1>
       <h1
         style={{
-          color: "white",
-          fontSize: "5rem",
-          fontWeight: 800,
           margin: 0,
-          letterSpacing: "0.15em",
+          color: "#ffffff",
+          fontFamily: kitFont.sans,
+          fontSize,
+          fontWeight: 900,
+          letterSpacing: "-0.03em",
+          lineHeight: 1,
           transform: `translateY(${bottomY}px)`,
-          fontFamily: "Inter, sans-serif",
-          textShadow: meetProgress === 1
-            ? `0 0 ${20 * glowOpacity}px rgba(59, 130, 246, ${glowOpacity})`
-            : "none",
+          opacity: meetProgress,
         }}
       >
         STUDIO
       </h1>
-    </div>
+      <div
+        style={{
+          height: 4,
+          width: `${meetProgress * 30}%`,
+          background: kitGradient.green,
+          borderRadius: kitRadius.full,
+          marginTop: Math.round(height * 0.02),
+        }}
+      />
+    </AbsoluteFill>
   );
 }

@@ -6,18 +6,20 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * green monogram mark, high-contrast type, frame-derived 3D spin reveal.
  */
 
 "use client";
 
-import { useCurrentFrame, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function LogoSpinReveal() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
-  // Logo 3D rotation using spring
+  // Mark 3D rotation using spring
   const spinProgress = spring({
     frame,
     fps,
@@ -27,7 +29,7 @@ export default function LogoSpinReveal() {
   const rotateY = 90 * (1 - spinProgress);
   const logoOpacity = spinProgress;
 
-  // Company name slides up after logo settles
+  // Wordmark slides up after the mark settles
   const textProgress = spring({
     frame: Math.max(0, frame - 20),
     fps,
@@ -37,13 +39,12 @@ export default function LogoSpinReveal() {
   const textOpacity = textProgress;
   const textTranslateY = 30 * (1 - textProgress);
 
+  const markSize = Math.round(width * 0.14);
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -51,69 +52,84 @@ export default function LogoSpinReveal() {
         overflow: "hidden",
       }}
     >
-      {/* 3D Perspective Container */}
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          SPIN REVEAL
+        </span>
+      </div>
       <div
         style={{
           perspective: "1000px",
         }}
       >
-        {/* Logo - circular with gradient */}
         <div
           style={{
-            width: "120px",
-            height: "120px",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #4361ee, #7209b7)",
+            width: markSize,
+            height: markSize,
+            borderRadius: kitRadius.full,
+            background: kitGradient.green,
+            boxShadow: `0 0 40px rgba(21, 137, 67, 0.4)`,
             display: "flex",
-            justifyContent: "center",
             alignItems: "center",
+            justifyContent: "center",
             transform: `rotateY(${rotateY}deg)`,
             opacity: logoOpacity,
-            boxShadow: "0 0 50px rgba(114, 9, 183, 0.4)",
           }}
         >
           <span
             style={{
-              color: "white",
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              letterSpacing: "0.1em",
-              fontFamily: "Inter, sans-serif",
+              color: "#ffffff",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
             }}
           >
-            LOGO
+            R
           </span>
         </div>
       </div>
-
-      {/* Company Name - slides up */}
-      <h2
+      <div
         style={{
-          color: "white",
-          fontSize: "2rem",
-          fontWeight: "700",
-          marginTop: "1.5rem",
-          marginBottom: 0,
-          fontFamily: "Inter, sans-serif",
-          letterSpacing: "0.05em",
+          marginTop: Math.round(height * 0.04),
           opacity: textOpacity,
           transform: `translateY(${textTranslateY}px)`,
+          textAlign: "center",
         }}
       >
-        Company Name
-      </h2>
-      <p
-        style={{
-          color: "#c084fc",
-          fontSize: "1rem",
-          marginTop: "0.5rem",
-          fontFamily: "Inter, sans-serif",
-          opacity: textOpacity,
-          transform: `translateY(${textTranslateY}px)`,
-        }}
-      >
-        Your tagline here
-      </p>
-    </div>
+        <h2
+          style={{
+            margin: 0,
+            color: "#ffffff",
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.052),
+            fontWeight: 900,
+            letterSpacing: "-0.03em",
+            textShadow: "0 12px 40px rgba(0, 0, 0, 0.45)",
+          }}
+        >
+          Company Name
+        </h2>
+        <p
+          style={{
+            margin: `${Math.round(height * 0.012)}px 0 0`,
+            color: kitTheme.darkMuted,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.016),
+            letterSpacing: "0.02em",
+          }}
+        >
+          Spinning up something new
+        </p>
+      </div>
+    </AbsoluteFill>
   );
 }

@@ -6,110 +6,86 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): paper canvas,
+ * hairline white card, ink type with green accent.
  */
 
 "use client";
 
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function BounceText() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
-  const slideIn = spring({
-    frame,
-    fps,
-    from: -100,
-    to: 0,
-    config: {
-      damping: 100,
-      mass: 1,
-      stiffness: 200,
-    },
-  });
-
-  const fadeIn = spring({
-    frame: frame - 15, // Slight delay for subtitle
-    fps,
-    from: 0,
-    to: 1,
-    config: {
-      damping: 100,
-      mass: 1,
-    },
-  });
-
-  const scaleIn = spring({
-    frame,
-    fps,
-    from: 0.5,
-    to: 0.8,
-    config: {
-      damping: 100,
-      mass: 1,
-      stiffness: 200,
-    },
-  });
-
-  const containerFadeIn = spring({
-    frame,
-    fps,
-    from: 0,
-    to: 1,
-    config: {
-      damping: 100,
-      mass: 1,
-    },
-  });
+  const slideIn = spring({ frame, fps, from: 60, to: 0, config: { damping: 18, mass: 0.6, stiffness: 120 } });
+  const fadeIn = spring({ frame: frame - 15, fps, from: 0, to: 1, config: { damping: 20, mass: 0.8 } });
+  const scaleIn = spring({ frame, fps, from: 0.92, to: 1, config: { damping: 16, mass: 0.7, stiffness: 140 } });
+  const bar = spring({ frame: frame - 8, fps, from: 0, to: 1, config: { damping: 14, mass: 0.5 } });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: `translate(-50%, -50%) scale(${scaleIn})`,
-        width: "80%",
-        padding: "2rem 3rem",
-        background: "linear-gradient(45deg, #1e3a8a, #3b82f6)",
-        borderRadius: "20px",
-        opacity: containerFadeIn,
+        background: `linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: kitTheme.green[600], fontWeight: 600 }}>BOUNCE IN</span>
+      </div>
       <div
         style={{
-          transform: `translateX(${slideIn}%)`,
+          width: "min(78%, 1240px)",
+          padding: `${Math.round(height * 0.06)}px ${Math.round(width * 0.05)}px`,
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
+          transform: `scale(${scaleIn})`,
         }}
       >
-        <h1
-          style={{
-            fontSize: "3.5rem",
-            fontWeight: "900",
-            color: "white",
-            margin: 0,
-            lineHeight: "1",
-            fontFamily: "Inter, sans-serif",
-            textShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)",
-          }}
-        >
-          Start Building
-        </h1>
-        <h2
-          style={{
-            fontSize: "1.8rem",
-            color: "white",
-            margin: 0,
-            marginTop: "0.75rem",
-            fontWeight: "500",
-            opacity: fadeIn,
-            fontFamily: "Inter, sans-serif",
-            textShadow: "0px 2px 4px rgba(0, 0, 0, 0.2)",
-          }}
-        >
-          Theres never been a better time
-        </h2>
+        <div style={{ transform: `translateX(${slideIn}px)` }}>
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.052),
+              fontWeight: 900,
+              letterSpacing: "-0.035em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+            }}
+          >
+            Start Building
+          </h1>
+          <div
+            style={{
+              marginTop: Math.round(height * 0.022),
+            width: `${bar * 24}%`,
+            height: 6,
+            borderRadius: 999,
+            background: kitGradient.green,
+            }}
+          />
+          <h2
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.022),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.022),
+              fontWeight: 500,
+              letterSpacing: "-0.01em",
+              color: kitTheme.muted,
+              opacity: fadeIn,
+            }}
+          >
+            There&apos;s never been a better time
+          </h2>
+        </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

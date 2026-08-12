@@ -1,6 +1,19 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage
+ * with a green pulse rippling outward across a dot grid.
+ */
+
 "use client";
 
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { kitTheme } from "./helpers/theme";
 
 export default function GridPulse() {
   const frame = useCurrentFrame();
@@ -8,7 +21,7 @@ export default function GridPulse() {
 
   const cols = 12;
   const rows = 8;
-  const dotSize = 10;
+  const dotSize = Math.max(4, Math.round(width * 0.005));
 
   const spacingX = width / (cols + 1);
   const spacingY = height / (rows + 1);
@@ -46,7 +59,7 @@ export default function GridPulse() {
       style={{
         width: "100%",
         height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 50%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 70%)`,
         position: "relative",
         overflow: "hidden",
       }}
@@ -61,7 +74,8 @@ export default function GridPulse() {
             width: dotSize,
             height: dotSize,
             borderRadius: "50%",
-            backgroundColor: "#3b82f6",
+            backgroundColor: kitTheme.green[400],
+            boxShadow: "0 0 12px rgba(60, 192, 106, 0.6)",
             opacity: dot.opacity,
             transform: `translate(-50%, -50%) scale(${dot.scale})`,
           }}

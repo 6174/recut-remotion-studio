@@ -4,6 +4,8 @@
 
 Recut 集成约束：所有模板由 `index.ts` 导出，运行时动画必须从 Remotion frame 推导，所有进入 SVG 几何属性的插值必须同时钳制左右边界，避免序列负帧传入非法尺寸。`ken-burns.tsx`、`parallax-pan.tsx` 与 `zoom-pulse.tsx` 已移除 Next/CSS 时间依赖，以保证预览、拖动时间轴与导出一致。`FlameFrame.tsx` 是内容容器而非全屏后处理：火焰 SVG 与 children 共用同一 relative box，禁止再以纹理坐标猜测目标位置。
 
+视觉契约：所有模板统一走 `helpers/theme.ts` 的 kitTheme / kitFont / kitRadius / kitShadow / kitGradient（Vercel 结构 + Recut 绿点缀），不再手写任意十六进制色值。模板若被复制进项目工作区，必须把 `helpers/theme.ts` 一并复制到 `src/components/helpers/theme.ts`（或把导入改写为 `@recut/remotion-kit`），并保持 token 名不变。
+
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md
 
 # Remotion Templates by RVE

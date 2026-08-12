@@ -6,56 +6,34 @@
  * Created by the team at https://www.reactvideoeditor.com
  *
  * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function ProgressSteps() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   const steps = ["Research", "Design", "Build", "Launch"];
   const framesPerStep = Math.floor(fps * 0.8);
 
-  return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(180deg, #111827, #1f2937)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        overflow: "hidden",
-        fontFamily: "Inter, sans-serif",
-      }}
-    >
-      <h2
-        style={{
-          color: "white",
-          fontSize: "2rem",
-          fontWeight: "bold",
-          marginBottom: "60px",
-          margin: 0,
-          marginTop: 0,
-          paddingBottom: "60px",
-        }}
-      >
-        Project Timeline
-      </h2>
+  const circleSize = Math.round(width * 0.05);
+  const stepWidth = Math.round(width * 0.11);
+  const connectorWidth = Math.round(width * 0.11);
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0px",
-          position: "relative",
-        }}
-      >
+  return (
+    <AbsoluteFill style={{ background: kitGradient.paper, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: kitTheme.green[600], fontWeight: 600 }}>
+          PROJECT TIMELINE
+        </span>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
         {steps.map((label, i) => {
           const stepStart = i * framesPerStep;
           const fillProgress = interpolate(
@@ -90,40 +68,30 @@ export default function ProgressSteps() {
               : 0;
 
           return (
-            <div
-              key={i}
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  width: "80px",
-                }}
-              >
+            <div key={i} style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: stepWidth }}>
                 <div
                   style={{
-                    width: "48px",
-                    height: "48px",
-                    borderRadius: "50%",
-                    border: `3px solid ${fillProgress > 0 ? "#3b82f6" : "#4b5563"}`,
-                    background:
-                      fillProgress > 0
-                        ? `linear-gradient(135deg, #3b82f6, #7209b7)`
-                        : "transparent",
+                    width: circleSize,
+                    height: circleSize,
+                    borderRadius: kitRadius.full,
+                    border: `3px solid ${fillProgress > 0 ? kitTheme.green[500] : kitTheme.lineStrong}`,
+                    background: fillProgress > 0 ? kitGradient.green : kitTheme.paper,
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
                     transform: `scale(${circleScale})`,
-                    transition: "border-color 0.1s",
+                    boxShadow: fillProgress > 0
+                      ? `0 0 0 ${Math.round(circleSize * 0.08)}px rgba(28, 174, 88, 0.15)`
+                      : "none",
                   }}
                 >
                   <span
                     style={{
-                      color: fillProgress > 0 ? "white" : "#6b7280",
-                      fontSize: "1rem",
-                      fontWeight: "bold",
+                      color: fillProgress > 0 ? "#ffffff" : kitTheme.faint,
+                      fontSize: Math.round(circleSize * 0.38),
+                      fontWeight: 800,
+                      fontFamily: kitFont.mono,
                     }}
                   >
                     {i + 1}
@@ -131,11 +99,12 @@ export default function ProgressSteps() {
                 </div>
                 <span
                   style={{
-                    color: fillProgress > 0 ? "#93c5fd" : "#6b7280",
-                    fontSize: "0.8rem",
-                    fontWeight: "500",
-                    marginTop: "10px",
+                    color: fillProgress > 0 ? kitTheme.ink : kitTheme.faint,
+                    fontSize: Math.round(width * 0.014),
+                    fontWeight: 600,
+                    marginTop: Math.round(height * 0.014),
                     whiteSpace: "nowrap",
+                    fontFamily: kitFont.sans,
                   }}
                 >
                   {label}
@@ -145,21 +114,21 @@ export default function ProgressSteps() {
               {i < steps.length - 1 && (
                 <div
                   style={{
-                    width: "80px",
-                    height: "3px",
-                    background: "#374151",
-                    borderRadius: "2px",
+                    width: connectorWidth,
+                    height: 4,
+                    background: kitTheme.line,
+                    borderRadius: kitRadius.full,
                     position: "relative",
                     overflow: "hidden",
-                    marginBottom: "24px",
+                    marginBottom: Math.round(height * 0.03),
                   }}
                 >
                   <div
                     style={{
                       width: `${lineProgress * 100}%`,
                       height: "100%",
-                      background: "linear-gradient(90deg, #3b82f6, #a855f7)",
-                      borderRadius: "2px",
+                      background: kitGradient.green,
+                      borderRadius: kitRadius.full,
                     }}
                   />
                 </div>
@@ -168,6 +137,6 @@ export default function ProgressSteps() {
           );
         })}
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

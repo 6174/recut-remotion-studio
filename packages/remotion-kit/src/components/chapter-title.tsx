@@ -1,15 +1,33 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * mono chapter numeral, green rule, high-contrast type.
+ */
+
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function ChapterTitle() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   const numberScale = spring({
     frame,
     fps,
     config: { damping: 12, stiffness: 80 },
+  });
+
+  const labelOpacity = interpolate(frame, [5, 20], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   const subtitleOpacity = interpolate(frame, [20, 40], [0, 1], {
@@ -22,22 +40,15 @@ export default function ChapterTitle() {
     extrapolateRight: "clamp",
   });
 
-  const lineWidth = interpolate(frame, [10, 40], [0, 120], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const labelOpacity = interpolate(frame, [5, 20], [0, 1], {
+  const lineWidth = interpolate(frame, [10, 40], [0, Math.round(width * 0.1)], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -45,30 +56,31 @@ export default function ChapterTitle() {
         overflow: "hidden",
       }}
     >
-      <p
+      <span
         style={{
-          color: "#9ca3af",
-          fontSize: "1rem",
-          fontWeight: 500,
-          letterSpacing: "0.2em",
+          fontFamily: kitFont.mono,
+          fontSize: Math.round(width * 0.014),
+          fontWeight: 600,
+          letterSpacing: "0.4em",
           textTransform: "uppercase",
-          margin: 0,
-          marginBottom: "0.5rem",
+          color: kitTheme.green[400],
+          marginBottom: Math.round(height * 0.03),
           opacity: labelOpacity,
-          fontFamily: "Inter, sans-serif",
         }}
       >
         Chapter
-      </p>
+      </span>
       <h1
         style={{
-          color: "white",
-          fontSize: "8rem",
-          fontWeight: 800,
           margin: 0,
+          color: "#ffffff",
+          fontFamily: kitFont.mono,
+          fontSize: Math.round(width * 0.16),
+          fontWeight: 900,
           lineHeight: 1,
+          letterSpacing: "-0.04em",
+          textShadow: "0 16px 48px rgba(0, 0, 0, 0.45)",
           transform: `scale(${numberScale})`,
-          fontFamily: "Inter, sans-serif",
         }}
       >
         1
@@ -78,49 +90,37 @@ export default function ChapterTitle() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: "1rem",
-          marginTop: "1.5rem",
-          marginBottom: "1rem",
+          gap: Math.round(width * 0.02),
+          marginTop: Math.round(height * 0.03),
+          marginBottom: Math.round(height * 0.02),
         }}
       >
+        <div style={{ height: 1, width: lineWidth, background: kitTheme.green[500] }} />
         <div
           style={{
-            height: "1px",
-            width: `${lineWidth}px`,
-            backgroundColor: "#3b82f6",
-          }}
-        />
-        <div
-          style={{
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            backgroundColor: "#3b82f6",
+            width: Math.round(width * 0.006),
+            height: Math.round(width * 0.006),
+            borderRadius: kitRadius.full,
+            background: kitTheme.green[400],
             opacity: labelOpacity,
           }}
         />
-        <div
-          style={{
-            height: "1px",
-            width: `${lineWidth}px`,
-            backgroundColor: "#3b82f6",
-          }}
-        />
+        <div style={{ height: 1, width: lineWidth, background: kitTheme.green[500] }} />
       </div>
       <p
         style={{
-          color: "#d1d5db",
-          fontSize: "1.5rem",
-          fontWeight: 300,
           margin: 0,
-          letterSpacing: "0.1em",
+          color: kitTheme.darkMuted,
+          fontFamily: kitFont.sans,
+          fontSize: Math.round(width * 0.024),
+          fontWeight: 300,
+          letterSpacing: "0.08em",
           opacity: subtitleOpacity,
           transform: `translateY(${subtitleY}px)`,
-          fontFamily: "Inter, sans-serif",
         }}
       >
         The Beginning
       </p>
-    </div>
+    </AbsoluteFill>
   );
 }

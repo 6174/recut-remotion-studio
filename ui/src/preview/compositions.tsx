@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 @recut/remotion-kit 的字幕主题/模板调色板/效果层/动态组件
- * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件、材质或 Three camera 的演示合成）与时长元数据；字幕预览使用固定安全轨道防止播放抖动
+ * [OUTPUT]: 对外提供 PreviewScene（按 kind+id 渲染真实组件、材质或 Three camera 的演示合成）与时长元数据；组件/模板演示统一铺在深色验收舞台上，杜绝白字白底；字幕预览使用固定安全轨道防止播放抖动
  * [POS]: remotion-studio/ui 预览层的合成端；与 workspace 渲染同一份 kit 组件
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -232,8 +232,8 @@ export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => 
   if (kind === "camera") return <CameraPreview id={id} />;
   if (kind === "effect") return <EffectPreview id={id} />;
   return (
-    <AbsoluteFill style={{ background: "#ffffff", backgroundImage: "linear-gradient(#e7ece8 1px, transparent 1px), linear-gradient(90deg, #e7ece8 1px, transparent 1px)", backgroundSize: "48px 48px" }}>
-      <div style={{ position: "absolute", inset: "8%", overflow: "hidden", border: "1px solid #d8e0da", borderRadius: 16, background: "#ffffff", boxShadow: "0 18px 50px rgba(16, 32, 23, 0.12)" }}>
+    <AbsoluteFill style={{ background: "#0c100d", display: "grid", placeItems: "center", padding: "3.5%" }}>
+      <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", border: "1px solid #2c352f", borderRadius: 14, background: "#0c100d", boxShadow: "0 24px 80px rgba(0, 0, 0, 0.45)" }}>
         <ComponentDemo id={id} kind={kind} />
       </div>
     </AbsoluteFill>

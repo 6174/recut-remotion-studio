@@ -1,6 +1,19 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * subtle film grain, high-contrast mono eyebrow + sans title.
+ */
+
 "use client";
 
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitTheme } from "./helpers/theme";
 
 export default function NoiseGrain() {
   const frame = useCurrentFrame();
@@ -22,7 +35,7 @@ export default function NoiseGrain() {
     for (let col = 0; col < cols; col++) {
       const index = row * cols + col;
       const noise = pseudoRandom(index, frame);
-      // Opacity between 0.02 and 0.08
+      // Opacity between 0.02 and 0.08 — keep the grain subtle
       const opacity = 0.02 + noise * 0.06;
       grainCells.push({ col, row, opacity, key: index });
     }
@@ -37,12 +50,12 @@ export default function NoiseGrain() {
         overflow: "hidden",
       }}
     >
-      {/* Sample gradient background */}
+      {/* Dark stage background */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         }}
       />
       {/* Centered sample text */}
@@ -57,18 +70,39 @@ export default function NoiseGrain() {
           zIndex: 1,
         }}
       >
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          SUBTLE TEXTURE
+        </span>
         <h2
           style={{
-            color: "white",
-            fontSize: "2.5rem",
-            fontWeight: "bold",
+            color: "#ffffff",
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.045),
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
             margin: 0,
+            marginTop: Math.round(height * 0.02),
           }}
         >
           Film Grain Overlay
         </h2>
-        <p style={{ color: "#93c5fd", fontSize: "1.1rem", marginTop: "0.5rem" }}>
-          Subtle noise texture effect
+        <p
+          style={{
+            color: kitTheme.darkMuted,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.014),
+            marginTop: Math.round(height * 0.012),
+          }}
+        >
+          Subtle noise texture effect, frame-synced for film warmth.
         </p>
       </div>
       {/* Grain overlay using SVG for performance */}
@@ -91,7 +125,7 @@ export default function NoiseGrain() {
             y={cell.row * cellSize}
             width={cellSize}
             height={cellSize}
-            fill="white"
+            fill="#ffffff"
             opacity={cell.opacity}
           />
         ))}

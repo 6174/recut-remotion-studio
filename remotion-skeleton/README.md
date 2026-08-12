@@ -30,11 +30,13 @@
 ## 本地开发
 
 ```bash
-npm install          # 首次；生产上由 render.setup 自动 npm ci
+corepack pnpm@8.15.0 install  # 首次；生产上由首次预览的可见 bootstrap 优先离线安装
 make start           # 启动预览 dev server（vite-server.js 写 serve/status.json）
 npm run dev          # 只启动 Vite；访问 /composition-graph.html 验证独立 Composition Graph 实验
 npm run build        # 构建正式预览页与独立实验入口
 node render.js --renderId <id>   # 需 RECUT_APP_FILES_DIR 指向项目 files/ 且 exports/<id>/props.json 存在
 ```
+
+依赖只安装到 App 的 `remotion-skeleton/node_modules`，项目 workspace 仅链接该目录。pnpm 的 content-addressed store 位于 App 包外：创建新项目和发布更新后的 App 重建依赖树时优先离线复用，只有 lockfile 引入新包才需要联网。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

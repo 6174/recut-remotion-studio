@@ -6,16 +6,17 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function StatCounter() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   // Spring entrance
   const scaleSpring = spring({
@@ -27,65 +28,86 @@ export default function StatCounter() {
   // Count up animation
   const count = Math.round(
     interpolate(frame, [10, 60], [0, 1247], {
-      extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     })
   );
 
   const subStatsOpacity = interpolate(frame, [40, 55], [0, 1], {
-    extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
+  const bar = spring({ frame: frame - 20, fps, from: 0, to: 1, config: { damping: 14, mass: 0.5 } });
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          padding: "60px 80px",
+          background: kitTheme.darkSurface,
+          border: `1px solid ${kitTheme.darkLine}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.lg,
+          padding: `${Math.round(height * 0.07)}px ${Math.round(width * 0.06)}px`,
           textAlign: "center",
           transform: `scale(${scaleSpring})`,
         }}
       >
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.4em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          MONTHLY METRIC
+        </span>
+
         {/* Main number */}
         <div
           style={{
-            fontSize: "96px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 4px 8px rgba(0,0,0,0.3)",
-            letterSpacing: "-2px",
-            lineHeight: "1",
+            marginTop: Math.round(height * 0.02),
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.085),
+            fontWeight: 900,
+            letterSpacing: "-0.04em",
+            lineHeight: 1,
+            color: "#ffffff",
           }}
         >
           {count.toLocaleString()}
         </div>
 
+        {/* Accent bar */}
+        <div
+          style={{
+            margin: `${Math.round(height * 0.016)}px auto 0`,
+            width: `${bar * 18}%`,
+            height: 5,
+            borderRadius: kitRadius.full,
+            background: kitGradient.green,
+          }}
+        />
+
         {/* Label */}
         <div
           style={{
-            fontSize: "24px",
-            color: "rgba(255,255,255,0.7)",
-            marginTop: "12px",
-            fontWeight: "500",
-            letterSpacing: "1px",
+            marginTop: Math.round(height * 0.018),
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.022),
+            color: kitTheme.darkMuted,
+            fontWeight: 500,
+            letterSpacing: "0.02em",
           }}
         >
           Total Users
@@ -96,47 +118,33 @@ export default function StatCounter() {
           style={{
             display: "flex",
             justifyContent: "center",
-            gap: "30px",
-            marginTop: "30px",
+            gap: Math.round(width * 0.03),
+            marginTop: Math.round(height * 0.028),
             opacity: subStatsOpacity,
           }}
         >
-          <div
+          <span
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              color: kitTheme.green[400],
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.017),
+              fontWeight: 600,
             }}
           >
-            <span
-              style={{
-                color: "#22c55e",
-                fontSize: "18px",
-                fontWeight: "600",
-              }}
-            >
-              ↑ 12.5%
-            </span>
-          </div>
-          <div
+            ↑ 12.5%
+          </span>
+          <span
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
+              color: kitTheme.darkMuted,
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.017),
+              fontWeight: 400,
             }}
           >
-            <span
-              style={{
-                color: "rgba(255,255,255,0.5)",
-                fontSize: "18px",
-                fontWeight: "400",
-              }}
-            >
-              This Month
-            </span>
-          </div>
+            This Month
+          </span>
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

@@ -27,7 +27,7 @@ export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt
 
   const prompt = useMemo(() => {
     const selected = catalog.components.find((item) => item.id === value);
-    return `${basePrompt}\n\n组件：${selected?.label ?? value}（${selected?.category ?? ""}；${selected?.description ?? ""}）\n组件源码：${selected?.path ?? ""}\n项目落点：${selected?.workspacePath ?? ""}（项目内组件为冻结副本；若与最新目录不一致，用原生文件工具读 app 包最新源码，写回该落点按需升级，只动该组件）`;
+    return `${basePrompt}\n\n组件：${selected?.label ?? value}（${selected?.category ?? ""}；${selected?.description ?? ""}）\n组件源码：${selected?.path ?? ""}\n项目落点：${selected?.workspacePath ?? ""}（项目内组件为冻结副本；若与最新目录不一致，用原生文件工具读 app 包最新源码，写回该落点按需升级，只动该组件）\n样式依赖：组件使用 app 包内 \`src/components/helpers/theme.ts\` 的 kitTheme 设计 token（Vercel 结构 + Recut 绿）；复制组件进项目时，若该相对导入不成立，请一并把 theme.ts 复制到 \`src/components/helpers/theme.ts\` 或把导入改写为 \`@recut/remotion-kit\`，保持 token 名不变。`;
   }, [basePrompt, catalog, value]);
 
   useEffect(() => { onPrompt(prompt); onReady(true); }, [onPrompt, onReady, prompt]);

@@ -6,60 +6,39 @@
  * Created by the team at https://www.reactvideoeditor.com
  *
  * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function NotificationPop() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   const notifications = [
-    { title: "New Message", body: "Hey! Check out this update.", color: "#3b82f6", delay: 0 },
-    { title: "Task Complete", body: "Your render finished successfully.", color: "#a855f7", delay: 20 },
-    { title: "New Follower", body: "Someone started following you.", color: "#4361ee", delay: 40 },
+    { title: "Render Complete", body: "Your cut exported successfully.", color: kitTheme.green[500], delay: 0 },
+    { title: "New Comment", body: "Great pacing in the intro.", color: kitTheme.gray[400], delay: 20 },
+    { title: "New Follower", body: "Someone subscribed to you.", color: kitTheme.green[300], delay: 40 },
   ];
 
-  return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(180deg, #111827, #1f2937)",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "flex-end",
-        padding: "40px",
-        overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      <h2
-        style={{
-          position: "absolute",
-          top: "40px",
-          left: "40px",
-          color: "white",
-          fontSize: "1.8rem",
-          fontWeight: "bold",
-          fontFamily: "Inter, sans-serif",
-          margin: 0,
-        }}
-      >
-        Notifications
-      </h2>
+  const cardWidth = Math.round(width * 0.32);
+  const cardPadding = Math.round(width * 0.016);
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "12px",
-          alignItems: "flex-end",
-        }}
-      >
+  return (
+    <AbsoluteFill style={{ background: kitTheme.paperSoft, overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: Math.round(height * 0.08), left: Math.round(width * 0.06) }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: kitTheme.green[600], fontWeight: 600 }}>
+          INBOX
+        </span>
+        <h2 style={{ margin: 0, marginTop: Math.round(height * 0.012), fontFamily: kitFont.sans, fontSize: Math.round(width * 0.05), fontWeight: 900, letterSpacing: "-0.03em", color: kitTheme.ink }}>
+          Notifications
+        </h2>
+      </div>
+
+      <div style={{ position: "absolute", right: Math.round(width * 0.06), top: "50%", transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: Math.round(height * 0.024), alignItems: "flex-end" }}>
         {notifications.map((notif, i) => {
           const delayedFrame = Math.max(0, frame - notif.delay);
           const slideIn = spring({
@@ -68,7 +47,7 @@ export default function NotificationPop() {
             config: { damping: 14, stiffness: 180, mass: 0.6 },
           });
 
-          const translateX = interpolate(slideIn, [0, 1], [300, 0]);
+          const translateX = interpolate(slideIn, [0, 1], [cardWidth, 0]);
           const opacity = interpolate(slideIn, [0, 1], [0, 1]);
 
           return (
@@ -77,45 +56,32 @@ export default function NotificationPop() {
               style={{
                 transform: `translateX(${translateX}px)`,
                 opacity,
-                width: "320px",
-                padding: "16px",
-                borderRadius: "12px",
-                background: "rgba(31, 41, 55, 0.9)",
-                border: `1px solid rgba(255, 255, 255, 0.1)`,
+                width: cardWidth,
+                padding: cardPadding,
+                borderRadius: kitRadius.md,
+                background: kitTheme.paper,
+                border: `1px solid ${kitTheme.line}`,
+                boxShadow: kitShadow.md,
                 display: "flex",
-                alignItems: "flex-start",
-                gap: "12px",
+                alignItems: "center",
+                gap: Math.round(width * 0.014),
                 position: "relative",
               }}
             >
               <div
                 style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
+                  width: Math.round(width * 0.035),
+                  height: Math.round(width * 0.035),
+                  borderRadius: kitRadius.full,
                   background: notif.color,
                   flexShrink: 0,
                 }}
               />
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    color: "white",
-                    fontSize: "0.95rem",
-                    fontWeight: "600",
-                    fontFamily: "Inter, sans-serif",
-                    marginBottom: "4px",
-                  }}
-                >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ color: kitTheme.ink, fontSize: Math.round(width * 0.016), fontWeight: 700, fontFamily: kitFont.sans, letterSpacing: "-0.01em", marginBottom: 4 }}>
                   {notif.title}
                 </div>
-                <div
-                  style={{
-                    color: "#9ca3af",
-                    fontSize: "0.8rem",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
+                <div style={{ color: kitTheme.faint, fontSize: Math.round(width * 0.013), fontFamily: kitFont.sans }}>
                   {notif.body}
                 </div>
               </div>
@@ -123,19 +89,19 @@ export default function NotificationPop() {
                 <div
                   style={{
                     position: "absolute",
-                    top: "-6px",
-                    right: "-6px",
-                    width: "22px",
-                    height: "22px",
-                    borderRadius: "50%",
-                    background: "#ef4444",
+                    top: -Math.round(width * 0.008),
+                    right: -Math.round(width * 0.008),
+                    width: Math.round(width * 0.02),
+                    height: Math.round(width * 0.02),
+                    borderRadius: kitRadius.full,
+                    background: kitTheme.green[500],
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
-                    color: "white",
-                    fontSize: "0.7rem",
-                    fontWeight: "bold",
-                    fontFamily: "Inter, sans-serif",
+                    color: "#ffffff",
+                    fontSize: Math.round(width * 0.011),
+                    fontWeight: 700,
+                    fontFamily: kitFont.mono,
                   }}
                 >
                   3
@@ -145,6 +111,6 @@ export default function NotificationPop() {
           );
         })}
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

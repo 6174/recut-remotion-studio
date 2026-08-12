@@ -7,18 +7,29 @@
  * Created by the team at https://www.reactvideoeditor.com
  *
  * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 const PARTICLE_COUNT = 150;
 const TEXT = "BOOM!";
 
+const PARTICLE_COLORS = [
+  kitTheme.green[200],
+  kitTheme.green[300],
+  kitTheme.green[400],
+  kitTheme.green[500],
+];
+
 export default function ParticleExplosion() {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+
+  const maxDistance = Math.min(width, height) * 0.24;
 
   const particles = Array.from({ length: PARTICLE_COUNT }).map((_, i) => {
     const baseAngle = (i / PARTICLE_COUNT) * Math.PI * 2;
@@ -37,29 +48,39 @@ export default function ParticleExplosion() {
       frame,
       fps,
       from: 0,
-      to: 180 + random(i) * 40,
+      to: maxDistance * 0.6 + random(i) * maxDistance * 0.4,
       config: { mass: 0.4, damping: 10 },
     });
 
     const x = Math.cos(rotatingAngle) * distance;
     const y = Math.sin(rotatingAngle) * distance;
-    const opacity = Math.max(0, 1 - frame / 90);
+    const opacity = interpolate(frame, [0, 20, 90], [0, 1, 0], { extrapolateRight: "clamp" });
 
-    return { x, y, opacity, scale };
+    return {
+      x,
+      y,
+      opacity,
+      scale,
+      color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+    };
   });
 
+  const particleSize = Math.round(width * 0.014);
+
   return (
-    <div style={{ width, height, position: "relative" }}>
+    <AbsoluteFill style={{ background: kitGradient.dark, overflow: "hidden" }}>
       <div
         style={{
           position: "absolute",
           left: "50%",
           top: "50%",
           transform: `translate(-50%, -50%) scale(${Math.min(1, frame / 10)})`,
-          fontSize: "48px",
-          fontWeight: "bold",
-          color: "white",
-          textShadow: "0 0 10px rgba(255,255,255,0.5)",
+          fontFamily: kitFont.sans,
+          fontSize: Math.round(width * 0.09),
+          fontWeight: 900,
+          letterSpacing: "-0.04em",
+          color: "#ffffff",
+          textShadow: `0 0 40px rgba(28, 174, 88, 0.5)`,
           zIndex: 2,
         }}
       >
@@ -74,17 +95,15 @@ export default function ParticleExplosion() {
             left: "50%",
             top: "50%",
             transform: `translate(-50%, -50%) translate(${particle.x}px, ${particle.y}px) scale(${particle.scale})`,
-            width: "12px",
-            height: "12px",
-            backgroundColor: `hsl(${
-              200 + (i / PARTICLE_COUNT) * 40
-            }, 85%, 70%)`,
-            borderRadius: "50%",
+            width: particleSize,
+            height: particleSize,
+            backgroundColor: particle.color,
+            borderRadius: kitRadius.full,
             opacity: particle.opacity,
-            boxShadow: "0 0 5px rgba(255,255,255,0.3)",
+            boxShadow: `0 0 ${Math.round(particleSize * 0.5)}px rgba(28, 174, 88, 0.4)`,
           }}
         />
       ))}
-    </div>
+    </AbsoluteFill>
   );
 }

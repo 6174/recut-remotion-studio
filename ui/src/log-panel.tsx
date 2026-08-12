@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖宿主 shell 日志事件、logs.list 的有界回填（最近 3 个任务、最多 300 行）与父级 active 状态
- * [OUTPUT]: 对外提供日志区域：logs.list 挂载/事件/切页回填 + shell.job.log 实时追加，去重合并，按任务过滤、复制与清空
+ * [INPUT]: 依赖宿主 shell 日志事件、以页面会话起点过滤的 logs.list 回填与父级 active 状态
+ * [OUTPUT]: 对外提供仅含当前页面会话的日志区域：实时追加、按任务过滤、复制与清空
  * [POS]: remotion-studio/ui 右侧「日志」分栏；展示后台任务输出，不改变任务执行状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -13,7 +13,7 @@ import { recut } from "./recut-sdk";
 const APP_ID = "recut.remotion-studio";
 // 当前会话保留的总行数上限：实时日志超出后丢弃最旧行，避免 DOM 无限增长。
 const MAX_LINES = 300;
-// 历史回填（logs.list）只取最新的这一段，视作「当前会话」，不再把全部历史一次性加载进界面。
+// 当前页面会话的初始回填上限；实时日志仍受 MAX_LINES 约束。
 const BACKFILL_MAX = 120;
 
 interface LogLine { jobId: string; stream: string; text: string; timestamp: string; sequence?: number; }
@@ -21,6 +21,8 @@ interface LogLine { jobId: string; stream: string; text: string; timestamp: stri
 function jobLabel(jobId: string): string { return jobId.startsWith("preview-") ? "预览服务" : `任务 ${jobId.slice(0, 8)}`; }
 
 function lineKey(line: LogLine): string { return `${line.jobId}:${line.sequence ?? 0}:${line.text}:${line.timestamp}`; }
+
+function belongsToSession(line: LogLine, startedAt: string): boolean { return Date.parse(line.timestamp) >= Date.parse(startedAt); }
 
 interface LogPanelProps { active: boolean; }
 
@@ -33,6 +35,8 @@ export function LogPanel({ active }: LogPanelProps) {
   const refreshingRef = useRef(false);
   const debounceRef = useRef<number | null>(null);
   const stickRef = useRef(true);
+  // 后端事件流会重放项目历史；以 iframe 本次加载时刻切断历史，只保留当前调试会话。
+  const sessionStartedAt = useRef(new Date().toISOString());
 
   const merge = useCallback((incoming: LogLine[], backfill = false) => {
     setLines((previous) => {
@@ -60,7 +64,7 @@ export function LogPanel({ active }: LogPanelProps) {
     if (refreshingRef.current) return;
     refreshingRef.current = true;
     try {
-      const result = await recut.background.call("logs.list", {});
+      const result = await recut.background.call("logs.list", { since: sessionStartedAt.current });
       const incoming = result?.lines;
       if (Array.isArray(incoming)) merge(incoming as LogLine[], true);
     } catch { /* 回填失败不打断实时日志 */ } finally { refreshingRef.current = false; }
@@ -78,7 +82,7 @@ export function LogPanel({ active }: LogPanelProps) {
     const unsubscribe = recut.events.subscribe((event) => {
       const payload = event as { type?: string; appId?: string; name?: string; log?: LogLine; job?: { id: string } };
       if (payload.appId !== APP_ID) return;
-      if (payload.type === "shell.job.log" && payload.log) merge([payload.log as LogLine]);
+      if (payload.type === "shell.job.log" && payload.log && belongsToSession(payload.log as LogLine, sessionStartedAt.current)) merge([payload.log as LogLine]);
       else if (payload.type === "shell.job.started" || payload.type === "shell.job.completed") scheduleRefresh();
       else if (payload.type === "app.capability.completed" && ["preview.serve.start", "preview.serve.stop", "render.export", "terminal.exec"].includes(String(payload.name))) scheduleRefresh();
     });
@@ -129,7 +133,7 @@ export function LogPanel({ active }: LogPanelProps) {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-2">
         <select aria-label="日志过滤" className="h-7 min-w-36 rounded-xs border border-input bg-background px-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" onChange={(event) => setFilter(event.target.value)} value={filter}>
-          <option value="all">全部日志</option>
+          <option value="all">当前会话</option>
           {jobIds.map((jobId) => <option key={jobId} value={jobId}>{jobLabel(jobId)} · {jobId.slice(0, 8)}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-1">

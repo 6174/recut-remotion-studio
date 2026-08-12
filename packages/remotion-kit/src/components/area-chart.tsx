@@ -6,15 +6,17 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function AreaChart() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
   const data = [
     { x: 0, y: 20, label: "Mon" },
@@ -29,9 +31,10 @@ export default function AreaChart() {
     { x: 9, y: 95, label: "Wed" },
   ];
 
-  const chartWidth = 900;
-  const chartHeight = 500;
-  const padding = 70;
+  // Chart dimensions (viewBox units, scales responsively)
+  const chartWidth = 880;
+  const chartHeight = 400;
+  const padding = 56;
 
   const xScale = (x: number) =>
     (x / (data.length - 1)) * (chartWidth - padding * 2) + padding;
@@ -49,58 +52,77 @@ export default function AreaChart() {
     ` L ${xScale(data[data.length - 1].x)} ${chartHeight - padding}` +
     ` L ${xScale(data[0].x)} ${chartHeight - padding} Z`;
 
-  // Clip rect animation - reveals left to right
+  // Clip rect animation - reveals left to right (clamped geometry)
   const clipWidth = interpolate(
     frame,
     [0, 60],
     [0, chartWidth - padding * 2],
-    { extrapolateRight: "clamp" }
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(circle at 1px 1px, ${kitTheme.line} 1px, transparent 0) 0 0 / 26px 26px, linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: `${chartWidth}px`,
-          height: `${chartHeight}px`,
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          overflow: "hidden",
-          padding: "20px",
+          width: "min(88%, 1080px)",
+          padding: `${Math.round(height * 0.05)}px ${Math.round(width * 0.04)}px`,
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
         }}
       >
-        <svg width={chartWidth} height={chartHeight}>
+        <div style={{ textAlign: "left" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[600],
+              fontWeight: 600,
+            }}
+          >
+            WEEKLY TREND
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.012),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.035),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+            }}
+          >
+            Performance Metrics
+          </h1>
+        </div>
+
+        <svg
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+          width="100%"
+          style={{ display: "block", marginTop: Math.round(height * 0.02) }}
+        >
           <defs>
             {/* Gradient fill for area */}
             <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4361ee" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#4361ee" stopOpacity="0" />
+              <stop offset="0%" stopColor={kitTheme.green[500]} stopOpacity="0.35" />
+              <stop offset="100%" stopColor={kitTheme.green[500]} stopOpacity="0" />
             </linearGradient>
 
             {/* Clip path for reveal animation */}
             <clipPath id="revealClip">
-              <rect
-                x={padding}
-                y={0}
-                width={clipWidth}
-                height={chartHeight}
-              />
+              <rect x={padding} y={0} width={clipWidth} height={chartHeight} />
             </clipPath>
           </defs>
 
@@ -112,7 +134,7 @@ export default function AreaChart() {
               y1={yScale(val)}
               x2={chartWidth - padding}
               y2={yScale(val)}
-              stroke="rgba(255,255,255,0.1)"
+              stroke={kitTheme.line}
               strokeWidth="1"
             />
           ))}
@@ -121,10 +143,11 @@ export default function AreaChart() {
           {[0, 25, 50, 75, 100].map((val) => (
             <text
               key={`y-${val}`}
-              x={padding - 15}
-              y={yScale(val) + 5}
+              x={padding - 16}
+              y={yScale(val) + 4}
               textAnchor="end"
-              fill="rgba(255,255,255,0.6)"
+              fill={kitTheme.faint}
+              fontFamily={kitFont.mono}
               fontSize="12"
             >
               {val}
@@ -137,16 +160,16 @@ export default function AreaChart() {
             y1={chartHeight - padding}
             x2={chartWidth - padding}
             y2={chartHeight - padding}
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="2"
+            stroke={kitTheme.lineStrong}
+            strokeWidth="1.5"
           />
           <line
             x1={padding}
             y1={padding}
             x2={padding}
             y2={chartHeight - padding}
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="2"
+            stroke={kitTheme.lineStrong}
+            strokeWidth="1.5"
           />
 
           {/* X-axis labels */}
@@ -154,28 +177,24 @@ export default function AreaChart() {
             <text
               key={`x-label-${i}`}
               x={xScale(point.x)}
-              y={chartHeight - padding + 25}
+              y={chartHeight - padding + 26}
               textAnchor="middle"
-              fill="rgba(255,255,255,0.8)"
+              fill={kitTheme.faint}
+              fontFamily={kitFont.mono}
               fontSize="13"
-              fontWeight="500"
             >
               {point.label}
             </text>
           ))}
 
           {/* Area fill with clip */}
-          <path
-            d={areaPath}
-            fill="url(#areaGradient)"
-            clipPath="url(#revealClip)"
-          />
+          <path d={areaPath} fill="url(#areaGradient)" clipPath="url(#revealClip)" />
 
           {/* Line with clip */}
           <path
             d={linePath}
             fill="none"
-            stroke="#4361ee"
+            stroke={kitTheme.green[600]}
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -197,32 +216,15 @@ export default function AreaChart() {
                 cx={xScale(point.x)}
                 cy={yScale(point.y)}
                 r={4 * pointProgress}
-                fill="white"
-                stroke="#4361ee"
-                strokeWidth="2"
+                fill={kitTheme.paper}
+                stroke={kitTheme.green[600]}
+                strokeWidth="2.5"
                 opacity={pointProgress}
               />
             );
           })}
         </svg>
-
-        {/* Chart title */}
-        <div
-          style={{
-            position: "absolute",
-            top: "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          Performance Metrics
-        </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

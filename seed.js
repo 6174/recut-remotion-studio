@@ -4,9 +4,9 @@
  * Copies the App skeleton (remotion-skeleton/) into ${RECUT_APP_FILES_DIR}/workspace
  * on first use (excluding node_modules / package-lock.json / browser cache),
  * links workspace/node_modules to the App skeleton's dependency store so the
- * preview dev server and render.js resolve `remotion`/`react`/`vite`, and writes
- * the .recut-workspace marker. Never overwrites an existing workspace so AI
- * edits are preserved.
+ * preview dev server and render.js resolve `remotion`/`react`/`vite`. Dependency
+ * installation belongs to the visible preview bootstrap Shell Job, not seeding;
+ * this keeps project/Agent setup fast and lets the UI stream the real logs.
  */
 const fs = require("fs");
 const path = require("path");

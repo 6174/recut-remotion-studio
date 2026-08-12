@@ -1,10 +1,23 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * mono role labels, white names, green accents.
+ */
+
 "use client";
 
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitTheme } from "./helpers/theme";
 
 export default function CreditsRoll() {
   const frame = useCurrentFrame();
-  const { height } = useVideoConfig();
+  const { width, height } = useVideoConfig();
 
   const credits = [
     { role: "Director", name: "Jane Smith" },
@@ -17,17 +30,14 @@ export default function CreditsRoll() {
     { role: "Colorist", name: "James Brown" },
   ];
 
-  const scrollSpeed = 1.5;
+  const scrollSpeed = height * 0.0022;
   const translateY = height - frame * scrollSpeed;
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(140% 100% at 50% 0%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 70%)`,
         overflow: "hidden",
-        position: "relative",
       }}
     >
       <div
@@ -36,8 +46,8 @@ export default function CreditsRoll() {
           top: 0,
           left: 0,
           right: 0,
-          height: "80px",
-          background: "linear-gradient(to bottom, #111827, transparent)",
+          height: Math.round(height * 0.1),
+          background: `linear-gradient(to bottom, ${kitTheme.dark}, transparent)`,
           zIndex: 2,
         }}
       />
@@ -47,8 +57,8 @@ export default function CreditsRoll() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: "80px",
-          background: "linear-gradient(to top, #111827, transparent)",
+          height: Math.round(height * 0.1),
+          background: `linear-gradient(to top, ${kitTheme.dark}, transparent)`,
           zIndex: 2,
         }}
       />
@@ -57,9 +67,9 @@ export default function CreditsRoll() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "2.5rem",
+          gap: Math.round(height * 0.06),
           transform: `translateY(${translateY}px)`,
-          paddingTop: "2rem",
+          paddingTop: Math.round(height * 0.05),
         }}
       >
         {credits.map((credit, i) => (
@@ -71,25 +81,26 @@ export default function CreditsRoll() {
           >
             <p
               style={{
-                color: "#3b82f6",
-                fontSize: "0.9rem",
-                fontWeight: 500,
-                letterSpacing: "0.15em",
-                textTransform: "uppercase",
                 margin: 0,
-                marginBottom: "0.4rem",
-                fontFamily: "Inter, sans-serif",
+                marginBottom: Math.round(height * 0.008),
+                color: kitTheme.green[400],
+                fontFamily: kitFont.mono,
+                fontSize: Math.round(width * 0.013),
+                fontWeight: 600,
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
               }}
             >
               {credit.role}
             </p>
             <p
               style={{
-                color: "white",
-                fontSize: "1.5rem",
-                fontWeight: 600,
                 margin: 0,
-                fontFamily: "Inter, sans-serif",
+                color: "#ffffff",
+                fontFamily: kitFont.sans,
+                fontSize: Math.round(width * 0.026),
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
               }}
             >
               {credit.name}
@@ -97,6 +108,6 @@ export default function CreditsRoll() {
           </div>
         ))}
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

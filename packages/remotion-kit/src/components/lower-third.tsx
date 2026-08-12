@@ -6,21 +6,23 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark scene,
+ * green accent bar, raised name plate.
  */
 
 "use client";
 
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function LowerThird() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   const accentSlide = spring({
     frame,
     fps,
-    from: -300,
+    from: -Math.round(width * 0.2),
     to: 0,
     durationInFrames: 25,
     config: {
@@ -32,7 +34,7 @@ export default function LowerThird() {
   const barSlide = spring({
     frame: Math.max(0, frame - 5),
     fps,
-    from: -400,
+    from: -Math.round(width * 0.28),
     to: 0,
     durationInFrames: 30,
     config: {
@@ -50,31 +52,27 @@ export default function LowerThird() {
   });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(180deg, #111827 0%, #1f2937 100%)",
+        background: kitGradient.dark,
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "absolute",
           bottom: "20%",
-          left: 40,
+          left: Math.round(width * 0.04),
         }}
       >
         <div
           style={{
-            width: 200,
-            height: 3,
-            background: "linear-gradient(90deg, #3b82f6, #4361ee)",
+            width: Math.round(width * 0.14),
+            height: Math.round(width * 0.005),
+            background: kitGradient.green,
             transform: `translateX(${accentSlide}px)`,
-            borderRadius: 2,
-            marginBottom: 4,
+            borderRadius: kitRadius.full,
+            marginBottom: Math.round(height * 0.006),
           }}
         />
         <div
@@ -86,37 +84,46 @@ export default function LowerThird() {
         >
           <div
             style={{
-              width: 4,
-              background: "#3b82f6",
-              borderRadius: "2px 0 0 2px",
+              width: Math.round(width * 0.006),
+              background: kitTheme.green[500],
+              borderTopLeftRadius: kitRadius.sm,
+              borderBottomLeftRadius: kitRadius.sm,
             }}
           />
           <div
             style={{
-              background: "rgba(0, 0, 0, 0.7)",
-              padding: "16px 32px",
-              borderRadius: "0 4px 4px 0",
+              background: kitTheme.darkSurface,
+              border: `1px solid ${kitTheme.darkLine}`,
+              borderLeft: "none",
+              padding: `${Math.round(height * 0.018)}px ${Math.round(width * 0.024)}px`,
+              borderTopRightRadius: kitRadius.sm,
+              borderBottomRightRadius: kitRadius.sm,
+              boxShadow: kitShadow.md,
             }}
           >
             <div
               style={{
-                color: "white",
-                fontSize: "1.6rem",
-                fontWeight: "bold",
+                color: "#ffffff",
+                fontFamily: kitFont.sans,
+                fontSize: Math.round(width * 0.024),
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
                 opacity: textOpacity,
-                letterSpacing: "0.02em",
               }}
             >
               John Smith
             </div>
             <div
               style={{
-                color: "rgba(255, 255, 255, 0.7)",
-                fontSize: "1rem",
-                fontWeight: 300,
+                color: kitTheme.darkMuted,
+                fontFamily: kitFont.mono,
+                fontSize: Math.round(width * 0.012),
+                fontWeight: 500,
+                letterSpacing: "0.25em",
+                textTransform: "uppercase",
+                marginTop: Math.round(height * 0.006),
                 opacity: textOpacity,
-                marginTop: 4,
-                letterSpacing: "0.05em",
               }}
             >
               Senior Producer
@@ -124,6 +131,6 @@ export default function LowerThird() {
           </div>
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

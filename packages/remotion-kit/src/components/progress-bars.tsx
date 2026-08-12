@@ -6,63 +6,74 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function ProgressBars() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
   const skills = [
-    { label: "React", value: 90, color: "#4361ee" },
-    { label: "TypeScript", value: 85, color: "#7209b7" },
-    { label: "Node.js", value: 75, color: "#f72585" },
-    { label: "Python", value: 60, color: "#4cc9f0" },
-    { label: "Go", value: 45, color: "#a855f7" },
+    { label: "React", value: 90 },
+    { label: "TypeScript", value: 85 },
+    { label: "Node.js", value: 75 },
+    { label: "Python", value: 60 },
+    { label: "Go", value: 45 },
   ];
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(circle at 1px 1px, ${kitTheme.line} 1px, transparent 0) 0 0 / 26px 26px, linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: "700px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          padding: "40px 50px",
+          width: "min(78%, 860px)",
+          padding: `${Math.round(height * 0.055)}px ${Math.round(width * 0.045)}px`,
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
         }}
       >
         {/* Title */}
-        <div
-          style={{
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-            marginBottom: "35px",
-            textAlign: "center",
-          }}
-        >
-          Skills Overview
+        <div style={{ textAlign: "center" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[600],
+              fontWeight: 600,
+            }}
+          >
+            ENGINEERING
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.01),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.034),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+              marginBottom: Math.round(height * 0.035),
+            }}
+          >
+            Skills Overview
+          </h1>
         </div>
 
         {/* Bars */}
@@ -71,21 +82,21 @@ export default function ProgressBars() {
             frame,
             [5 + i * 8, 25 + i * 8],
             [0, skill.value],
-            { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
           );
 
           const labelOpacity = interpolate(
             frame,
             [i * 8, 5 + i * 8],
             [0, 1],
-            { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+            { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
           );
 
           return (
             <div
               key={`skill-${i}`}
               style={{
-                marginBottom: i < skills.length - 1 ? "22px" : "0",
+                marginBottom: i < skills.length - 1 ? Math.round(height * 0.02) : 0,
                 opacity: labelOpacity,
               }}
             >
@@ -94,23 +105,25 @@ export default function ProgressBars() {
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  marginBottom: "8px",
+                  marginBottom: Math.round(height * 0.008),
                 }}
               >
                 <span
                   style={{
-                    color: "white",
-                    fontSize: "16px",
-                    fontWeight: "600",
+                    color: kitTheme.ink,
+                    fontFamily: kitFont.sans,
+                    fontSize: Math.round(width * 0.017),
+                    fontWeight: 600,
                   }}
                 >
                   {skill.label}
                 </span>
                 <span
                   style={{
-                    color: "rgba(255,255,255,0.8)",
-                    fontSize: "16px",
-                    fontWeight: "500",
+                    color: kitTheme.muted,
+                    fontFamily: kitFont.mono,
+                    fontSize: Math.round(width * 0.015),
+                    fontWeight: 500,
                   }}
                 >
                   {Math.round(barProgress)}%
@@ -121,9 +134,9 @@ export default function ProgressBars() {
               <div
                 style={{
                   width: "100%",
-                  height: "14px",
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  borderRadius: "7px",
+                  height: Math.max(10, Math.round(height * 0.012)),
+                  backgroundColor: kitTheme.paperDeep,
+                  borderRadius: kitRadius.full,
                   overflow: "hidden",
                 }}
               >
@@ -132,9 +145,8 @@ export default function ProgressBars() {
                   style={{
                     width: `${barProgress}%`,
                     height: "100%",
-                    backgroundColor: skill.color,
-                    borderRadius: "7px",
-                    boxShadow: `0 0 10px ${skill.color}40`,
+                    background: kitGradient.green,
+                    borderRadius: kitRadius.full,
                   }}
                 />
               </div>
@@ -142,6 +154,6 @@ export default function ProgressBars() {
           );
         })}
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

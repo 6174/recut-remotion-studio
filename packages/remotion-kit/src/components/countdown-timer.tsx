@@ -6,15 +6,17 @@
  * Created by the team at https://www.reactvideoeditor.com
  *
  * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitTheme } from "./helpers/theme";
 
 export default function CountdownTimer() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   const framesPerNumber = Math.floor(fps * 0.8);
   const totalNumbers = 6; // 5, 4, 3, 2, 1, GO
@@ -43,36 +45,37 @@ export default function CountdownTimer() {
   const isGo = currentIndex === totalNumbers - 1;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        style={{
-          transform: `scale(${scale})`,
-          opacity: isGo ? 1 : opacity,
-          fontSize: isGo ? "8rem" : "10rem",
-          fontWeight: "bold",
-          fontFamily: "Inter, sans-serif",
-          color: "white",
-          background: isGo
-            ? "linear-gradient(135deg, #3b82f6, #7209b7)"
-            : "none",
-          WebkitBackgroundClip: isGo ? "text" : undefined,
-          WebkitTextFillColor: isGo ? "transparent" : undefined,
-          textAlign: "center",
-          lineHeight: 1,
-        }}
-      >
-        {currentLabel}
+    <AbsoluteFill style={{ background: kitGradient.dark, overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: isGo ? kitTheme.green[400] : kitTheme.darkMuted, fontWeight: 600 }}>
+          {isGo ? "READY" : "GOING LIVE IN"}
+        </span>
       </div>
-    </div>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center" }}>
+        <div
+          style={{
+            transform: `scale(${scale})`,
+            opacity: isGo ? 1 : opacity,
+            fontSize: Math.round(width * (isGo ? 0.2 : 0.24)),
+            fontWeight: 900,
+            letterSpacing: "-0.04em",
+            fontFamily: kitFont.sans,
+            color: "#ffffff",
+            background: isGo ? kitGradient.green : "none",
+            WebkitBackgroundClip: isGo ? "text" : undefined,
+            WebkitTextFillColor: isGo ? "transparent" : undefined,
+            textAlign: "center",
+            lineHeight: 1,
+          }}
+        >
+          {currentLabel}
+        </div>
+      </div>
+      <div style={{ position: "absolute", bottom: height * 0.1, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.sans, fontSize: Math.round(width * 0.014), color: kitTheme.darkMuted }}>
+          {isGo ? "And we're live." : "Get ready to ship."}
+        </span>
+      </div>
+    </AbsoluteFill>
   );
 }

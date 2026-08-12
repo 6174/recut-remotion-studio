@@ -1,45 +1,56 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): a slow
+ * three-stop gradient drifting between dark neutrals and a green-tinted stop.
+ */
+
 "use client";
 
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { kitTheme } from "./helpers/theme";
+
+const hexToRgb = (hex: string): [number, number, number] => {
+  const value = parseInt(hex.slice(1), 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+};
+
+const mix = (a: string, b: string, t: number): string => {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const ch = Math.round(ca[0] + (cb[0] - ca[0]) * t);
+  const cs = Math.round(ca[1] + (cb[1] - ca[1]) * t);
+  const cl = Math.round(ca[2] + (cb[2] - ca[2]) * t);
+  return `rgb(${ch}, ${cs}, ${cl})`;
+};
 
 export default function GradientShift() {
   const frame = useCurrentFrame();
-  const { width, height, fps } = useVideoConfig();
+  const { fps } = useVideoConfig();
 
   const t = frame / fps;
 
-  // Slowly cycle through hue phases using sin waves
-  const phase1 = Math.sin(t * 0.3) * 0.5 + 0.5;
-  const phase2 = Math.sin(t * 0.3 + 2) * 0.5 + 0.5;
-  const phase3 = Math.sin(t * 0.3 + 4) * 0.5 + 0.5;
+  // Slowly drift each stop through its own phase (no rainbow hue cycling)
+  const phase1 = Math.sin(t * 0.2) * 0.5 + 0.5;
+  const phase2 = Math.sin(t * 0.2 + 2) * 0.5 + 0.5;
+  const phase3 = Math.sin(t * 0.2 + 4) * 0.5 + 0.5;
 
-  // Interpolate between deep blues, purples, teals
-  const colors = [
-    { r: 26, g: 26, b: 46 },   // #1a1a2e
-    { r: 22, g: 33, b: 62 },   // #16213e
-    { r: 15, g: 52, b: 96 },   // #0f3460
-    { r: 26, g: 26, b: 46 },   // #1a1a2e
-  ];
+  // Theme-derived palette: dark neutrals through green-tinted stops
+  const colors = [kitTheme.dark, kitTheme.darkRaised, kitTheme.green[900], kitTheme.green[600]];
 
-  const lerp = (a: number, b: number, t: number) => Math.round(a + (b - a) * t);
-
-  const idx1 = Math.floor(phase1 * 2);
-  const frac1 = phase1 * 2 - idx1;
-  const c1 = colors[idx1];
-  const c1Next = colors[idx1 + 1];
-  const color1 = `rgb(${lerp(c1.r, c1Next.r, frac1)}, ${lerp(c1.g, c1Next.g, frac1)}, ${lerp(c1.b, c1Next.b, frac1)})`;
-
-  const idx2 = Math.floor(phase2 * 2);
-  const frac2 = phase2 * 2 - idx2;
-  const c2 = colors[idx2];
-  const c2Next = colors[idx2 + 1];
-  const color2 = `rgb(${lerp(c2.r, c2Next.r, frac2)}, ${lerp(c2.g, c2Next.g, frac2)}, ${lerp(c2.b, c2Next.b, frac2)})`;
-
-  const idx3 = Math.floor(phase3 * 2);
-  const frac3 = phase3 * 2 - idx3;
-  const c3 = colors[idx3];
-  const c3Next = colors[idx3 + 1];
-  const color3 = `rgb(${lerp(c3.r, c3Next.r, frac3)}, ${lerp(c3.g, c3Next.g, frac3)}, ${lerp(c3.b, c3Next.b, frac3)})`;
+  const stop = (phase: number) => {
+    const scaled = phase * (colors.length - 1);
+    const idx = Math.floor(scaled);
+    const frac = scaled - idx;
+    const c1 = colors[idx];
+    const c2 = colors[Math.min(idx + 1, colors.length - 1)];
+    return mix(c1, c2, frac);
+  };
 
   // Slowly rotate the gradient angle
   const angle = (frame * 0.5) % 360;
@@ -49,7 +60,7 @@ export default function GradientShift() {
       style={{
         width: "100%",
         height: "100%",
-        background: `linear-gradient(${angle}deg, ${color1}, ${color2}, ${color3})`,
+        background: `linear-gradient(${angle}deg, ${stop(phase1)}, ${stop(phase2)}, ${stop(phase3)})`,
       }}
     />
   );

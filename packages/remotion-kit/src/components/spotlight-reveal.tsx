@@ -1,10 +1,22 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme).
+ */
+
 "use client";
 
 import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitTheme } from "./helpers/theme";
 
 export default function SpotlightReveal() {
   const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
+  const { width, height, durationInFrames } = useVideoConfig();
 
   // Clip-path radius grows from 0% to 75%
   const radius = interpolate(frame, [0, durationInFrames * 0.8], [0, 75], {
@@ -19,13 +31,16 @@ export default function SpotlightReveal() {
     { extrapolateRight: "clamp" }
   );
 
+  const titleSize = Math.round(width * 0.06);
+  const captionSize = Math.round(width * 0.014);
+
   return (
     <div
       style={{
         position: "relative",
         width: "100%",
         height: "100%",
-        backgroundColor: "#0a0a0a",
+        backgroundColor: kitTheme.dark,
         overflow: "hidden",
         display: "flex",
         justifyContent: "center",
@@ -37,7 +52,7 @@ export default function SpotlightReveal() {
         style={{
           position: "absolute",
           inset: 0,
-          background: "linear-gradient(135deg, #111827, #1e1b4b)",
+          background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
           clipPath: `circle(${radius}% at 50% 50%)`,
           display: "flex",
           flexDirection: "column",
@@ -48,29 +63,43 @@ export default function SpotlightReveal() {
         {/* Decorative top bar */}
         <div
           style={{
-            width: "80px",
-            height: "4px",
-            background: "linear-gradient(90deg, #3b82f6, #a855f7)",
-            borderRadius: "2px",
-            marginBottom: "1.5rem",
+            width: Math.round(width * 0.06),
+            height: 4,
+            background: kitGradient.green,
+            borderRadius: 999,
+            marginBottom: Math.round(height * 0.02),
           }}
         />
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          SPOTLIGHT REVEAL
+        </span>
         <h1
           style={{
-            color: "white",
-            fontSize: "3.5rem",
-            fontWeight: "bold",
-            margin: 0,
-            letterSpacing: "0.1em",
+            fontFamily: kitFont.sans,
+            color: "#ffffff",
+            fontSize: titleSize,
+            fontWeight: 900,
+            margin: `${Math.round(height * 0.02)}px 0 0`,
+            letterSpacing: "-0.03em",
+            textShadow: "0 12px 40px rgba(0, 0, 0, 0.45)",
           }}
         >
           REVEALED
         </h1>
         <p
           style={{
-            color: "#c4b5fd",
-            fontSize: "1.1rem",
-            marginTop: "0.75rem",
+            fontFamily: kitFont.sans,
+            color: kitTheme.darkMuted,
+            fontSize: captionSize,
+            marginTop: Math.round(height * 0.014),
           }}
         >
           Spotlight reveal transition
@@ -78,11 +107,11 @@ export default function SpotlightReveal() {
         {/* Decorative bottom bar */}
         <div
           style={{
-            width: "80px",
-            height: "4px",
-            background: "linear-gradient(90deg, #a855f7, #3b82f6)",
-            borderRadius: "2px",
-            marginTop: "1.5rem",
+            width: Math.round(width * 0.06),
+            height: 4,
+            background: kitGradient.green,
+            borderRadius: 999,
+            marginTop: Math.round(height * 0.02),
           }}
         />
       </div>
@@ -92,7 +121,7 @@ export default function SpotlightReveal() {
         style={{
           position: "absolute",
           inset: 0,
-          background: `radial-gradient(circle at 50% 50%, transparent ${radius - 2}%, rgba(139, 92, 246, ${glowOpacity}) ${radius}%, transparent ${radius + 3}%)`,
+          background: `radial-gradient(circle at 50% 50%, transparent ${radius - 2}%, rgba(28, 174, 88, ${glowOpacity}) ${radius}%, transparent ${radius + 3}%)`,
           pointerEvents: "none",
         }}
       />

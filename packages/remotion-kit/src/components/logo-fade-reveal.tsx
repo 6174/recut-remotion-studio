@@ -6,18 +6,20 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): paper canvas,
+ * green monogram mark, ink type, frame-derived fade reveal.
  */
 
 "use client";
 
-import { useCurrentFrame, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function LogoFadeReveal() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
-  // Logo fade + scale using spring
+  // Mark fade + scale using spring
   const logoProgress = spring({
     frame,
     fps,
@@ -27,7 +29,7 @@ export default function LogoFadeReveal() {
   const logoOpacity = logoProgress;
   const logoScale = 0.8 + 0.2 * logoProgress;
 
-  // Company name fades in with delay
+  // Wordmark fades in with delay
   const textProgress = spring({
     frame: Math.max(0, frame - 15),
     fps,
@@ -37,13 +39,12 @@ export default function LogoFadeReveal() {
   const textOpacity = textProgress;
   const textTranslateY = 20 * (1 - textProgress);
 
+  const markSize = Math.round(width * 0.14);
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -51,62 +52,82 @@ export default function LogoFadeReveal() {
         overflow: "hidden",
       }}
     >
-      {/* Logo */}
-      <div
-        style={{
-          width: "120px",
-          height: "120px",
-          borderRadius: "24px",
-          background: "linear-gradient(135deg, #4361ee, #7209b7)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          opacity: logoOpacity,
-          transform: `scale(${logoScale})`,
-          boxShadow: "0 0 40px rgba(67, 97, 238, 0.3)",
-        }}
-      >
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
         <span
           style={{
-            color: "white",
-            fontSize: "1.8rem",
-            fontWeight: "800",
-            letterSpacing: "0.1em",
-            fontFamily: "Inter, sans-serif",
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[600],
+            fontWeight: 600,
           }}
         >
-          LOGO
+          FADE REVEAL
         </span>
       </div>
-
-      {/* Company Name */}
-      <h2
+      <div
         style={{
-          color: "white",
-          fontSize: "2rem",
-          fontWeight: "700",
-          marginTop: "1.5rem",
-          marginBottom: 0,
-          fontFamily: "Inter, sans-serif",
-          letterSpacing: "0.05em",
-          opacity: textOpacity,
-          transform: `translateY(${textTranslateY}px)`,
+          opacity: logoOpacity,
+          transform: `scale(${logoScale})`,
         }}
       >
-        Company Name
-      </h2>
-      <p
+        <div
+          style={{
+            width: markSize,
+            height: markSize,
+            borderRadius: kitRadius.lg,
+            background: kitGradient.green,
+            boxShadow: kitShadow.md,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              color: "#ffffff",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            R
+          </span>
+        </div>
+      </div>
+      <div
         style={{
-          color: "#93c5fd",
-          fontSize: "1rem",
-          marginTop: "0.5rem",
-          fontFamily: "Inter, sans-serif",
+          marginTop: Math.round(height * 0.04),
           opacity: textOpacity,
           transform: `translateY(${textTranslateY}px)`,
+          textAlign: "center",
         }}
       >
-        Your tagline here
-      </p>
-    </div>
+        <h2
+          style={{
+            margin: 0,
+            color: kitTheme.ink,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.052),
+            fontWeight: 900,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Company Name
+        </h2>
+        <p
+          style={{
+            margin: `${Math.round(height * 0.012)}px 0 0`,
+            color: kitTheme.muted,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.016),
+            letterSpacing: "0.02em",
+          }}
+        >
+          Crafted with Remotion
+        </p>
+      </div>
+    </AbsoluteFill>
   );
 }

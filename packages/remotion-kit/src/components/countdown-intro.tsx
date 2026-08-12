@@ -1,10 +1,23 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * mono digits, green progress ring.
+ */
+
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitTheme } from "./helpers/theme";
 
 export default function CountdownIntro() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, fps } = useVideoConfig();
 
   const totalCountdownFrames = fps * 3;
   const secondFrames = fps;
@@ -15,7 +28,11 @@ export default function CountdownIntro() {
   const frameInSecond = frame % secondFrames;
   const ringProgress = frameInSecond / secondFrames;
 
-  const circumference = 2 * Math.PI * 70;
+  const size = Math.round(Math.min(width * 0.22, 380));
+  const radius = size * 0.39;
+  const strokeWidth = Math.round(size * 0.033);
+
+  const circumference = 2 * Math.PI * radius;
   const dashOffset = isCountdownDone ? circumference : circumference * ringProgress;
 
   const numberOpacity = isCountdownDone ? 0 : 1;
@@ -34,39 +51,37 @@ export default function CountdownIntro() {
   );
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
-      <div style={{ position: "relative", width: 180, height: 180 }}>
+      <div style={{ position: "relative", width: size, height: size }}>
         <svg
-          width={180}
-          height={180}
+          width={size}
+          height={size}
           style={{ transform: "rotate(-90deg)" }}
         >
           <circle
-            cx={90}
-            cy={90}
-            r={70}
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
             fill="none"
-            stroke="#1e293b"
-            strokeWidth={6}
+            stroke={kitTheme.darkLine}
+            strokeWidth={strokeWidth}
           />
           {!isCountdownDone && (
             <circle
-              cx={90}
-              cy={90}
-              r={70}
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
               fill="none"
-              stroke="#3b82f6"
-              strokeWidth={6}
+              stroke={kitTheme.green[500]}
+              strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
               strokeLinecap="round"
@@ -80,11 +95,12 @@ export default function CountdownIntro() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              color: "white",
-              fontSize: "4rem",
-              fontWeight: 700,
+              color: "#ffffff",
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(size * 0.42),
+              fontWeight: 800,
+              lineHeight: 1,
               opacity: numberOpacity,
-              fontFamily: "Inter, sans-serif",
             }}
           >
             {currentSecond}
@@ -97,17 +113,18 @@ export default function CountdownIntro() {
               top: "50%",
               left: "50%",
               transform: `translate(-50%, -50%) scale(${goScale})`,
-              color: "#3b82f6",
-              fontSize: "3.5rem",
+              color: kitTheme.green[400],
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(size * 0.36),
               fontWeight: 800,
+              letterSpacing: "0.02em",
               opacity: goOpacity,
-              fontFamily: "Inter, sans-serif",
             }}
           >
             GO!
           </span>
         )}
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "recut.remotion-studio",
-  "name": "Remotion Studio",
+  "name": "Remotion 视频",
   "author": "6174",
   "description": "把选题、文案和素材编排成 Remotion 程序化视频：AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。",
   "repository": "https://github.com/6174/recut-remotion-studio",
@@ -11,24 +11,18 @@
   "ui": { "projectView": "ui/dist/index.html" },
   "distribution": {
     "builtin": {
-      "include": [
-        "manifest.json",
-        "background.js",
-        "seed.js",
-        "ui/dist",
-        "remotion-skeleton/Makefile",
-        "remotion-skeleton/README.md",
-        "remotion-skeleton/index.html",
-        "remotion-skeleton/node-check.js",
+      "include": ["."],
+      "exclude": [
+        "remotion-skeleton/demo-render-out",
+        "remotion-skeleton/output",
+        "remotion-skeleton/dist",
         "remotion-skeleton/package-lock.json",
-        "remotion-skeleton/package.json",
-        "remotion-skeleton/render.js",
-        "remotion-skeleton/src",
-        "remotion-skeleton/tsconfig.json",
-        "remotion-skeleton/vite-server.js",
-        "remotion-skeleton/vite.config.ts",
-        "packages/remotion-kit",
-        "skills"
+        "ui/node_modules",
+        "ui/src",
+        "ui/package-lock.json",
+        "ui/package.json",
+        "ui/tsconfig.json",
+        "ui/vite.config.ts"
       ]
     }
   },
@@ -37,7 +31,7 @@
       "id": "start-video",
       "title": "从一次设计开始",
       "description": "选择模板、提交选题与素材，让 AI 把它写进项目的 Remotion 工程代码并实时预览。",
-      "prompt": "我想用 Remotion Studio 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：先读 workflow.context 拿绝对路径 paths（workspacePath/appKitPath），用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认，不要提前渲染或导出。"
+      "prompt": "我想用 Remotion 视频做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：先读 workflow.context 拿绝对路径 paths（workspacePath/appKitPath），用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认，不要提前渲染或导出。"
     },
     {
       "id": "design-video",
@@ -75,7 +69,7 @@
     {
       "name": "workspace.ensure",
       "surfaces": ["api", "mcp"],
-      "description": "确保项目的 Remotion 工程就绪：首次把 App 骨架复制到项目私有 workspace/，链接 node_modules。幂等，不会覆盖已有代码。",
+      "description": "确保项目的 Remotion 工程就绪：首次复制骨架并链接 node_modules。依赖安装只在首次启动预览时异步执行，幂等且不会覆盖已有代码。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -141,13 +135,13 @@
     {
       "name": "logs.list",
       "surfaces": ["api"],
-      "description": "返回当前预览服务与最近任务的最新日志片段（最多 3 个任务、300 行），供界面快速回填；完整历史不在首屏加载。",
-      "inputSchema": { "type": "object", "properties": {} }
+      "description": "返回当前预览服务与最近任务在指定页面会话起点之后的日志片段（最多 3 个任务、300 行），供界面快速回填；不返回历史会话日志。",
+      "inputSchema": { "type": "object", "properties": { "since": { "type": "string", "description": "当前页面会话开始时间（ISO 8601）；仅返回此时间之后的日志。" } } }
     },
     {
       "name": "render.setup",
       "surfaces": ["api"],
-      "description": "检查并准备本地渲染/预览环境：Node 与 render 工作区依赖（@remotion/renderer、@remotion/cli 等）与浏览器。首次会运行 npm install，耗时可能较长；返回每个检查项状态。",
+      "description": "检查本地渲染环境：Node、Corepack pnpm 与 render 工作区依赖（@remotion/renderer、@remotion/cli 等）和浏览器。此操作不安装依赖；首次启动预览会显示并执行 bootstrap。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {

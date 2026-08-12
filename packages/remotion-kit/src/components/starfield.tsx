@@ -1,6 +1,19 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): white/gray
+ * stars on a dark stage with green accent glints.
+ */
+
 "use client";
 
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { kitTheme } from "./helpers/theme";
 
 export default function Starfield() {
   const frame = useCurrentFrame();
@@ -16,7 +29,7 @@ export default function Starfield() {
     const seedAngle = ((i * 137.508) % 360) * (Math.PI / 180);
     const seedRadius = ((i * 31 + 17) % 50) / 50; // 0 to 1
     const speed = 0.5 + ((i * 7 + 3) % 10) / 10; // 0.5 to 1.5
-    const baseSize = 1 + ((i * 13 + 5) % 3);
+    const baseSize = Math.max(1.5, Math.round(width * 0.0015)) + ((i * 13 + 5) % 3);
 
     // Progress of this star outward (loops every ~5 seconds)
     const cycleLength = fps * 5;
@@ -37,7 +50,11 @@ export default function Starfield() {
     // Fade in as they leave center, fade out at edges
     const opacity = Math.min(progress * 4, 1) * Math.max(1 - progress * 0.8, 0.2);
 
-    return { x, y, size, opacity, key: i };
+    // White/gray stars with the occasional green accent glint
+    const isAccent = i % 7 === 3;
+    const color = isAccent ? kitTheme.green[400] : i % 3 === 0 ? kitTheme.darkMuted : "#ffffff";
+
+    return { x, y, size, opacity, color, key: i };
   });
 
   return (
@@ -45,7 +62,7 @@ export default function Starfield() {
       style={{
         width: "100%",
         height: "100%",
-        backgroundColor: "#0a0a1a",
+        background: `radial-gradient(120% 90% at 50% 40%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 70%)`,
         position: "relative",
         overflow: "hidden",
       }}
@@ -60,8 +77,12 @@ export default function Starfield() {
             width: star.size,
             height: star.size,
             borderRadius: "50%",
-            backgroundColor: "white",
+            backgroundColor: star.color,
             opacity: star.opacity,
+            boxShadow:
+              star.color === kitTheme.green[400]
+                ? "0 0 8px rgba(60, 192, 106, 0.7)"
+                : "0 0 4px rgba(255, 255, 255, 0.5)",
             transform: "translate(-50%, -50%)",
           }}
         />

@@ -6,65 +6,81 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * floating glass pill with sine-wave wobble and green accent.
  */
 
 "use client";
 
-import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function FloatingBubbleText() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
-  const float = Math.sin(frame / 30) * 20;
-  const scale = spring({
-    frame,
-    fps,
-    from: 0,
-    to: 1,
-    config: {
-      damping: 12,
-      mass: 0.5,
-    },
-  });
+  const float = Math.sin(frame / 30) * Math.round(height * 0.012);
+  const scale = spring({ frame, fps, from: 0, to: 1, config: { damping: 14, mass: 0.6 } });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: `translate(-50%, -50%) translateY(${float}px) scale(${scale})`,
+        background: `radial-gradient(110% 90% at 50% 42%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 66%)`,
+        overflow: "hidden",
       }}
     >
+      <div style={{ position: "absolute", top: height * 0.13, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.mono, fontSize: Math.round(width * 0.011), letterSpacing: "0.5em", color: kitTheme.green[400], fontWeight: 600 }}>FLOATING CHIP</span>
+      </div>
       <div
         style={{
-          fontSize: "4.5rem",
-          fontWeight: "bold",
-          color: "white",
-          padding: "2rem 3.5rem",
-          borderRadius: "24px",
-          background: "linear-gradient(45deg, #1e3a8a, #3b82f6)",
-          border: "3px solid transparent",
-          backgroundClip: "padding-box",
-          position: "relative",
-          overflow: "hidden",
-          boxShadow: "0 8px 32px rgba(30, 58, 138, 0.2)",
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: `translate(-50%, -50%) translateY(${float}px) scale(${scale})`,
         }}
       >
         <div
           style={{
-            position: "absolute",
-            inset: "-3px",
-            background: "linear-gradient(45deg, cyan, magenta)",
-            zIndex: -1,
-            margin: "-2px",
-            animation: `rotate 3s linear infinite`,
+            position: "relative",
+            padding: `${Math.round(height * 0.035)}px ${Math.round(width * 0.05)}px`,
+            borderRadius: kitRadius.full,
+            background: "rgba(255, 255, 255, 0.06)",
+            border: `1px solid ${kitTheme.darkLine}`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08), ${kitShadow.md}`,
+            backdropFilter: "blur(12px)",
+            display: "flex",
+            alignItems: "center",
+            gap: Math.round(width * 0.012),
           }}
-        />
-        Floating
+        >
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: kitTheme.green[400],
+              boxShadow: `0 0 0 4px ${kitTheme.green[500]}33`,
+            }}
+          />
+          <span
+            style={{
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.03),
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "#ffffff",
+            }}
+          >
+            Floating
+          </span>
+        </div>
       </div>
-    </div>
+      <div style={{ position: "absolute", bottom: height * 0.1, left: 0, right: 0, textAlign: "center" }}>
+        <span style={{ fontFamily: kitFont.sans, fontSize: Math.round(width * 0.014), color: kitTheme.darkMuted }}>
+          Gentle sine-wave drift keeps the eye on the message.
+        </span>
+      </div>
+    </AbsoluteFill>
   );
 }

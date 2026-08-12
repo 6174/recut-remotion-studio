@@ -6,93 +6,105 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function ComparisonChart() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
-  const maxBarHeight = 280;
+  const maxBarHeight = Math.round(height * 0.34);
 
   // Before value animation
   const beforeValue = Math.round(
     interpolate(frame, [10, 40], [0, 34], {
-      extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     })
   );
 
   const beforeBarHeight = interpolate(frame, [10, 40], [0, (34 / 100) * maxBarHeight], {
-    extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   // After value animation (starts slightly later)
   const afterValue = Math.round(
     interpolate(frame, [20, 50], [0, 89], {
-      extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     })
   );
 
   const afterBarHeight = interpolate(frame, [20, 50], [0, (89 / 100) * maxBarHeight], {
-    extrapolateRight: "clamp",
     extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   // Divider line animation
   const dividerOpacity = interpolate(frame, [0, 15], [0, 1], {
+    extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
-  const dividerHeight = interpolate(frame, [0, 20], [0, 350], {
+  const dividerHeight = interpolate(frame, [0, 20], [0, Math.round(height * 0.34)], {
+    extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(circle at 1px 1px, ${kitTheme.line} 1px, transparent 0) 0 0 / 26px 26px, linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: "700px",
-          height: "480px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          padding: "40px",
+          width: "min(82%, 880px)",
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
+          padding: `${Math.round(height * 0.05)}px ${Math.round(width * 0.045)}px`,
         }}
       >
         {/* Title */}
-        <div
-          style={{
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-            textAlign: "center",
-            marginBottom: "30px",
-          }}
-        >
-          Performance Comparison
+        <div style={{ textAlign: "center" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[600],
+              fontWeight: 600,
+            }}
+          >
+            BEFORE / AFTER
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.01),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.034),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+              marginBottom: Math.round(height * 0.03),
+            }}
+          >
+            Performance Comparison
+          </h1>
         </div>
 
         {/* Comparison container */}
@@ -101,7 +113,7 @@ export default function ComparisonChart() {
             display: "flex",
             alignItems: "flex-end",
             justifyContent: "center",
-            height: `${maxBarHeight + 80}px`,
+            height: maxBarHeight + Math.round(height * 0.07),
             position: "relative",
           }}
         >
@@ -117,10 +129,11 @@ export default function ComparisonChart() {
             {/* Value */}
             <div
               style={{
-                fontSize: "48px",
-                fontWeight: "bold",
-                color: "#ef4444",
-                marginBottom: "15px",
+                fontFamily: kitFont.mono,
+                fontSize: Math.round(width * 0.042),
+                fontWeight: 700,
+                color: kitTheme.muted,
+                marginBottom: Math.round(height * 0.014),
               }}
             >
               {beforeValue}%
@@ -129,21 +142,21 @@ export default function ComparisonChart() {
             {/* Bar */}
             <div
               style={{
-                width: "120px",
+                width: "min(30%, 130px)",
                 height: `${beforeBarHeight}px`,
-                backgroundColor: "#ef4444",
-                borderRadius: "8px 8px 0 0",
-                boxShadow: "0 0 20px rgba(239, 68, 68, 0.3)",
+                backgroundColor: kitTheme.gray[400],
+                borderRadius: `${kitRadius.sm}px ${kitRadius.sm}px 0 0`,
               }}
             />
 
             {/* Label */}
             <div
               style={{
-                fontSize: "20px",
-                fontWeight: "600",
-                color: "rgba(255,255,255,0.8)",
-                marginTop: "15px",
+                fontFamily: kitFont.sans,
+                fontSize: Math.round(width * 0.018),
+                fontWeight: 600,
+                color: kitTheme.inkSoft,
+                marginTop: Math.round(height * 0.014),
               }}
             >
               Before
@@ -153,12 +166,12 @@ export default function ComparisonChart() {
           {/* Divider */}
           <div
             style={{
-              width: "2px",
+              width: 2,
               height: `${dividerHeight}px`,
-              backgroundColor: "rgba(255,255,255,0.2)",
+              backgroundColor: kitTheme.lineStrong,
               opacity: dividerOpacity,
               alignSelf: "center",
-              margin: "0 30px",
+              margin: `0 ${Math.round(width * 0.028)}px`,
             }}
           />
 
@@ -174,10 +187,11 @@ export default function ComparisonChart() {
             {/* Value */}
             <div
               style={{
-                fontSize: "48px",
-                fontWeight: "bold",
-                color: "#4361ee",
-                marginBottom: "15px",
+                fontFamily: kitFont.mono,
+                fontSize: Math.round(width * 0.042),
+                fontWeight: 700,
+                color: kitTheme.green[600],
+                marginBottom: Math.round(height * 0.014),
               }}
             >
               {afterValue}%
@@ -186,21 +200,21 @@ export default function ComparisonChart() {
             {/* Bar */}
             <div
               style={{
-                width: "120px",
+                width: "min(30%, 130px)",
                 height: `${afterBarHeight}px`,
-                backgroundColor: "#4361ee",
-                borderRadius: "8px 8px 0 0",
-                boxShadow: "0 0 20px rgba(67, 97, 238, 0.3)",
+                background: kitGradient.green,
+                borderRadius: `${kitRadius.sm}px ${kitRadius.sm}px 0 0`,
               }}
             />
 
             {/* Label */}
             <div
               style={{
-                fontSize: "20px",
-                fontWeight: "600",
-                color: "rgba(255,255,255,0.8)",
-                marginTop: "15px",
+                fontFamily: kitFont.sans,
+                fontSize: Math.round(width * 0.018),
+                fontWeight: 600,
+                color: kitTheme.inkSoft,
+                marginTop: Math.round(height * 0.014),
               }}
             >
               After
@@ -208,6 +222,6 @@ export default function ComparisonChart() {
           </div>
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

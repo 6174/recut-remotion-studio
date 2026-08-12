@@ -6,21 +6,18 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * white display title, green underline, mono eyebrow.
  */
 
 "use client";
 
-import {
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function CinematicTitleIntro() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { width, height, fps } = useVideoConfig();
 
   const titleY = spring({
     frame,
@@ -53,29 +50,39 @@ export default function CinematicTitleIntro() {
   });
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        background: "linear-gradient(135deg, #111827 0%, #1a1a2e 100%)",
+        background: kitGradient.dark,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
+      <span
+        style={{
+          fontFamily: kitFont.mono,
+          fontSize: Math.round(width * 0.012),
+          fontWeight: 600,
+          letterSpacing: "0.4em",
+          textTransform: "uppercase",
+          color: kitTheme.green[400],
+          marginBottom: Math.round(height * 0.03),
+        }}
+      >
+        Film
+      </span>
       <h1
         style={{
-          color: "white",
-          fontSize: "4rem",
-          fontWeight: "bold",
+          margin: 0,
+          color: "#ffffff",
+          fontFamily: kitFont.sans,
+          fontSize: Math.round(width * 0.06),
+          fontWeight: 900,
+          letterSpacing: "-0.03em",
+          lineHeight: 1,
           opacity: titleOpacity,
           transform: `translateY(${titleY}px)`,
-          margin: 0,
-          letterSpacing: "0.05em",
         }}
       >
         Your Story Begins
@@ -83,25 +90,28 @@ export default function CinematicTitleIntro() {
       <div
         style={{
           width: `${underlineWidth}%`,
-          maxWidth: 320,
+          maxWidth: Math.round(width * 0.28),
           height: 4,
-          background: "linear-gradient(90deg, #4361ee, #7209b7)",
-          borderRadius: 2,
-          marginTop: 16,
+          background: kitGradient.green,
+          borderRadius: kitRadius.full,
+          marginTop: Math.round(height * 0.03),
         }}
       />
       <p
         style={{
-          color: "rgba(255, 255, 255, 0.8)",
-          fontSize: "1.5rem",
+          margin: 0,
+          marginTop: Math.round(height * 0.03),
+          color: kitTheme.darkMuted,
+          fontFamily: kitFont.sans,
+          fontSize: Math.round(width * 0.02),
           fontWeight: 300,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
           opacity: subtitleOpacity,
-          marginTop: 24,
-          letterSpacing: "0.1em",
         }}
       >
         A Cinematic Experience
       </p>
-    </div>
+    </AbsoluteFill>
   );
 }

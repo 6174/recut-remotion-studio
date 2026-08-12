@@ -1,10 +1,23 @@
+/**
+ * Free Remotion Template Component
+ * ---------------------------------
+ * This template is free to use in your projects!
+ * Credit appreciated but not required.
+ *
+ * Created by the team at https://www.reactvideoeditor.com
+ *
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * green monogram mark, high-contrast type, frame-derived typewriter.
+ */
+
 "use client";
 
-import { useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitTheme } from "./helpers/theme";
 
 export default function LogoTypewriter() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   const text = "ACME STUDIO";
 
@@ -13,6 +26,11 @@ export default function LogoTypewriter() {
     frame,
     fps,
     config: { damping: 10, stiffness: 150, mass: 0.6 },
+  });
+
+  const iconOpacity = interpolate(frame, [0, 10], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
   });
 
   // Typewriter starts after icon settles
@@ -28,27 +46,42 @@ export default function LogoTypewriter() {
   const cursorVisible = Math.floor(frame / 15) % 2 === 0;
   const showCursor = frame > typeStart && (charsVisible < text.length || cursorVisible);
 
+  const iconSize = Math.round(width * 0.05);
+  const textSize = Math.round(width * 0.05);
+
   return (
-    <div
+    <AbsoluteFill
       style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          TYPEWRITER
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: Math.round(width * 0.018) }}>
         {/* Icon */}
         <div
           style={{
-            width: "50px",
-            height: "50px",
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #4361ee, #7209b7)",
+            width: iconSize,
+            height: iconSize,
+            borderRadius: kitRadius.full,
+            background: kitGradient.green,
             transform: `scale(${iconScale})`,
+            opacity: iconOpacity,
             flexShrink: 0,
           }}
         />
@@ -56,11 +89,11 @@ export default function LogoTypewriter() {
         <div style={{ display: "flex", alignItems: "center" }}>
           <span
             style={{
-              color: "white",
-              fontSize: "2rem",
-              fontWeight: "bold",
-              fontFamily: "Inter, sans-serif",
-              letterSpacing: "0.08em",
+              color: "#ffffff",
+              fontFamily: kitFont.sans,
+              fontSize: textSize,
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
               whiteSpace: "pre",
             }}
           >
@@ -69,10 +102,10 @@ export default function LogoTypewriter() {
           {showCursor && (
             <span
               style={{
-                color: "#3b82f6",
-                fontSize: "2rem",
-                fontWeight: "bold",
-                fontFamily: "Inter, sans-serif",
+                color: kitTheme.green[400],
+                fontFamily: kitFont.sans,
+                fontSize: textSize,
+                fontWeight: 900,
                 marginLeft: "2px",
               }}
             >
@@ -81,6 +114,6 @@ export default function LogoTypewriter() {
           )}
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

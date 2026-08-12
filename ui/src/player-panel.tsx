@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖后台 preview.serve/preview.props 操作、项目 brief 与素材映射
- * [OUTPUT]: 对外提供仅在应用层确认 Vite HTTP 服务可达后显示的 iframe 预览、启动/重启轮询 Loading、服务重启与可复制的完整错误诊断
+ * [OUTPUT]: 对外提供仅在应用层确认 Vite HTTP 服务可达后显示的 iframe 预览、可见的 pnpm bootstrap/启动/重启轮询、服务重启与可复制的完整错误诊断
  * [POS]: remotion-studio/ui 的左侧 Player；只显示预览状态，核心命令由右侧工作区调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -32,13 +32,14 @@ interface PlayerPanelProps {
 
 const PREVIEW_SETTINGS = { width: 1920, height: 1080, fps: 30 };
 
-function PreviewLoading({ starting }: { starting: boolean }) {
+function PreviewLoading({ phase, starting }: { phase?: string; starting: boolean }) {
+  const installing = phase === "installing";
   return (
     <div className="grid h-full w-full place-items-center bg-terminal p-6 text-center text-muted-foreground">
       <div>
         <Loader2 className="mx-auto size-5 animate-spin text-primary" />
-        <p className="mt-3 text-sm text-foreground">{starting ? "正在启动 Remotion 预览…" : "正在准备预览…"}</p>
-        <p className="mt-1 text-xs">预览服务就绪后会自动显示画面。</p>
+        <p className="mt-3 text-sm text-foreground">{installing ? "正在准备 Remotion 依赖…" : starting ? "正在启动 Remotion 预览…" : "正在准备预览…"}</p>
+        <p className="mt-1 text-xs">{installing ? "安装输出会实时显示在右侧“日志”标签。" : "预览服务就绪后会自动显示画面。"}</p>
       </div>
     </div>
   );
@@ -189,5 +190,5 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
     );
   }
 
-  return <PreviewLoading starting={starting || serve?.phase === "starting"} />;
+  return <PreviewLoading phase={serve?.phase} starting={starting || serve?.phase === "starting" || serve?.phase === "preparing"} />;
 });

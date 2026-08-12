@@ -1,6 +1,6 @@
 /*
  * [INPUT]: 依赖平台注入的 ctx.sqlite、ctx.files、ctx.media.materialize/importFile、ctx.artifacts.publish、ctx.project 与受限 ctx.shell
- * [OUTPUT]: 注册 Brief（含可选 SRT/视频叙事来源）、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 HTTP 健康检查准确暴露启动/失败状态的 Vite dev server 预览（preview.serve.start/status/stop）与 props、启动时同步系统拥有的无声 player.tsx、终端命令（terminal.exec）与有界日志读取（logs.read/list）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
+ * [OUTPUT]: 注册 Brief（含可选 SRT/视频叙事来源）、每项目 Remotion 工作区（workspace/）seed/系统文件管理器打开与素材引用登记、通过 Shell Job 把共享 pnpm 依赖 bootstrap 及其日志暴露给 UI 的 Vite dev server 预览（preview.serve.start/status/stop）与 props、启动时同步系统拥有的无声 player.tsx、终端命令（terminal.exec）与有界日志读取（logs.read/list）、本地渲染环境与后台导出（完成时设为项目视频封面）的 App API 与 MCP 工具处理器；composition 代码由 Agent 用原生文件工具经 workflow.context 暴露的 paths.workspacePath 读写，不再提供 MCP code.* 工具
  * [POS]: remotion-studio 的唯一业务后端；创作落点在项目私有 workspace 的 composition 代码（Agent 用原生文件工具直接改写），预览由每项目 Vite dev server 热更新，UI iframe 嵌入其 player.html，导出委托本地 Node 渲染工作区 + 平台 Asset 归档
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
@@ -16,6 +16,7 @@ function scope(ctx) {
 }
 
 const WORKSPACE = "workspace";
+const PNPM_VERSION = "pnpm@8.15.0";
 
 function ensureSchema(ctx) {
   ctx.sqlite.execute("create table if not exists briefs (id text primary key, project_id text not null default '', template text not null, topic text not null, details text not null, expected_duration_sec real not null, material_json text not null, source_json text not null default '', created_at text not null)");
@@ -38,7 +39,7 @@ function ensureSchema(ctx) {
 }
 
 // shell/importFile 等返回 camelCase map（status/id/error…），与 Apps 消费契约一致。
-// trackJob 只追加，供 logs.list 回填各任务历史日志；列表保持最近若干条。
+// trackJob 只记录最近任务；logs.list 仅在调用方给出的当前页面会话窗口内读取它们。
 function trackJob(ctx, key, jobId) {
   if (!jobId) return;
   const rows = ctx.sqlite.query("select value from app_meta where key = ?", [key]);
@@ -222,17 +223,12 @@ function registerAssets(input, ctx) {
 function ensureRenderDeps(ctx) {
   const node = ctx.shell.run({ command: "node", args: ["--version"], timeoutSeconds: 30 });
   const checks = { node: node.exitCode === 0 ? { ok: true, version: String(node.stdout || "").trim() } : { ok: false, error: node.error || "node 不可用，请先安装 Node.js 18+" } };
-  if (checks.node.ok) {
+  if (!checks.node.ok) return { ready: false, checks };
+  const pnpm = ctx.shell.run({ command: "corepack", args: [PNPM_VERSION, "--version"], timeoutSeconds: 30 });
+  checks.pnpm = pnpm.exitCode === 0 ? { ok: true, version: String(pnpm.stdout || "").trim() } : { ok: false, error: pnpm.error || "Corepack pnpm 不可用；请安装启用 Corepack 的 Node.js" };
+  if (checks.pnpm.ok) {
     const deps = ctx.shell.run({ command: "node", args: ["remotion-skeleton/node-check.js"], timeoutSeconds: 180 });
-    if (deps.exitCode === 0) {
-      checks.renderWorkspace = { ok: true };
-    } else {
-      let install = ctx.shell.run({ command: "npm", args: ["ci", "--prefix", "remotion-skeleton", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
-      if (install.exitCode !== 0) {
-        install = ctx.shell.run({ command: "npm", args: ["install", "--prefix", "remotion-skeleton", "--no-audit", "--no-fund"], timeoutSeconds: 1800 });
-      }
-      checks.renderWorkspace = install.exitCode === 0 ? { ok: true } : { ok: false, error: install.error || "npm 依赖安装失败" };
-    }
+    checks.renderWorkspace = deps.exitCode === 0 ? { ok: true } : { ok: false, error: "依赖尚未安装；请先启动预览，安装过程与日志会显示在预览工作台中。" };
   }
   const ready = Object.values(checks).every((item) => item && item.ok);
   return { ready, checks };
@@ -264,7 +260,7 @@ function previewServeStart(_, ctx) {
   const job = ctx.shell.start({ command: "make", args: ["-C", "workspace", "start"], cwd: "files", timeoutSeconds: 0 });
   trackJob(ctx, `serve_jobs:${scope(ctx)}`, job.id);
   ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [`serve_job:${scope(ctx)}`, job.id]);
-  return { jobId: job.id, phase: "starting", port: null, url: null };
+  return { jobId: job.id, phase: "preparing", port: null, url: null };
 }
 
 function previewResponds(ctx, port) {
@@ -296,6 +292,10 @@ function previewServeStatus(_, ctx) {
   let port = null;
   let phase = "starting";
   let error = null;
+  try {
+    const bootstrap = ctx.shell.logs(jobId).slice(-24).map((line) => String(line.text || "")).join("");
+    if (bootstrap.includes("[preview-bootstrap]")) phase = "installing";
+  } catch (_) { /* 日志尚不可读 */ }
   try {
     const status = JSON.parse(ctx.files.readText(`serve/status.json`));
     if (status) {
@@ -354,9 +354,8 @@ function readLogs(input, ctx) {
   return { jobId, status: job.status, logs: logs.slice(-limit).map((line) => ({ sequence: line.sequence, stream: line.stream, text: line.text, timestamp: line.timestamp })) };
 }
 
-// logs.list 只回填当前预览服务启动阶段的日志 + 最近一段时间的任务日志（预览
-// 服务、终端命令、渲染导出），按时间线排序后返回，供界面在挂载或切换时回填；
-// 太久远的历史与超量的日志直接截掉，避免把项目全部历史一次性加载进界面。shell
+// logs.list 只回填调用方当前页面会话内的预览、终端和导出日志。项目事件流会重放
+// 历史，不能把任务追踪表当成 UI 会话历史；调用方必须传 since（ISO 时间）。shell
 // 结果均为 camelCase map（status/stream/text/timestamp/sequence）。
 const LOG_MAX_JOBS = 3;      // 只回填当前预览服务与最近两个任务
 const LOG_PER_JOB = 150;     // 每个任务只保留最新一段
@@ -384,6 +383,8 @@ function collectJobIds(ctx) {
 
 function listLogs(_, ctx) {
   ensureSchema(ctx);
+  const since = String(_?.since || "").trim();
+  const sinceTime = since ? Date.parse(since) : NaN;
   const lines = [];
   for (const jobId of collectJobIds(ctx)) {
     let status = "";
@@ -392,7 +393,9 @@ function listLogs(_, ctx) {
       status = ctx.shell.status(jobId).status;
       logs = ctx.shell.logs(jobId);
     } catch (_) { continue; }
-    logs.slice(-LOG_PER_JOB).forEach((line) => lines.push({ jobId, status, sequence: line.sequence ?? 0, stream: line.stream, text: line.text, timestamp: line.timestamp }));
+    logs.slice(-LOG_PER_JOB)
+      .filter((line) => !since || (!Number.isNaN(sinceTime) && Date.parse(String(line.timestamp || "")) >= sinceTime))
+      .forEach((line) => lines.push({ jobId, status, sequence: line.sequence ?? 0, stream: line.stream, text: line.text, timestamp: line.timestamp }));
   }
   lines.sort((a, b) => (a.timestamp < b.timestamp ? -1 : a.timestamp > b.timestamp ? 1 : (a.sequence ?? 0) - (b.sequence ?? 0)));
   return { lines: lines.slice(-LOG_MAX_LINES) };
@@ -443,6 +446,8 @@ function renderExport(input, ctx) {
   const brief = latestBrief({}, ctx);
   if (!brief) throw new Error("还没有 Brief，请先让用户提交选题");
   workspaceEnsure({}, ctx);
+  const environment = ensureRenderDeps(ctx);
+  if (!environment.ready) throw new Error(`渲染环境未就绪：${environment.checks.pnpm?.error || environment.checks.renderWorkspace?.error || "请先启动预览完成依赖 bootstrap"}`);
   const renderId = id();
   const now = new Date().toISOString();
   const width = Number(input.width || 1920);
@@ -451,7 +456,7 @@ function renderExport(input, ctx) {
   if (![24, 30].includes(fps)) throw new Error("fps 必须是 24 或 30");
   if (!Number.isFinite(width) || !Number.isFinite(height) || width < 320 || height < 320 || width > 3840 || height > 3840) throw new Error("width/height 必须在 320–3840 之间");
   const codec = String(input.codec || "h264");
-  const label = String(input.label || "remotion 渲染导出");
+  const label = String(input.label || "Remotion 视频渲染导出");
 
   const assetIds = Array.from(new Set([...(brief.materialAssetIds || []), ...registeredAssets(ctx)]));
   const media = {};

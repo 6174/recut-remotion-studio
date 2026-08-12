@@ -6,78 +6,88 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function PieChart() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
   const segments = [
-    { label: "Product A", value: 35, color: "#4361ee" },
-    { label: "Product B", value: 25, color: "#7209b7" },
-    { label: "Product C", value: 20, color: "#f72585" },
-    { label: "Product D", value: 12, color: "#4cc9f0" },
-    { label: "Product E", value: 8, color: "#a855f7" },
+    { label: "Product A", value: 35, color: kitTheme.green[500] },
+    { label: "Product B", value: 25, color: kitTheme.green[300] },
+    { label: "Product C", value: 20, color: kitTheme.green[700] },
+    { label: "Product D", value: 12, color: kitTheme.gray[400] },
+    { label: "Product E", value: 8, color: kitTheme.gray[200] },
   ];
 
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   const cx = 300;
-  const cy = 220;
+  const cy = 215;
   const radius = 140;
   const circumference = 2 * Math.PI * radius;
 
   let cumulativeOffset = 0;
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(circle at 1px 1px, ${kitTheme.line} 1px, transparent 0) 0 0 / 26px 26px, linear-gradient(160deg, ${kitTheme.gray[50]} 0%, ${kitTheme.paper} 100%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: "600px",
-          height: "520px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          overflow: "hidden",
-          padding: "20px",
+          width: "min(82%, 760px)",
+          padding: `${Math.round(height * 0.05)}px ${Math.round(width * 0.04)}px`,
+          background: kitTheme.paper,
+          border: `1px solid ${kitTheme.line}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.md,
         }}
       >
         {/* Title */}
-        <div
-          style={{
-            position: "absolute",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          Market Share
+        <div style={{ textAlign: "center" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[600],
+              fontWeight: 600,
+            }}
+          >
+            PORTFOLIO MIX
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.01),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.034),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: kitTheme.ink,
+            }}
+          >
+            Market Share
+          </h1>
         </div>
 
-        <svg width={600} height={440} style={{ marginTop: "10px" }}>
+        <svg
+          viewBox="0 0 600 430"
+          width="100%"
+          style={{ display: "block", marginTop: Math.round(height * 0.015) }}
+        >
           {/* Pie segments */}
           {segments.map((segment, i) => {
             const segmentLength = (segment.value / total) * circumference;
@@ -88,7 +98,7 @@ export default function PieChart() {
               frame,
               [i * 10, 15 + i * 10],
               [0, 1],
-              { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
 
             const animatedLength = segmentLength * segmentProgress;
@@ -101,7 +111,7 @@ export default function PieChart() {
                 r={radius}
                 fill="none"
                 stroke={segment.color}
-                strokeWidth="80"
+                strokeWidth="78"
                 strokeDasharray={`${animatedLength} ${circumference - animatedLength}`}
                 strokeDashoffset={-currentOffset}
                 transform={`rotate(-90 ${cx} ${cy})`}
@@ -110,20 +120,17 @@ export default function PieChart() {
           })}
 
           {/* Center circle for visual balance */}
-          <circle cx={cx} cy={cy} r={60} fill="#111827" />
+          <circle cx={cx} cy={cy} r={58} fill={kitTheme.paper} />
         </svg>
 
         {/* Legend */}
         <div
           style={{
-            position: "absolute",
-            bottom: "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
             display: "flex",
-            gap: "20px",
+            gap: Math.round(width * 0.018),
             flexWrap: "wrap",
             justifyContent: "center",
+            marginTop: Math.round(height * 0.015),
           }}
         >
           {segments.map((segment, i) => {
@@ -131,7 +138,7 @@ export default function PieChart() {
               frame,
               [5 + i * 10, 15 + i * 10],
               [0, 1],
-              { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
 
             return (
@@ -140,22 +147,23 @@ export default function PieChart() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
+                  gap: 6,
                   opacity: legendOpacity,
                 }}
               >
                 <div
                   style={{
-                    width: "10px",
-                    height: "10px",
-                    borderRadius: "50%",
+                    width: 10,
+                    height: 10,
+                    borderRadius: kitRadius.full,
                     backgroundColor: segment.color,
                   }}
                 />
                 <span
                   style={{
-                    color: "rgba(255,255,255,0.8)",
-                    fontSize: "13px",
+                    color: kitTheme.muted,
+                    fontFamily: kitFont.sans,
+                    fontSize: Math.round(width * 0.013),
                   }}
                 >
                   {segment.label} ({segment.value}%)
@@ -165,6 +173,6 @@ export default function PieChart() {
           })}
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

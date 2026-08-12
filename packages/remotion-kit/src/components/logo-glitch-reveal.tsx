@@ -6,29 +6,31 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * monochrome glitch channels with a single green accent, high-contrast type.
  */
 
 "use client";
 
-import { useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitGradient, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function LogoGlitchReveal() {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width, height } = useVideoConfig();
 
   // Decay factor: starts at 1 and goes to 0 over time
   const decay = interpolate(frame, [0, 30], [1, 0], {
     extrapolateRight: "clamp",
   });
 
-  // Pseudo-random offsets using sin for deterministic rendering
-  const redOffsetX = Math.sin(frame * 7.3) * 15 * decay;
-  const redOffsetY = Math.sin(frame * 5.1) * 10 * decay;
-  const greenOffsetX = Math.sin(frame * 11.7) * 15 * decay;
-  const greenOffsetY = Math.sin(frame * 3.9) * 10 * decay;
-  const blueOffsetX = Math.sin(frame * 9.2) * 15 * decay;
-  const blueOffsetY = Math.sin(frame * 6.4) * 10 * decay;
+  // Deterministic offsets using sin for a pseudo-glitch without randomness
+  const neutralOffsetX = Math.sin(frame * 7.3) * 15 * decay;
+  const neutralOffsetY = Math.sin(frame * 5.1) * 10 * decay;
+  const accentOffsetX = Math.sin(frame * 11.7) * 15 * decay;
+  const accentOffsetY = Math.sin(frame * 3.9) * 10 * decay;
+  const deepOffsetX = Math.sin(frame * 9.2) * 15 * decay;
+  const deepOffsetY = Math.sin(frame * 6.4) * 10 * decay;
 
   // Clean logo appears after glitch settles
   const cleanOpacity = spring({
@@ -49,23 +51,24 @@ export default function LogoGlitchReveal() {
     extrapolateRight: "clamp",
   });
 
-  const logoStyle: React.CSSProperties = {
-    width: "120px",
-    height: "120px",
-    borderRadius: "24px",
+  const markSize = Math.round(width * 0.14);
+
+  const channelStyle: React.CSSProperties = {
+    width: markSize,
+    height: markSize,
+    borderRadius: kitRadius.lg,
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
+    justifyContent: "center",
     position: "absolute",
+    left: 0,
+    top: 0,
   };
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        backgroundColor: "#111827",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -73,20 +76,33 @@ export default function LogoGlitchReveal() {
         overflow: "hidden",
       }}
     >
-      {/* RGB Channel Copies */}
+      <div style={{ position: "absolute", top: height * 0.14, left: 0, right: 0, textAlign: "center" }}>
+        <span
+          style={{
+            fontFamily: kitFont.mono,
+            fontSize: Math.round(width * 0.011),
+            letterSpacing: "0.5em",
+            color: kitTheme.green[400],
+            fontWeight: 600,
+          }}
+        >
+          GLITCH REVEAL
+        </span>
+      </div>
       <div
         style={{
           position: "relative",
-          width: "120px",
-          height: "120px",
+          width: markSize,
+          height: markSize,
         }}
       >
-        {/* Red channel */}
+        {/* Neutral channel */}
         <div
           style={{
-            ...logoStyle,
-            background: "rgba(239, 68, 68, 0.6)",
-            transform: `translate(${redOffsetX}px, ${redOffsetY}px)`,
+            ...channelStyle,
+            background: `rgba(255, 255, 255, 0.05)`,
+            border: `1px solid ${kitTheme.darkLine}`,
+            transform: `translate(${neutralOffsetX}px, ${neutralOffsetY}px)`,
             opacity: channelOpacity,
             mixBlendMode: "screen",
           }}
@@ -94,45 +110,46 @@ export default function LogoGlitchReveal() {
           <span
             style={{
               color: "rgba(255, 255, 255, 0.8)",
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              letterSpacing: "0.1em",
-              fontFamily: "Inter, sans-serif",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
             }}
           >
-            LOGO
+            R
           </span>
         </div>
 
-        {/* Green channel */}
+        {/* Green accent channel */}
         <div
           style={{
-            ...logoStyle,
-            background: "rgba(34, 197, 94, 0.6)",
-            transform: `translate(${greenOffsetX}px, ${greenOffsetY}px)`,
+            ...channelStyle,
+            background: `rgba(60, 192, 106, 0.22)`,
+            transform: `translate(${accentOffsetX}px, ${accentOffsetY}px)`,
             opacity: channelOpacity,
             mixBlendMode: "screen",
           }}
         >
           <span
             style={{
-              color: "rgba(255, 255, 255, 0.8)",
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              letterSpacing: "0.1em",
-              fontFamily: "Inter, sans-serif",
+              color: kitTheme.green[300],
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
             }}
           >
-            LOGO
+            R
           </span>
         </div>
 
-        {/* Blue channel */}
+        {/* Deep neutral channel */}
         <div
           style={{
-            ...logoStyle,
-            background: "rgba(59, 130, 246, 0.6)",
-            transform: `translate(${blueOffsetX}px, ${blueOffsetY}px)`,
+            ...channelStyle,
+            background: kitTheme.dark,
+            border: `1px solid ${kitTheme.darkLine}`,
+            transform: `translate(${deepOffsetX}px, ${deepOffsetY}px)`,
             opacity: channelOpacity,
             mixBlendMode: "screen",
           }}
@@ -140,65 +157,70 @@ export default function LogoGlitchReveal() {
           <span
             style={{
               color: "rgba(255, 255, 255, 0.8)",
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              letterSpacing: "0.1em",
-              fontFamily: "Inter, sans-serif",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
             }}
           >
-            LOGO
+            R
           </span>
         </div>
 
         {/* Clean logo */}
         <div
           style={{
-            ...logoStyle,
-            background: "linear-gradient(135deg, #4361ee, #7209b7)",
+            ...channelStyle,
+            background: kitGradient.green,
+            boxShadow: `0 0 ${24 * glowIntensity}px rgba(28, 174, 88, ${0.45 * glowIntensity}), ${kitShadow.md}`,
             opacity: cleanOpacity,
-            boxShadow: `0 0 ${40 * glowIntensity}px rgba(67, 97, 238, ${0.5 * glowIntensity})`,
           }}
         >
           <span
             style={{
-              color: "white",
-              fontSize: "1.8rem",
-              fontWeight: "800",
-              letterSpacing: "0.1em",
-              fontFamily: "Inter, sans-serif",
+              color: "#ffffff",
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(markSize * 0.5),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
             }}
           >
-            LOGO
+            R
           </span>
         </div>
       </div>
-
-      {/* Company Name */}
-      <h2
+      <div
         style={{
-          color: "white",
-          fontSize: "2rem",
-          fontWeight: "700",
-          marginTop: "1.5rem",
-          marginBottom: 0,
-          fontFamily: "Inter, sans-serif",
-          letterSpacing: "0.05em",
+          marginTop: Math.round(height * 0.04),
           opacity: cleanOpacity,
+          textAlign: "center",
         }}
       >
-        Company Name
-      </h2>
-      <p
-        style={{
-          color: "#93c5fd",
-          fontSize: "1rem",
-          marginTop: "0.5rem",
-          fontFamily: "Inter, sans-serif",
-          opacity: cleanOpacity,
-        }}
-      >
-        Your tagline here
-      </p>
-    </div>
+        <h2
+          style={{
+            margin: 0,
+            color: "#ffffff",
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.052),
+            fontWeight: 900,
+            letterSpacing: "-0.03em",
+            textShadow: "0 12px 40px rgba(0, 0, 0, 0.45)",
+          }}
+        >
+          Company Name
+        </h2>
+        <p
+          style={{
+            margin: `${Math.round(height * 0.012)}px 0 0`,
+            color: kitTheme.darkMuted,
+            fontFamily: kitFont.sans,
+            fontSize: Math.round(width * 0.016),
+            letterSpacing: "0.02em",
+          }}
+        >
+          Resilient by design
+        </p>
+      </div>
+    </AbsoluteFill>
   );
 }

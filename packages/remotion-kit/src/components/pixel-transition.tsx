@@ -6,23 +6,28 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage
+ * with deterministic green reveal tiles.
  */
 
 "use client";
 
 import { random, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitGradient, kitTheme } from "./helpers/theme";
 
 export default function PixelTransition() {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
 
-  // Pixel size
-  const pixelSize = 20;
+  // Pixel size, scaled to the canvas
+  const pixelSize = Math.max(10, Math.round(width * 0.01));
 
   // Calculate grid dimensions
   const cols = Math.ceil(width / pixelSize);
   const rows = Math.ceil(height / pixelSize);
+
+  // Green shades used across the reveal
+  const greens = [kitTheme.green[300], kitTheme.green[400], kitTheme.green[500], kitTheme.green[600]];
 
   // Create pixel grid
   const pixels = [];
@@ -38,16 +43,15 @@ export default function PixelTransition() {
       // Determine if pixel should be visible based on frame
       const isVisible = frame > delay;
 
-      // Random color for each pixel
-      const hue = Math.floor(random(seed * 2) * 220) + 200;
-      const saturation = 70 + Math.floor(random(seed * 3) * 30);
-      const lightness = 40 + Math.floor(random(seed * 4) * 20);
+      // Seeded green shade per tile
+      const color = greens[Math.floor(random(seed * 2) * greens.length)];
 
       if (isVisible) {
         pixels.push({
           x: x * pixelSize,
           y: y * pixelSize,
-          color: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+          color,
+          key: x * cols + y,
         });
       }
     }
@@ -58,14 +62,14 @@ export default function PixelTransition() {
       style={{
         width,
         height,
-        background: "#0f172a",
+        background: kitGradient.dark,
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {pixels.map((pixel, i) => (
+      {pixels.map((pixel) => (
         <div
-          key={i}
+          key={pixel.key}
           style={{
             position: "absolute",
             left: pixel.x,
@@ -73,7 +77,6 @@ export default function PixelTransition() {
             width: pixelSize,
             height: pixelSize,
             backgroundColor: pixel.color,
-            transition: "opacity 0.2s ease",
           }}
         />
       ))}

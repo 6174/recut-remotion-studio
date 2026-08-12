@@ -6,26 +6,28 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme).
  */
 
 "use client";
 
-import { interpolate, useCurrentFrame } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitFont, kitRadius, kitShadow, kitTheme } from "./helpers/theme";
 
 export default function DonutChart() {
   const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
 
   const segments = [
-    { label: "Completed", value: 40, color: "#4361ee" },
-    { label: "In Progress", value: 25, color: "#7209b7" },
-    { label: "Pending", value: 20, color: "#f72585" },
-    { label: "Remaining", value: 15, color: "#4cc9f0" },
+    { label: "Completed", value: 40, color: kitTheme.green[400] },
+    { label: "In Progress", value: 25, color: kitTheme.green[200] },
+    { label: "Pending", value: 20, color: kitTheme.gray[400] },
+    { label: "Remaining", value: 15, color: kitTheme.gray[600] },
   ];
 
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   const cx = 300;
-  const cy = 230;
+  const cy = 220;
   const radius = 120;
   const strokeWidth = 20;
   const circumference = 2 * Math.PI * radius;
@@ -35,64 +37,72 @@ export default function DonutChart() {
   // Center stat animation
   const centerValue = Math.round(
     interpolate(frame, [10, 50], [0, 78], {
-      extrapolateRight: "clamp",
       extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
     })
   );
 
   return (
-    <div
+    <AbsoluteFill
       style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "Inter, system-ui, sans-serif",
-        background: "linear-gradient(to bottom right, #111827, #1f2937)",
+        background: `radial-gradient(120% 90% at 50% 36%, ${kitTheme.darkRaised} 0%, ${kitTheme.dark} 64%)`,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
           position: "relative",
-          width: "600px",
-          height: "520px",
-          backgroundColor: "rgba(0, 0, 0, 0.2)",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-          overflow: "hidden",
-          padding: "20px",
+          width: "min(82%, 760px)",
+          padding: `${Math.round(height * 0.05)}px ${Math.round(width * 0.04)}px`,
+          background: kitTheme.darkSurface,
+          border: `1px solid ${kitTheme.darkLine}`,
+          borderRadius: kitRadius.lg,
+          boxShadow: kitShadow.lg,
         }}
       >
         {/* Title */}
-        <div
-          style={{
-            position: "absolute",
-            top: "20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "28px",
-            fontWeight: "bold",
-            color: "white",
-            textShadow: "0 2px 4px rgba(0,0,0,0.3)",
-            letterSpacing: "-0.5px",
-          }}
-        >
-          Completion Rate
+        <div style={{ textAlign: "center" }}>
+          <span
+            style={{
+              fontFamily: kitFont.mono,
+              fontSize: Math.round(width * 0.011),
+              letterSpacing: "0.4em",
+              color: kitTheme.green[400],
+              fontWeight: 600,
+            }}
+          >
+            PROJECT STATUS
+          </span>
+          <h1
+            style={{
+              margin: 0,
+              marginTop: Math.round(height * 0.01),
+              fontFamily: kitFont.sans,
+              fontSize: Math.round(width * 0.034),
+              fontWeight: 900,
+              letterSpacing: "-0.03em",
+              lineHeight: 1,
+              color: "#ffffff",
+            }}
+          >
+            Completion Rate
+          </h1>
         </div>
 
-        <svg width={600} height={460} style={{ marginTop: "10px" }}>
+        <svg
+          viewBox="0 0 600 440"
+          width="100%"
+          style={{ display: "block", marginTop: Math.round(height * 0.015) }}
+        >
           {/* Background ring */}
           <circle
             cx={cx}
             cy={cy}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.05)"
+            stroke={kitTheme.darkLine}
             strokeWidth={strokeWidth}
           />
 
@@ -106,7 +116,7 @@ export default function DonutChart() {
               frame,
               [i * 12, 20 + i * 12],
               [0, 1],
-              { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
 
             const animatedLength = segmentLength * segmentProgress;
@@ -131,12 +141,13 @@ export default function DonutChart() {
           {/* Center number */}
           <text
             x={cx}
-            y={cy - 5}
+            y={cy - 4}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="white"
-            fontSize="48"
-            fontWeight="bold"
+            fill="#ffffff"
+            fontFamily={kitFont.mono}
+            fontSize="46"
+            fontWeight="700"
           >
             {centerValue}%
           </text>
@@ -144,10 +155,11 @@ export default function DonutChart() {
           {/* Center label */}
           <text
             x={cx}
-            y={cy + 30}
+            y={cy + 32}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="rgba(255,255,255,0.6)"
+            fill={kitTheme.darkMuted}
+            fontFamily={kitFont.sans}
             fontSize="16"
           >
             Completion Rate
@@ -157,14 +169,11 @@ export default function DonutChart() {
         {/* Legend */}
         <div
           style={{
-            position: "absolute",
-            bottom: "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
             display: "flex",
-            gap: "20px",
+            gap: Math.round(width * 0.018),
             flexWrap: "wrap",
             justifyContent: "center",
+            marginTop: Math.round(height * 0.015),
           }}
         >
           {segments.map((segment, i) => {
@@ -172,7 +181,7 @@ export default function DonutChart() {
               frame,
               [5 + i * 12, 15 + i * 12],
               [0, 1],
-              { extrapolateRight: "clamp", extrapolateLeft: "clamp" }
+              { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
             );
 
             return (
@@ -181,22 +190,23 @@ export default function DonutChart() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
+                  gap: 6,
                   opacity: legendOpacity,
                 }}
               >
                 <div
                   style={{
-                    width: "10px",
-                    height: "10px",
-                    borderRadius: "50%",
+                    width: 10,
+                    height: 10,
+                    borderRadius: kitRadius.full,
                     backgroundColor: segment.color,
                   }}
                 />
                 <span
                   style={{
-                    color: "rgba(255,255,255,0.8)",
-                    fontSize: "13px",
+                    color: kitTheme.gray[100],
+                    fontFamily: kitFont.sans,
+                    fontSize: Math.round(width * 0.013),
                   }}
                 >
                   {segment.label}
@@ -206,6 +216,6 @@ export default function DonutChart() {
           })}
         </div>
       </div>
-    </div>
+    </AbsoluteFill>
   );
 }

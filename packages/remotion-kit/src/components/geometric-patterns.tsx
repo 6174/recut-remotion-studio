@@ -6,12 +6,14 @@
  *
  * Created by the team at https://www.reactvideoeditor.com
  *
- * Happy coding and building amazing videos! 🎉
+ * Restyled to the Vercel + Recut green design language (kitTheme): dark stage,
+ * monochrome rotating shapes with a single green accent ring.
  */
 
 "use client";
 
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { kitGradient, kitTheme } from "./helpers/theme";
 
 export default function GeometricPatterns() {
   const frame = useCurrentFrame();
@@ -42,25 +44,36 @@ export default function GeometricPatterns() {
       style={{
         width,
         height,
-        background: "linear-gradient(45deg, #0f172a, #1e293b)",
+        background: kitGradient.dark,
+        position: "relative",
         overflow: "hidden",
       }}
     >
-      {patterns.map(({ rotation, scale, index }) => (
-        <div
-          key={index}
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: "100%",
-            height: "100%",
-            transform: `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`,
-            border: "2px solid rgba(255,255,255,0.1)",
-            borderRadius: `${index * 5}%`,
-          }}
-        />
-      ))}
+      {patterns.map(({ rotation, scale, index }) => {
+        const isAccent = index === patterns.length - 1;
+        return (
+          <div
+            key={index}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: "100%",
+              height: "100%",
+              transform: `translate(-50%, -50%) rotate(${rotation}deg) scale(${scale})`,
+              borderRadius: `${index * 5}%`,
+              ...(isAccent
+                ? {
+                    border: `2px solid ${kitTheme.green[400]}`,
+                    boxShadow: "0 0 80px rgba(60, 192, 106, 0.35)",
+                  }
+                : {
+                    border: "2px solid rgba(255,255,255,0.08)",
+                  }),
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
