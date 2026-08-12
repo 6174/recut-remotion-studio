@@ -40,13 +40,13 @@
       "prompt": "我有一个还不成熟的视频想法：【请在这里填写想法】。请像视频剪辑师一样帮我收敛：先调用 workflow.context 看阶段与绝对路径 paths，读 remotion-studio skill 的 references/directing.md 定动效与节拍，然后用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（设计就是写代码，复用内置特效与字幕主题，媒体用真实 assetId 引用）。改完用 composition.assets 登记素材，保存后 Vite 预览自动热更新，等待预览确认，不要渲染导出。"
     }
   ],
-  "permissions": ["sqlite", "files", "media.read", "media.write", "artifacts.publish", "shell"],
+  "permissions": ["sqlite", "files", "media.read", "media.write", "artifacts.publish", "shell", "worlds.read", "worlds.bind"],
   "operations": [
     {
       "name": "project.create",
       "surfaces": ["api", "mcp"],
-      "description": "保存项目 Brief：成片模板、选题与可选素材 assetId 列表。模板是唯一视觉与叙事选择。仅在尚未有 Brief 或用户明确要求重做时调用。",
-      "inputSchema": { "type": "object", "required": ["topic", "template"], "properties": { "template": { "type": "string", "enum": ["faceless-explainer", "product-launch", "doodle-explainer"] }, "topic": { "type": "string", "minLength": 1 }, "materialAssetIds": { "type": "array", "items": { "type": "string" } } } }
+      "description": "保存项目 Brief：成片模板、选题、可选素材 assetId 列表与可选的 World Context 绑定 ID。模板是唯一视觉与叙事选择。仅在尚未有 Brief 或用户明确要求重做时调用。",
+      "inputSchema": { "type": "object", "required": ["topic", "template"], "properties": { "template": { "type": "string", "enum": ["faceless-explainer", "product-launch", "doodle-explainer"] }, "topic": { "type": "string", "minLength": 1 }, "materialAssetIds": { "type": "array", "items": { "type": "string" } }, "creationContextBindingId": { "type": "string", "description": "可选的 Creation World 绑定 ID；提供时 workflow.context 会解析该 World 的固定 revision 的 CreationContext。" } } }
     },
     {
       "name": "brief.latest",

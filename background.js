@@ -27,6 +27,7 @@ function ensureSchema(ctx) {
     try { ctx.sqlite.execute(`alter table ${table} add column ${column} text not null default ''`); } catch (_) { /* 新库已含该列。 */ }
   }
   try { ctx.sqlite.execute("alter table briefs add column source_json text not null default ''"); } catch (_) { /* 新库已含该列。 */ }
+  try { ctx.sqlite.execute("alter table briefs add column creation_context_binding_id text not null default ''"); } catch (_) { /* 新库已含该列。 */ }
   const exportsCols = ctx.sqlite.query("pragma table_info(exports)").map((row) => String(row.name));
   if (exportsCols.includes("design_id")) {
     // 旧版 schema 曾写入 design_id（NOT NULL 无默认），重构后代码不再维护该列；
@@ -131,6 +132,7 @@ function createBrief(input, ctx) {
   const narrativeSource = normalizeNarrativeSource(input.narrativeSource);
   const selectedMaterials = Array.isArray(input.materialAssetIds) ? input.materialAssetIds.filter((value) => typeof value === "string" && Boolean(value.trim())) : [];
   const materialAssetIds = Array.from(new Set([...selectedMaterials, ...(narrativeSource?.kind === "videos" ? narrativeSource.assetIds : [])]));
+  const creationContextBindingId = String(input.creationContextBindingId || "").trim();
   const brief = {
     id: id(),
     template,
@@ -139,18 +141,19 @@ function createBrief(input, ctx) {
     expectedDurationSec,
     materialAssetIds,
     narrativeSource,
+    creationContextBindingId,
     createdAt: new Date().toISOString(),
   };
-  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, source_json, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), JSON.stringify(narrativeSource), brief.createdAt]);
+  ctx.sqlite.execute("insert into briefs (id, project_id, template, topic, details, expected_duration_sec, material_json, source_json, creation_context_binding_id, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [brief.id, scope(ctx), template, topic, details, expectedDurationSec, JSON.stringify(materialAssetIds), JSON.stringify(narrativeSource), creationContextBindingId, brief.createdAt]);
   return ctx.artifacts.publish({ type: "recut.remotion-studio.brief@1", value: brief });
 }
 
 function latestBrief(_, ctx) {
   ensureSchema(ctx);
-  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, source_json, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
+  const rows = ctx.sqlite.query("select id, template, topic, details, expected_duration_sec, material_json, source_json, creation_context_binding_id, created_at from briefs where project_id = ? order by created_at desc limit 1", [scope(ctx)]);
   if (!rows.length) return null;
   const row = rows[0];
-  return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), narrativeSource: parseNarrativeSource(row.source_json), createdAt: row.created_at };
+  return { id: row.id, template: row.template, topic: row.topic, details: row.details, expectedDurationSec: row.expected_duration_sec, materialAssetIds: JSON.parse(row.material_json), narrativeSource: parseNarrativeSource(row.source_json), creationContextBindingId: String(row.creation_context_binding_id || ""), createdAt: row.created_at };
 }
 
 function workspaceSeeded(ctx) {
@@ -415,11 +418,19 @@ function workflowContext(_, ctx) {
   } catch (_) { /* 旧项目无版本标记 */ }
   const filesRoot = ctx.paths && ctx.paths.projectFilesRoot ? String(ctx.paths.projectFilesRoot) : "";
   const appRoot = ctx.paths && ctx.paths.appRoot ? String(ctx.paths.appRoot) : "";
+  let creationContext = null;
+  try {
+    // worlds.bind 授权的 App 可从固定的 Project binding 解析 CreationContext；
+    // 未绑定项目返回 null，绝不把 Canon 副本写进 Brief。
+    creationContext = ctx.creationContext && typeof ctx.creationContext.get === "function" ? ctx.creationContext.get() : null;
+  } catch (_) { creationContext = null; }
   return {
     revision: `${stage}:${brief?.createdAt || "none"}:${seeded ? "workspace-seeded" : "no-workspace"}`,
     stage,
     nextAction: stage === "brief" ? "create_brief" : "edit_composition_code",
     brief,
+    creationContext,
+    creationContextBindingId: brief && brief.creationContextBindingId ? String(brief.creationContextBindingId) : null,
     workspace: { root: WORKSPACE, seeded, seededKitVersion },
     paths: {
       appId: "recut.remotion-studio",
