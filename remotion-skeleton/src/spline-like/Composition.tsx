@@ -39,5 +39,5 @@ export const SplineLikeComposition: React.FC = () => {
   const { height, width } = useVideoConfig();
   const frame = useCurrentFrame();
   const opacity = interpolate(frame, [0, 18], [0, 1], { extrapolateRight: "clamp" });
-  return <AbsoluteFill style={{ background: "#fef4ef", opacity }}><ThreeCanvas orthographic camera={{ position: [6, -5, 10], zoom: 62 }} dpr={[1, 2]} frameloop="demand" gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }} height={height} width={width}><Scene /></ThreeCanvas></AbsoluteFill>;
+  return <AbsoluteFill style={{ background: "#fef4ef", opacity }}><ThreeCanvas orthographic camera={{ position: [6, -5, 10], zoom: 62 }} dpr={[1, 2]} frameloop="demand" gl={{ alpha: false, antialias: true, powerPreference: "high-performance" }} height={height} width={width}><color attach="background" args={["#fef4ef"]} /><Scene /></ThreeCanvas></AbsoluteFill>;
 };
