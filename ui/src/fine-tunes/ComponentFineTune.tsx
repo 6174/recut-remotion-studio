@@ -6,10 +6,13 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { LivePreview } from "../preview/PreviewCard";
+import { useRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 import type { PreviewKind } from "../preview/compositions";
 import type { FineTuneProps } from "./FineTuneProps";
 
 export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, kitVersionHint, onPrompt, onReady }) => {
+  const locale = useRecutLocale();
   const [value, setValue] = useState(catalog.components[0]?.id || "");
   const [hovered, setHovered] = useState<string | null>(null);
   const active = catalog.components.find((item) => item.id === (hovered ?? value)) ?? catalog.components[0];
@@ -18,17 +21,24 @@ export const ComponentFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt
   const groups = useMemo(() => {
     const map = new Map<string, typeof catalog.components>();
     for (const item of catalog.components) {
-      const key = item.category || "其他";
+      const key = item.category || t(locale, "component.otherCategory");
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
     return Array.from(map.entries());
-  }, [catalog.components]);
+  }, [catalog.components, locale]);
 
   const prompt = useMemo(() => {
     const selected = catalog.components.find((item) => item.id === value);
-    return `${basePrompt}\n\n组件：${selected?.label ?? value}（${selected?.category ?? ""}；${selected?.description ?? ""}）\n组件源码：${selected?.path ?? ""}\n项目落点：${selected?.workspacePath ?? ""}（项目内组件为冻结副本；若与最新目录不一致，用原生文件工具读 app 包最新源码，写回该落点按需升级，只动该组件）\n样式依赖：组件使用 app 包内 \`src/components/helpers/theme.ts\` 的 kitTheme 设计 token（Vercel 结构 + Recut 绿）；复制组件进项目时，若该相对导入不成立，请一并把 theme.ts 复制到 \`src/components/helpers/theme.ts\` 或把导入改写为 \`@recut/remotion-kit\`，保持 token 名不变。`;
-  }, [basePrompt, catalog, value]);
+    return t(locale, "component.prompt", {
+      basePrompt,
+      label: selected?.label ?? value,
+      category: selected?.category ?? "",
+      description: selected?.description ?? "",
+      path: selected?.path ?? "",
+      workspacePath: selected?.workspacePath ?? "",
+    });
+  }, [basePrompt, catalog, locale, value]);
 
   useEffect(() => { onPrompt(prompt); onReady(true); }, [onPrompt, onReady, prompt]);
 

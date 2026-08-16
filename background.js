@@ -15,6 +15,11 @@ function scope(ctx) {
   return ctx.project ? ctx.project.id : "";
 }
 
+// 用户可见文案按 ctx.locale（"zh"|"en"）双语输出；中文为默认。
+function msg(ctx, zh, en) {
+  return ctx.locale === "zh" ? zh : en;
+}
+
 const WORKSPACE = "workspace";
 const PNPM_VERSION = "pnpm@8.15.0";
 
@@ -54,11 +59,11 @@ function trackJob(ctx, key, jobId) {
 // 只到项目 files 目录，必须经 shell（默认 cwd = app.Root）跑 scripts/kit-bridge.js 读取。
 function kitBridge(ctx, ...args) {
   const result = ctx.shell.run({ command: "node", args: ["scripts/kit-bridge.js", ...args], timeoutSeconds: 30 });
-  if (result.exitCode !== 0) throw new Error(result.error || result.stdout || "kit bridge 调用失败");
+  if (result.exitCode !== 0) throw new Error(result.error || result.stdout || msg(ctx, "kit bridge 调用失败", "kit bridge call failed"));
   try {
     return JSON.parse(result.stdout || "{}");
   } catch (_) {
-    throw new Error("kit bridge 返回了非法 JSON");
+    throw new Error(msg(ctx, "kit bridge 返回了非法 JSON", "kit bridge returned invalid JSON"));
   }
 }
 
@@ -98,21 +103,21 @@ function normalizeNarrativeSource(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   if (value.kind === "srt") {
     const text = String(value.text || "").trim().slice(0, 16000);
-    if (!text) throw new Error("SRT 叙事来源必须包含字幕内容");
-    return { kind: "srt", name: String(value.name || "未命名.srt").trim() || "未命名.srt", text };
+    if (!text) throw new Error(msg(ctx, "SRT 叙事来源必须包含字幕内容", "SRT narrative source must contain caption content"));
+    return { kind: "srt", name: String(value.name || msg(ctx, "未命名.srt", "Untitled.srt")).trim() || msg(ctx, "未命名.srt", "Untitled.srt"), text };
   }
   if (value.kind === "video") {
     const assetId = String(value.assetId || "").trim();
-    if (!assetId) throw new Error("视频叙事来源必须选择一个素材");
-    return { kind: "videos", assetIds: [assetId], names: [String(value.name || "未命名视频").trim() || "未命名视频"] };
+    if (!assetId) throw new Error(msg(ctx, "视频叙事来源必须选择一个素材", "A video narrative source must select one material"));
+    return { kind: "videos", assetIds: [assetId], names: [String(value.name || msg(ctx, "未命名视频", "Untitled video")).trim() || msg(ctx, "未命名视频", "Untitled video")] };
   }
   if (value.kind === "videos") {
     const assetIds = Array.isArray(value.assetIds) ? value.assetIds.map((assetId) => String(assetId || "").trim()).filter(Boolean) : [];
-    if (!assetIds.length) throw new Error("视频叙事来源必须选择至少一个素材");
-    const names = Array.isArray(value.names) ? value.names.map((name) => String(name || "").trim() || "未命名视频") : [];
-    return { kind: "videos", assetIds: Array.from(new Set(assetIds)), names: assetIds.map((_, index) => names[index] || "未命名视频") };
+    if (!assetIds.length) throw new Error(msg(ctx, "视频叙事来源必须选择至少一个素材", "A video narrative source must select at least one material"));
+    const names = Array.isArray(value.names) ? value.names.map((name) => String(name || "").trim() || msg(ctx, "未命名视频", "Untitled video")) : [];
+    return { kind: "videos", assetIds: Array.from(new Set(assetIds)), names: assetIds.map((_, index) => names[index] || msg(ctx, "未命名视频", "Untitled video")) };
   }
-  throw new Error("叙事来源必须是 SRT 或视频素材");
+  throw new Error(msg(ctx, "叙事来源必须是 SRT 或视频素材", "Narrative source must be an SRT or a video material"));
 }
 
 function parseNarrativeSource(value) {
@@ -124,11 +129,11 @@ function createBrief(input, ctx) {
   const template = String(input.template || "").trim();
   const topic = String(input.topic || "").trim();
   const catalog = readCatalog(ctx);
-  if (!template || !catalog.scenarios[template]) throw new Error("template 必须选择一个有效的成片模板");
-  if (!topic) throw new Error("topic 是必填项");
+  if (!template || !catalog.scenarios[template]) throw new Error(msg(ctx, "template 必须选择一个有效的成片模板", "template must select a valid finished template"));
+  if (!topic) throw new Error(msg(ctx, "topic 是必填项", "topic is required"));
   const details = String(input.details ?? "").trim();
   const expectedDurationSec = input.expectedDurationSec === undefined ? 60 : Number(input.expectedDurationSec);
-  if (!Number.isFinite(expectedDurationSec) || expectedDurationSec <= 0) throw new Error("expectedDurationSec 必须是正数");
+  if (!Number.isFinite(expectedDurationSec) || expectedDurationSec <= 0) throw new Error(msg(ctx, "expectedDurationSec 必须是正数", "expectedDurationSec must be positive"));
   const narrativeSource = normalizeNarrativeSource(input.narrativeSource);
   const selectedMaterials = Array.isArray(input.materialAssetIds) ? input.materialAssetIds.filter((value) => typeof value === "string" && Boolean(value.trim())) : [];
   const materialAssetIds = Array.from(new Set([...selectedMaterials, ...(narrativeSource?.kind === "videos" ? narrativeSource.assetIds : [])]));
@@ -167,7 +172,7 @@ function workspaceEnsure(_, ctx) {
   ensureSchema(ctx);
   if (!workspaceSeeded(ctx)) {
     const seeded = ctx.shell.run({ command: "node", args: ["seed.js"], timeoutSeconds: 180 });
-    if (seeded.exitCode !== 0) throw new Error(`工作区初始化失败：${seeded.error || seeded.stdout || "seed.js 退出非零"}`);
+    if (seeded.exitCode !== 0) throw new Error(msg(ctx, `工作区初始化失败：${seeded.error || seeded.stdout || "seed.js 退出非零"}`, `Workspace initialization failed: ${seeded.error || seeded.stdout || "seed.js exited non-zero"}`));
   }
   return { ready: workspaceSeeded(ctx), root: WORKSPACE };
 }
@@ -183,7 +188,7 @@ function workspaceReset(_, ctx) {
     ctx.sqlite.execute("delete from app_meta where key = ?", [key]);
   }
   const removed = ctx.shell.run({ command: "rm", args: ["-rf", WORKSPACE, "serve"], cwd: "files", timeoutSeconds: 120 });
-  if (removed.exitCode !== 0) throw new Error(`工作区重置失败：${removed.error || removed.stdout || "rm 退出非零"}`);
+  if (removed.exitCode !== 0) throw new Error(msg(ctx, `工作区重置失败：${removed.error || removed.stdout || "rm 退出非零"}`, `Workspace reset failed: ${removed.error || removed.stdout || "rm exited non-zero"}`));
   ctx.sqlite.execute("delete from composition_assets where project_id = ?", [scope(ctx)]);
   workspaceEnsure({}, ctx);
   return { ok: true, seeded: true, root: WORKSPACE };
@@ -200,7 +205,7 @@ const result = spawnSync(command, [target], { stdio: "ignore", windowsHide: true
 if (result.error) throw result.error;
 if (result.status !== 0) process.exit(result.status || 1);`;
   const result = ctx.shell.run({ command: "node", args: ["-e", launcher, WORKSPACE], cwd: "files", timeoutSeconds: 10 });
-  if (result.exitCode !== 0) throw new Error("无法打开项目文件夹，请检查系统文件管理器是否可用");
+  if (result.exitCode !== 0) throw new Error(msg(ctx, "无法打开项目文件夹，请检查系统文件管理器是否可用", "Unable to open the project folder; check whether the system file manager is available"));
   return { ok: true, root: WORKSPACE };
 }
 
@@ -225,13 +230,13 @@ function registerAssets(input, ctx) {
 
 function ensureRenderDeps(ctx) {
   const node = ctx.shell.run({ command: "node", args: ["--version"], timeoutSeconds: 30 });
-  const checks = { node: node.exitCode === 0 ? { ok: true, version: String(node.stdout || "").trim() } : { ok: false, error: node.error || "node 不可用，请先安装 Node.js 18+" } };
+  const checks = { node: node.exitCode === 0 ? { ok: true, version: String(node.stdout || "").trim() } : { ok: false, error: node.error || msg(ctx, "node 不可用，请先安装 Node.js 18+", "node is unavailable; install Node.js 18+ first") } };
   if (!checks.node.ok) return { ready: false, checks };
   const pnpm = ctx.shell.run({ command: "corepack", args: [PNPM_VERSION, "--version"], timeoutSeconds: 30 });
-  checks.pnpm = pnpm.exitCode === 0 ? { ok: true, version: String(pnpm.stdout || "").trim() } : { ok: false, error: pnpm.error || "Corepack pnpm 不可用；请安装启用 Corepack 的 Node.js" };
+  checks.pnpm = pnpm.exitCode === 0 ? { ok: true, version: String(pnpm.stdout || "").trim() } : { ok: false, error: pnpm.error || msg(ctx, "Corepack pnpm 不可用；请安装启用 Corepack 的 Node.js", "Corepack pnpm is unavailable; install a Node.js with Corepack enabled") };
   if (checks.pnpm.ok) {
     const deps = ctx.shell.run({ command: "node", args: ["remotion-skeleton/node-check.js"], timeoutSeconds: 180 });
-    checks.renderWorkspace = deps.exitCode === 0 ? { ok: true } : { ok: false, error: "依赖尚未安装；请先启动预览，安装过程与日志会显示在预览工作台中。" };
+    checks.renderWorkspace = deps.exitCode === 0 ? { ok: true } : { ok: false, error: msg(ctx, "依赖尚未安装；请先启动预览，安装过程与日志会显示在预览工作台中。", "Dependencies are not installed yet; start the preview first — install progress and logs appear in the preview workspace.") };
   }
   const ready = Object.values(checks).every((item) => item && item.ok);
   return { ready, checks };
@@ -245,7 +250,7 @@ function syncPreviewPlayer(ctx) {
     args: ["-e", "const fs=require('fs');const source='remotion-skeleton/src/player.tsx';const target=process.argv[1];const next=fs.readFileSync(source,'utf8');if(fs.readFileSync(target,'utf8')!==next)fs.writeFileSync(target,next);", ctx.paths.workspacePath + "/src/player.tsx"],
     timeoutSeconds: 30,
   });
-  if (result.exitCode !== 0) throw new Error(`预览播放器同步失败：${result.error || result.stdout || "未知错误"}`);
+  if (result.exitCode !== 0) throw new Error(msg(ctx, `预览播放器同步失败：${result.error || result.stdout || "未知错误"}`, `Preview player sync failed: ${result.error || result.stdout || "unknown error"}`));
 }
 
 function renderSetup(_, ctx) {
@@ -290,7 +295,7 @@ function previewServeStatus(_, ctx) {
     jobError = job.error || "";
   } catch (_) { /* job 已不可查 */ }
   if (["completed", "failed", "cancelled", "interrupted"].includes(jobStatus)) {
-    return { running: false, phase: jobStatus, port: null, url: null, error: jobError || `预览服务已结束（${jobStatus}）`, jobId };
+    return { running: false, phase: jobStatus, port: null, url: null, error: jobError || msg(ctx, `预览服务已结束（${jobStatus}）`, `Preview service ended (${jobStatus})`), jobId };
   }
   let port = null;
   let phase = "starting";
@@ -308,7 +313,7 @@ function previewServeStatus(_, ctx) {
     }
   } catch (_) { /* 尚未写状态 */ }
   if (phase === "ready" && port && !previewResponds(ctx, port)) {
-    return { running: false, phase: "failed", port: null, url: null, error: "预览进程未监听声明的端口；可重新启动预览服务。", jobId };
+    return { running: false, phase: "failed", port: null, url: null, error: msg(ctx, "预览进程未监听声明的端口；可重新启动预览服务。", "The preview process is not listening on the declared port; you can restart the preview service."), jobId };
   }
   const running = (jobStatus === "running" || jobStatus === "queued") && phase !== "failed" && phase !== "stopped";
   return { running, phase, port, url: port ? `http://127.0.0.1:${port}/player.html` : null, error, jobId };
@@ -338,9 +343,9 @@ function previewProps(input, ctx) {
 function terminalExec(input, ctx) {
   ensureSchema(ctx);
   const command = String(input.command || "").trim();
-  if (!command) throw new Error("command 是必填项");
+  if (!command) throw new Error(msg(ctx, "command 是必填项", "command is required"));
   const cwd = String(input.cwd || "").trim();
-  if (cwd && (cwd.includes("..") || cwd.startsWith("/"))) throw new Error("cwd 必须是相对项目目录的路径");
+  if (cwd && (cwd.includes("..") || cwd.startsWith("/"))) throw new Error(msg(ctx, "cwd 必须是相对项目目录的路径", "cwd must be a path relative to the project directory"));
   const job = ctx.shell.run({ command: "sh", args: ["-c", cwd ? `cd ${cwd} && ${command}` : command], cwd: "files", timeoutSeconds: Number(input.timeoutSeconds || 60) });
   trackJob(ctx, `terminal_jobs:${scope(ctx)}`, job.jobId);
   return { jobId: job.jobId, status: job.status, exitCode: job.exitCode, output: job.stdout || "", error: job.error || "" };
@@ -349,7 +354,7 @@ function terminalExec(input, ctx) {
 function readLogs(input, ctx) {
   ensureSchema(ctx);
   const jobId = String(input.jobId || "").trim();
-  if (!jobId) throw new Error("jobId 是必填项");
+  if (!jobId) throw new Error(msg(ctx, "jobId 是必填项", "jobId is required"));
   const job = ctx.shell.status(jobId);
   const limit = Math.max(1, Math.min(Number(input.limit || 500), 2000));
   let logs = [];
@@ -455,19 +460,19 @@ function workflowContext(_, ctx) {
 function renderExport(input, ctx) {
   ensureSchema(ctx);
   const brief = latestBrief({}, ctx);
-  if (!brief) throw new Error("还没有 Brief，请先让用户提交选题");
+  if (!brief) throw new Error(msg(ctx, "还没有 Brief，请先让用户提交选题", "No Brief yet; ask the user to submit a topic first"));
   workspaceEnsure({}, ctx);
   const environment = ensureRenderDeps(ctx);
-  if (!environment.ready) throw new Error(`渲染环境未就绪：${environment.checks.pnpm?.error || environment.checks.renderWorkspace?.error || "请先启动预览完成依赖 bootstrap"}`);
+  if (!environment.ready) throw new Error(msg(ctx, `渲染环境未就绪：${environment.checks.pnpm?.error || environment.checks.renderWorkspace?.error || "请先启动预览完成依赖 bootstrap"}`, `Render environment not ready: ${environment.checks.pnpm?.error || environment.checks.renderWorkspace?.error || "start the preview first to bootstrap dependencies"}`));
   const renderId = id();
   const now = new Date().toISOString();
   const width = Number(input.width || 1920);
   const height = Number(input.height || 1080);
   const fps = Number(input.fps || 30);
-  if (![24, 30].includes(fps)) throw new Error("fps 必须是 24 或 30");
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 320 || height < 320 || width > 3840 || height > 3840) throw new Error("width/height 必须在 320–3840 之间");
+  if (![24, 30].includes(fps)) throw new Error(msg(ctx, "fps 必须是 24 或 30", "fps must be 24 or 30"));
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width < 320 || height < 320 || width > 3840 || height > 3840) throw new Error(msg(ctx, "width/height 必须在 320–3840 之间", "width/height must be between 320 and 3840"));
   const codec = String(input.codec || "h264");
-  const label = String(input.label || "Remotion 视频渲染导出");
+  const label = String(input.label || msg(ctx, "Remotion 视频渲染导出", "Remotion video render export"));
 
   const assetIds = Array.from(new Set([...(brief.materialAssetIds || []), ...registeredAssets(ctx)]));
   const media = {};
@@ -479,7 +484,7 @@ function renderExport(input, ctx) {
 
   const payload = { brief, media, settings: { width, height, fps, codec } };
   ctx.files.writeText(`exports/${renderId}/props.json`, JSON.stringify(payload));
-  ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: "任务已排队" }));
+  ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: msg(ctx, "任务已排队", "Task queued") }));
 
   const job = ctx.shell.start({ command: "node", args: ["workspace/render.js", "--renderId", renderId], cwd: "files", timeoutSeconds: 3600 });
   const settings = { width, height, fps, codec, label };
@@ -489,7 +494,7 @@ function renderExport(input, ctx) {
 
 function exportRow(ctx, renderId) {
   const rows = ctx.sqlite.query("select render_id, brief_id, shell_job_id, status, label, settings_json, asset_id, error, created_at, updated_at from exports where render_id = ? and project_id = ?", [renderId, scope(ctx)]);
-  if (!rows.length) throw new Error(`渲染任务 ${renderId} 不存在`);
+  if (!rows.length) throw new Error(msg(ctx, `渲染任务 ${renderId} 不存在`, `Render task ${renderId} does not exist`));
   const row = rows[0];
   return { renderId: row.render_id, briefId: row.brief_id, shellJobId: row.shell_job_id, status: row.status, label: row.label, settings: JSON.parse(row.settings_json), assetId: row.asset_id, error: row.error, createdAt: row.created_at, updatedAt: row.updated_at };
 }
@@ -497,7 +502,7 @@ function exportRow(ctx, renderId) {
 function renderStatus(input, ctx) {
   ensureSchema(ctx);
   const renderId = String(input.renderId || "").trim();
-  if (!renderId) throw new Error("renderId 是必填项");
+  if (!renderId) throw new Error(msg(ctx, "renderId 是必填项", "renderId is required"));
   const record = exportRow(ctx, renderId);
   if (record.status === "completed" || record.status === "cancelled" || record.status === "failed") {
     return { renderId, status: record.status, assetId: record.assetId, error: record.error, label: record.label, settings: record.settings };
@@ -517,7 +522,7 @@ function renderStatus(input, ctx) {
   }
   if (job.status === "failed" || job.status === "interrupted" || job.status === "cancelled") {
     const now = new Date().toISOString();
-    const error = job.error || (job.status === "cancelled" ? "渲染任务已取消" : "渲染失败，请查看渲染日志");
+    const error = job.error || (job.status === "cancelled" ? msg(ctx, "渲染任务已取消", "Render task cancelled") : msg(ctx, "渲染失败，请查看渲染日志", "Render failed; check the render log"));
     ctx.sqlite.execute("update exports set status = ?, error = ?, updated_at = ? where render_id = ? and project_id = ?", [job.status, error, now, renderId, scope(ctx)]);
     return { renderId, status: job.status, error, progress, label: record.label, settings: record.settings };
   }
@@ -527,7 +532,7 @@ function renderStatus(input, ctx) {
 function renderCancel(input, ctx) {
   ensureSchema(ctx);
   const renderId = String(input.renderId || "").trim();
-  if (!renderId) throw new Error("renderId 是必填项");
+  if (!renderId) throw new Error(msg(ctx, "renderId 是必填项", "renderId is required"));
   const record = exportRow(ctx, renderId);
   if (record.status === "queued" || record.status === "running") {
     ctx.shell.cancel(record.shellJobId);

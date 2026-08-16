@@ -6,11 +6,13 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { apiBase, projectId } from "./recut-sdk";
+import { apiBase, projectId, useRecutLocale } from "./recut-sdk";
+import { t } from "./i18n";
 
 type TerminalSession = { id: string; running: boolean };
 
 export function TerminalPanel({ active }: { active: boolean }) {
+  const locale = useRecutLocale();
   const hostRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<TerminalSession | null>(null);
   const [error, setError] = useState("");
@@ -53,7 +55,7 @@ export function TerminalPanel({ active }: { active: boolean }) {
           });
           if (!response.ok) {
             const body = await response.json().catch(() => ({}));
-            throw new Error(body.error ?? "无法启动 zsh 终端");
+            throw new Error(body.error ?? t(locale, "terminal.startFailed"));
           }
           session = await response.json() as TerminalSession;
           sessionRef.current = session;
@@ -76,11 +78,11 @@ export function TerminalPanel({ active }: { active: boolean }) {
           terminal.write(output);
           if (output.includes("[terminal exited]")) {
             sessionRef.current = null;
-            setError("zsh 已退出；切换一次终端标签即可新开会话。");
+            setError(t(locale, "terminal.exited"));
           }
         });
         stream.onerror = () => {
-          if (!disposed) setError("终端连接中断；切回此标签会自动重连。");
+          if (!disposed) setError(t(locale, "terminal.disconnected"));
         };
         const resize = new ResizeObserver(() => {
           try { fit.fit(); } catch { /* 面板隐藏时无需处理尺寸 */ }
@@ -90,21 +92,21 @@ export function TerminalPanel({ active }: { active: boolean }) {
         terminal.focus();
         cleanup = () => { input.dispose(); resize.disconnect(); stream.close(); terminal.dispose(); };
       } catch (cause) {
-        if (!disposed) setError(cause instanceof Error ? cause.message : "无法启动终端");
+        if (!disposed) setError(cause instanceof Error ? cause.message : t(locale, "terminal.cannotStart"));
       } finally {
         if (!disposed) setConnecting(false);
       }
     })();
 
     return () => { disposed = true; cleanup(); };
-  }, [active]);
+  }, [active, locale]);
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="min-h-0 flex-1 overflow-hidden rounded-b-xs border-x border-b border-border bg-terminal p-1" ref={hostRef} />
       <div className="flex h-7 shrink-0 items-center gap-2 px-2 text-[10px] text-muted-foreground">
         {connecting ? <Loader2 className="size-3 animate-spin text-primary" /> : <span className="size-1.5 rounded-full bg-success" />}
-        <span className="font-mono">zsh · 交互式 PTY · workspace/</span>
+        <span className="font-mono">{t(locale, "terminal.footer")}</span>
         {error && <span className="truncate text-destructive">{error}</span>}
       </div>
     </div>

@@ -9,11 +9,8 @@ import { AlertTriangle, Download, FolderOpen, RefreshCcw, RotateCcw } from "luci
 import { Button } from "./components/ui/button";
 import { BriefForm } from "./brief-form";
 import { Studio, type WorkspaceActions } from "./studio";
-import { recut, apiBase, projectId, mediaContentURL } from "./recut-sdk";
-
-const VIDEO_EXPRESSION_CONSTRAINT = `## 平台视频表达硬约束
-
-每个 beat 只突出一个巨大主张；禁止小字、小 tag、chip 和弱对比说明。用大字的分词/分句入场、位移、文字渐变与形状关系组织阅读。主信息有效字高 ≥56px、字幕 ≥40px、必要辅助信息 ≥32px，并按 480px 宽手机预览验收。拒绝单一纯色大铺底：背景、主色块、文字或光晕至少使用两层协调渐变。字幕默认无底框，不能遮住主视觉。`;
+import { recut, apiBase, projectId, mediaContentURL, getRecutLocale, useRecutLocale } from "./recut-sdk";
+import { t } from "./i18n";
 
 export type NarrativeSource =
   | { kind: "srt"; name: string; text: string }
@@ -60,6 +57,8 @@ export interface Catalog {
       keyframes: Array<{ at: number; position?: number[]; fov?: number; roll?: number; easing?: string }>;
       lens?: { zoom: number; radius: number };
     };
+    /** Camera Language v2 的表面姿态 preset（engine=three-camera 时存在）。 */
+    surface?: Record<string, unknown>;
   }>;
   directives: Array<{ id: string; label: string; description: string; prompt: string }>;
 }
@@ -101,7 +100,7 @@ async function loadCatalog(): Promise<Catalog> {
 async function loadAssets(): Promise<MediaAsset[]> {
   if (!projectId) return [];
   const response = await fetch(`${apiBase}/v1/media/assets?projectId=${encodeURIComponent(projectId)}`);
-  if (!response.ok) throw new Error(`素材列表读取失败：${response.status}`);
+  if (!response.ok) throw new Error(t(getRecutLocale(), "assets.loadFailed", { status: String(response.status) }));
   return response.json();
 }
 
@@ -117,21 +116,27 @@ export function buildMediaMap(assets: MediaAsset[]): MediaMap {
 }
 
 export default function App() {
+  const locale = useRecutLocale();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [brief, setBrief] = useState<Brief | null>(null);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
-  const [status, setStatus] = useState("连接中…");
-  const [diagnostic, setDiagnostic] = useState("等待资源连接");
+  const [status, setStatus] = useState(t(locale, "status.connecting"));
+  const [diagnostic, setDiagnostic] = useState(t(locale, "diag.waitingConnection"));
   const [workspaceActions, setWorkspaceActions] = useState<WorkspaceActions | null>(null);
   const loadingRef = useRef(false);
 
   const mediaMap = useMemo(() => buildMediaMap(assets), [assets]);
 
+  useEffect(() => {
+    document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+    document.title = t(locale, "header.title");
+  }, [locale]);
+
   const refresh = async (silent = false) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
     try {
-      if (!silent) setDiagnostic("正在同步项目状态");
+      if (!silent) setDiagnostic(t(locale, "diag.syncing"));
       const [nextCatalog, nextAssets, nextBrief] = await Promise.all([
         loadCatalog(),
         loadAssets(),
@@ -140,10 +145,10 @@ export default function App() {
       setCatalog(nextCatalog);
       setAssets(nextAssets);
       setBrief(nextBrief ?? null);
-      setDiagnostic(nextBrief ? "项目已就绪" : "尚未创建 Brief");
+      setDiagnostic(nextBrief ? t(locale, "diag.ready") : t(locale, "diag.noBrief"));
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : "未知错误";
-      setDiagnostic(`同步失败：${message}`);
+      const message = cause instanceof Error ? cause.message : t(locale, "diag.unknownError");
+      setDiagnostic(t(locale, "diag.syncFailed", { message }));
       if (!silent) console.error("[remotion-studio] refresh failed", cause);
     } finally {
       loadingRef.current = false;
@@ -163,51 +168,72 @@ export default function App() {
   }, []);
 
   const startDesign = async (input: { template: string; topic: string; details: string; materialAssetIds: string[]; narrativeSource: NarrativeSource | null }) => {
-    setStatus("正在保存项目 Brief…");
+    setStatus(t(locale, "status.savingBrief"));
     const saved = await recut.background.call("project.create", input);
     setBrief(saved.value ?? saved);
     const template = catalog?.scenarios[input.template];
     const materialText = input.materialAssetIds.length
-      ? `\n已选用素材（assetId）：\n${input.materialAssetIds.join("\n")}\n`
+      ? t(locale, "prompt.materials", { assets: input.materialAssetIds.join("\n") })
       : "";
-    const narrativeSourceText = input.narrativeSource?.kind === "srt"
-      ? `\n叙事来源（SRT 字幕）：${input.narrativeSource.name}\n请严格按以下时间轴拆分场景、安排字幕与镜头。\n\n${input.narrativeSource.text}\n`
-      : input.narrativeSource?.kind === "videos"
-        ? `\n叙事来源（视频素材）：\n${input.narrativeSource.assetIds.map((assetId, index) => `- ${input.narrativeSource.names[index] ?? "未命名视频"}（assetId：${assetId}）`).join("\n")}\n请先转录这些视频并综合生成 SRT，再按时间轴构建视频；它们已进入 Brief 的可用素材清单。\n`
+    const narrativeSource = input.narrativeSource;
+    const narrativeSourceText = narrativeSource?.kind === "srt"
+      ? t(locale, "prompt.narrativeSrt", { name: narrativeSource.name, text: narrativeSource.text })
+      : narrativeSource?.kind === "videos"
+        ? t(locale, "prompt.narrativeVideos", {
+            videos: narrativeSource.assetIds.map((assetId, index) =>
+              t(locale, "prompt.narrativeVideoItem", {
+                name: narrativeSource.names[index] ?? t(locale, "prompt.unnamedVideo"),
+                assetId,
+              }),
+            ).join("\n"),
+          })
         : "";
-    const detailsText = input.details ? `\n- 详细描述：${input.details}\n` : "";
-    const prompt = `我要用 Remotion 视频做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：${input.template}（${template?.label ?? ""}；${template?.description ?? ""}）\n- 选题：${input.topic}${detailsText}${materialText}${narrativeSourceText}\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（${input.template}）\n\n${template?.skillBody ?? ""}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/${input.template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/${input.template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from "@recut/remotion-kit"，动态组件经 @recut/remotion-kit/components 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。若 Brief 提供 SRT，严格按其时间轴；若提供视频叙事来源，先转录再拆分场景。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。`;
-    const composedPrompt = `${prompt}\n\n${VIDEO_EXPRESSION_CONSTRAINT}`;
+    const detailsText = input.details ? t(locale, "prompt.details", { details: input.details }) : "";
+    const prompt = t(locale, "prompt.startDesign", {
+      template: input.template,
+      templateLabel: template?.label ?? "",
+      templateDescription: template?.description ?? "",
+      topic: input.topic,
+      details: detailsText,
+      materials: materialText,
+      narrative: narrativeSourceText,
+      skill: template?.skillBody ?? "",
+    });
+    const composedPrompt = `${prompt}\n\n${t(locale, "prompt.videoConstraint")}`;
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(composedPrompt);
     } catch { /* 剪贴板不可用不影响 compose */ }
     await recut.agent.compose({ prompt: composedPrompt });
-    setStatus("设计任务已交给 AI。提示词已写入右侧 Agent 面板并复制到剪贴板；发送后 Player 预览会自动刷新。");
+    setStatus(t(locale, "status.designSubmitted"));
   };
 
   const redesign = async (instruction: string | undefined) => {
     if (!brief) return;
-    const prompt = `请继续在 Remotion 视频中改写这支视频的 composition 代码。\n\n当前 Brief：${brief.topic}\n\n用户的改写要求：${instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context（含绝对路径 paths.workspacePath/appKitPath）与当前 workspace 代码（用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx）。\n3. 用原生文件工具直接改写 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律；字幕主题、效果与模板组件从 @recut/remotion-kit（seed 时整包拷贝进 workspace/remotion-kit/ 的冻结副本，旧项目沿用 workspace/src/captions 等相对引用）复用。若用户选择的组件与项目副本不一致（读 workspace/.recut-workspace 与 {paths.appKitPath}/catalog.json 对比），用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/、按需升级，只动被选组件。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。\n\n${VIDEO_EXPRESSION_CONSTRAINT}`;
+    const prompt = t(locale, "prompt.redesign", {
+      topic: brief.topic,
+      instruction: instruction ?? "",
+      videoConstraint: t(locale, "prompt.videoConstraint"),
+    });
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(prompt);
     } catch { /* ignore */ }
     await recut.agent.compose({ prompt });
-    setStatus("改写请求已交给 AI（已写入右侧 Agent 面板）。");
+    setStatus(t(locale, "status.redesignSubmitted"));
   };
 
   if (!catalog) {
-    return <div className="flex h-full flex-col"><header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4"><div className="flex min-w-0 items-center gap-3"><p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION 视频</p><h1 className="truncate text-sm font-semibold">Remotion 视频</h1></div><span className="font-mono text-xs text-muted-foreground">{diagnostic}</span></header><div className="grid flex-1 place-items-center p-6"><p className="max-w-md text-center text-sm leading-6 text-muted-foreground">{diagnostic}</p></div></div>;
+    return <div className="flex h-full flex-col"><header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4"><div className="flex min-w-0 items-center gap-3"><p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">{t(locale, "header.eyebrow")}</p><h1 className="truncate text-sm font-semibold">{t(locale, "header.title")}</h1></div><span className="font-mono text-xs text-muted-foreground">{diagnostic}</span></header><div className="grid flex-1 place-items-center p-6"><p className="max-w-md text-center text-sm leading-6 text-muted-foreground">{diagnostic}</p></div></div>;
   }
 
   return (
     <div className="flex h-full flex-col">
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-4">
         <div className="flex min-w-0 items-center gap-3">
-          <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">REMOTION 视频</p>
-          <h1 className="truncate text-sm font-semibold">Remotion 视频</h1>
+          <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-primary">{t(locale, "header.eyebrow")}</p>
+          <h1 className="truncate text-sm font-semibold">{t(locale, "header.title")}</h1>
           {brief ? <span className="truncate rounded-xs bg-muted px-2 py-1 text-[11px] text-muted-foreground">{brief.topic} · {catalog.scenarios[brief.template]?.label ?? brief.template}</span> : null}
         </div>
-        {brief && workspaceActions ? <div className="flex shrink-0 items-center gap-1"><Button aria-label="在系统文件管理器中打开项目文件夹" className="px-2 text-[11px]" onClick={workspaceActions.openWorkspace} title="在 Finder、资源管理器或默认文件管理器中打开" type="button" variant="ghost"><FolderOpen className="size-3.5" />打开文件夹</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.openExport} type="button" variant="ghost"><Download className="size-3.5" />导出</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.buildPreview} type="button" variant="ghost"><RefreshCcw className="size-3.5" />构建</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.restartPreview} type="button" variant="ghost"><RotateCcw className="size-3.5" />重启</Button><Button className="px-2 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={workspaceActions.resetWorkspace} type="button" variant="ghost"><AlertTriangle className="size-3.5" />重置</Button></div> : null}
+        {brief && workspaceActions ? <div className="flex shrink-0 items-center gap-1"><Button aria-label={t(locale, "header.openWorkspaceAria")} className="px-2 text-[11px]" onClick={workspaceActions.openWorkspace} title={t(locale, "header.openWorkspaceTitle")} type="button" variant="ghost"><FolderOpen className="size-3.5" />{t(locale, "header.openFolder")}</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.openExport} type="button" variant="ghost"><Download className="size-3.5" />{t(locale, "header.export")}</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.buildPreview} type="button" variant="ghost"><RefreshCcw className="size-3.5" />{t(locale, "header.build")}</Button><Button className="px-2 text-[11px]" onClick={workspaceActions.restartPreview} type="button" variant="ghost"><RotateCcw className="size-3.5" />{t(locale, "header.restart")}</Button><Button className="px-2 text-[11px] text-destructive hover:bg-destructive/5 hover:text-destructive" onClick={workspaceActions.resetWorkspace} type="button" variant="ghost"><AlertTriangle className="size-3.5" />{t(locale, "header.reset")}</Button></div> : null}
       </header>
       {!brief ? (
         <BriefForm catalog={catalog} onStart={startDesign} status={status} />

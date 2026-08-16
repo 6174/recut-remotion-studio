@@ -9,25 +9,31 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { PreviewPicker } from "../preview/PreviewPicker";
+import { useRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 import type { FineTuneProps } from "./FineTuneProps";
 
 export const TemplateFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, kitVersionHint, onPrompt, onReady }) => {
+  const locale = useRecutLocale();
   const [value, setValue] = useState(Object.keys(catalog.scenarios)[0] || "");
   const prompt = useMemo(() => {
     const selected = catalog.scenarios[value];
     if (!selected) return basePrompt;
     const skill = (selected as { skillBody?: string }).skillBody?.trim();
-    const meta = `成片模板：${value}（${selected.label ?? ""}；${selected.description ?? ""}）。`;
+    const meta = t(locale, "template.meta", { value, label: selected.label ?? "", description: selected.description ?? "" });
     if (!skill) {
-      return `${basePrompt}\n\n${meta}\n组件：${selected.components.join("、") ?? ""}。请按场景结构实现。`;
+      return `${basePrompt}\n\n${meta}\n${t(locale, "template.components", { components: selected.components.join("、") ?? "" })}`;
     }
     // 完整 SKILL.md 就是这个场景的端到端参考：AI 先读它，再据此改写 composition。
-    return `${basePrompt}\n\n${meta}\n\n## 该模板的完整导演手册（SKILL.md）\n\n${skill}\n\n## 默认模板重建约束\n\n必须以 \`src/scenarios/${value}/template/ProjectVideo.tsx\` 的默认实现为成片骨架：先使用它的默认 palette、SCENES、beats 与视觉原语，再替换为当前选题的真实内容。不要保留当前成片的旧视频结构，也不要在旧画面上做局部修补。\n\n## 平台视频表达硬约束\n\n每个 beat 只突出一个巨大主张；禁止小字、小 tag、chip 和弱对比说明。用大字的分词/分句入场、位移、文字渐变与形状关系组织阅读。主信息有效字高 ≥56px、字幕 ≥40px、必要辅助信息 ≥32px，并按 480px 宽手机预览验收。拒绝单一纯色大铺底：背景、主色块、文字或光晕至少使用两层协调渐变。字幕默认无底框，不能遮住主视觉。\n\n请严格按照上面的导演手册实现：适用边界、内置视觉、分镜顺序、组件策略与验收标准。` + (selected.components?.length ? `\n\n本模板建议组件：${selected.components.join("、")}（可从 ${"@recut/remotion-kit"} 复用或参考实现）。` : "");
-  }, [basePrompt, catalog, value]);
+    const componentsLine = selected.components?.length
+      ? t(locale, "template.suggestedComponents", { components: selected.components.join("、") })
+      : "";
+    return `${basePrompt}\n\n${meta}\n\n${t(locale, "template.manualTitle")}\n\n${skill}\n\n${t(locale, "template.rebuildTitle")}\n\n${t(locale, "template.rebuild", { value })}\n\n${t(locale, "template.constraintTitle")}\n\n${t(locale, "prompt.videoConstraintBody")}\n\n${t(locale, "template.followRules")}${componentsLine}`;
+  }, [basePrompt, catalog, locale, value]);
   useEffect(() => { onPrompt(prompt); onReady(true); }, [onPrompt, onReady, prompt]);
   return (
     <div>
-      <span className="mb-1.5 block text-xs font-medium">成片模板</span>
+      <span className="mb-1.5 block text-xs font-medium">{t(locale, "template.label")}</span>
       <PreviewPicker
         items={Object.entries(catalog.scenarios).map(([id, item]) => ({ id, label: item.label, description: `${item.description} · ${item.components.join(" · ")}` }))}
         kind="composition"

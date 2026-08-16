@@ -4,6 +4,26 @@
   "name": "Remotion 视频",
   "author": "6174",
   "description": "把选题、文案和素材编排成 Remotion 程序化视频：AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。",
+  "localized": {
+    "en": {
+      "name": "Remotion Video",
+      "description": "Turn topics, copy, and materials into Remotion programmatic videos: AI rewrites the project's composition code directly, with an embedded Player for live preview (scrubbing) and local render export.",
+      "onboarding": [
+        {
+          "id": "start-video",
+          "title": "Start from a design",
+          "description": "Pick a template, submit a topic and materials, and let AI write it into the project's Remotion code with live preview.",
+          "prompt": "I want to make a programmatic video with Remotion Video; the topic is [fill in the topic here]. First help me complete the Brief in the project (project.create), then read the remotion-studio skill via recut.skills.read and its references (effects/captions/directing), let me confirm the expression effects and caption theme choices, then start rewriting the composition code in the workspace. Design is code: first read workflow.context for absolute paths (workspacePath/appKitPath), read/edit {paths.workspacePath}/src/compositions/ProjectVideo.tsx and src/Root.tsx with native file tools, reference real materials with resolveMediaUrl(assetId) and register them with composition.assets; after saving, the Vite preview hot-reloads automatically; then stop and wait for preview confirmation — do not render or export early."
+        },
+        {
+          "id": "design-video",
+          "title": "Write the idea as code",
+          "description": "Converge a vague idea into Remotion composition code with hot-reloadable preview.",
+          "prompt": "I have an immature video idea: [fill in the idea here]. Help me converge on it like a video editor: first call workflow.context to check the stage and absolute paths, read references/directing.md in the remotion-studio skill to set motion and beats, then read/edit {paths.workspacePath}/src/compositions/ProjectVideo.tsx with native file tools (design is code; reuse the built-in effects and caption themes, and reference real materials with real assetIds). After editing, register the materials with composition.assets, save and let the Vite preview hot-reload, then wait for preview confirmation — do not render or export."
+        }
+      ]
+    }
+  },
   "repository": "https://github.com/6174/recut-remotion-studio",
   "version": "0.2.0",
   "type": "project",

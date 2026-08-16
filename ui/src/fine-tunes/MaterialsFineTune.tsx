@@ -6,22 +6,24 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../components/ui/button";
-import { recut } from "../recut-sdk";
+import { recut, useRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 import type { MediaAsset } from "../app";
 import { AssetPicker } from "./AssetPicker";
 import type { FineTuneProps } from "./FineTuneProps";
 
 export const MaterialsFineTune: React.FC<FineTuneProps> = ({ completedAssets, basePrompt, onPrompt, onReady, onStatus }) => {
+  const locale = useRecutLocale();
   const [selected, setSelected] = useState<MediaAsset[]>([]);
 
   const ready = selected.length > 0;
   useEffect(() => { onReady(ready); }, [onReady, ready]);
 
   const prompt = useMemo(
-    () => [basePrompt, `使用以下素材：\n${selected.map((asset) => `- ${asset.name}（${asset.kind}，assetId: ${asset.id}）`).join("\n")}`]
+    () => [basePrompt, t(locale, "materials.prompt", { videos: selected.map((asset) => t(locale, "materials.item", { name: asset.name, kind: asset.kind, id: asset.id })).join("\n") })]
       .filter(Boolean)
       .join("\n\n"),
-    [basePrompt, selected],
+    [basePrompt, locale, selected],
   );
   useEffect(() => { onPrompt(prompt); }, [onPrompt, prompt]);
 
@@ -40,7 +42,7 @@ export const MaterialsFineTune: React.FC<FineTuneProps> = ({ completedAssets, ba
         return merged;
       });
     } catch (cause) {
-      onStatus(cause instanceof Error ? cause.message : "素材选择失败");
+      onStatus(cause instanceof Error ? cause.message : t(locale, "materials.pickFailed"));
     }
   };
 
@@ -53,15 +55,15 @@ export const MaterialsFineTune: React.FC<FineTuneProps> = ({ completedAssets, ba
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-medium">要使用的素材</span>
-        <Button className="px-2 text-[11px]" onClick={() => void pick()} type="button" variant="outline">从素材库选择</Button>
+        <span className="text-xs font-medium">{t(locale, "materials.title")}</span>
+        <Button className="px-2 text-[11px]" onClick={() => void pick()} type="button" variant="outline">{t(locale, "materials.pick")}</Button>
       </div>
       {completedAssets.length > 0 ? (
         <AssetPicker assets={completedAssets} multiple onToggle={toggle} selectedIds={selected.map((item) => item.id)} />
       ) : (
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">项目内还没有可用素材。请从素材库选择，或先上传/生成素材。</p>
+        <p className="mt-2 text-xs leading-5 text-muted-foreground">{t(locale, "materials.empty")}</p>
       )}
-      {pickedMissing.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">已从素材库选择 {pickedMissing.length} 个素材。</p> : null}
+      {pickedMissing.length > 0 ? <p className="mt-2 text-xs text-muted-foreground">{t(locale, "materials.pickedNote", { count: String(pickedMissing.length) })}</p> : null}
     </div>
   );
 };

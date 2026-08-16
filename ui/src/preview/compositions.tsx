@@ -22,6 +22,8 @@ import * as Templates from "@recut/remotion-kit/templates";
 import { CAPTION_DURATION_SEC, PREVIEW_FPS, SAMPLE_NARRATION } from "./sample";
 import { MaterialPreview } from "./material-preview";
 import { CameraPreview } from "./camera-preview";
+import { getRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 
 export const PREVIEW_WIDTH = 1920;
 export const PREVIEW_HEIGHT = 1080;
@@ -110,7 +112,7 @@ export const CaptionDemo: React.FC<{ theme: string; thumbnail?: boolean }> = ({ 
 
 const DigitRollDemo: React.FC = () => (
   <AbsoluteFill style={{ background: "linear-gradient(135deg, #17100a 0%, #2a1d0f 100%)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 30 }}>
-    <span style={{ fontFamily: MONO, fontSize: 24, letterSpacing: "0.28em", color: "#e8b341", fontWeight: 600 }}>REVENUE · 本季度</span>
+    <span style={{ fontFamily: MONO, fontSize: 24, letterSpacing: "0.28em", color: "#e8b341", fontWeight: 600 }}>{t(getRecutLocale(), "preview.revenueQuarter")}</span>
     <div style={{ fontFamily: MONO }}>
       <DigitRoll color="#f5c044" fontSize={Math.max(72, Math.round(120 * 0.9))} value="4528900" />
     </div>
@@ -123,15 +125,16 @@ const VerticalTickerDemo: React.FC = () => {
     Array.from({ length: 5 }).map((_, index) => (
       <div key={index} style={{ background: color, borderRadius: 14, padding: "16px 24px", color: "#0d1017", fontWeight: 700, fontSize: 32, fontFamily: "system-ui, sans-serif" }}>{text}</div>
     ));
+  const locale = getRecutLocale();
   return (
     <AbsoluteFill style={{ background: "#0d1017" }}>
       <VerticalTicker
         backgroundColor="#0d1017"
         columnWidth={340}
         columns={[
-          { durationInSeconds: 3, direction: -1, items: cards("选题", "#f5c044") },
-          { durationInSeconds: 4, direction: 1, items: cards("写代码", "#22d3ee") },
-          { durationInSeconds: 5, direction: -1, items: cards("实时预览", "#a78bfa") },
+          { durationInSeconds: 3, direction: -1, items: cards(t(locale, "preview.tickerTopic"), "#f5c044") },
+          { durationInSeconds: 4, direction: 1, items: cards(t(locale, "preview.tickerCode"), "#22d3ee") },
+          { durationInSeconds: 5, direction: -1, items: cards(t(locale, "preview.tickerPreview"), "#a78bfa") },
         ]}
         maskHeight={180}
         tiltDeg={18}
@@ -144,7 +147,7 @@ const FlashCutDemo: React.FC = () => (
   <AbsoluteFill style={{ background: "#0d1017" }}>
     <FlashCut duration={10} />
     <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-      <span style={{ fontFamily: MONO, fontSize: 28, letterSpacing: "0.28em", color: "#9aa4b5" }}>FLASH · 节奏转场</span>
+      <span style={{ fontFamily: MONO, fontSize: 28, letterSpacing: "0.28em", color: "#9aa4b5" }}>{t(getRecutLocale(), "preview.flash")}</span>
     </div>
   </AbsoluteFill>
 );
@@ -156,7 +159,7 @@ const FlameFrameDemo: React.FC = () => (
 );
 
 const PageCamDemo: React.FC = () => (
-  <PlaceholderDemo label="PAGECAM" note="页面镜头预览需真实页面素材，请以代码为准。" />
+  <PlaceholderDemo label="PAGECAM" note={t(getRecutLocale(), "preview.pagecamNote")} />
 );
 
 const PlaceholderDemo: React.FC<{ label: string; note: string }> = ({ label, note }) => (
@@ -172,12 +175,13 @@ const pascalCase = (id: string) => id.split("-").map((part) => part.charAt(0).to
 
 /** 模板真实预览：按 id 查模板目录 barrel，用默认 props 直接渲染真实组件。 */
 const TemplatePreview: React.FC<{ id: string }> = ({ id }) => {
+  const locale = getRecutLocale();
   const Component = (Templates as unknown as Record<string, React.ComponentType | undefined>)[pascalCase(id)];
   if (!Component) {
-    return <PlaceholderDemo label={id} note="该模板无法直接预览，请以代码为准。" />;
+    return <PlaceholderDemo label={id} note={t(locale, "preview.templateUnavailable")} />;
   }
   return (
-    <TemplateBoundary fallback={<PlaceholderDemo label={id} note="该模板需特定 props，预览以代码为准。" />}>
+    <TemplateBoundary fallback={<PlaceholderDemo label={id} note={t(locale, "preview.templatePropsNote")} />}>
       <Component />
     </TemplateBoundary>
   );
@@ -194,6 +198,7 @@ class TemplateBoundary extends React.Component<{ fallback: React.ReactNode; chil
 }
 
 export const ComponentDemo: React.FC<{ kind?: string; id: string }> = ({ kind, id }) => {
+  const locale = getRecutLocale();
   switch (id) {
     case "DigitRoll":
       return <DigitRollDemo />;
@@ -206,9 +211,9 @@ export const ComponentDemo: React.FC<{ kind?: string; id: string }> = ({ kind, i
     case "PageCam":
       return <PageCamDemo />;
     case "FlatPanel":
-      return <PlaceholderDemo label="FLATPANEL" note="该组件依赖 three 3D 渲染环境，预览以代码为准。" />;
+      return <PlaceholderDemo label="FLATPANEL" note={t(locale, "preview.component3dNote")} />;
     default:
-      return kind === "template" ? <TemplatePreview id={id} /> : <PlaceholderDemo label={id} note="暂无可视化预览，请以代码为准。" />;
+      return kind === "template" ? <TemplatePreview id={id} /> : <PlaceholderDemo label={id} note={t(locale, "preview.noPreview")} />;
   }
 };
 

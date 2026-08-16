@@ -5,6 +5,8 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { MediaAsset } from "../app";
+import { getRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 
 interface AssetPickerProps {
   assets: MediaAsset[];
@@ -15,9 +17,10 @@ interface AssetPickerProps {
   onToggle: (id: string) => void;
 }
 
-export const AssetPicker: React.FC<AssetPickerProps> = ({ assets, selectedIds, multiple, kinds, emptyText = "项目内没有可用素材。", onToggle }) => {
+export const AssetPicker: React.FC<AssetPickerProps> = ({ assets, selectedIds, multiple, kinds, emptyText, onToggle }) => {
+  const locale = getRecutLocale();
   const list = kinds ? assets.filter((asset) => kinds.includes(asset.kind)) : assets;
-  if (!list.length) return <p className="mt-2 text-xs leading-5 text-muted-foreground">{emptyText}</p>;
+  if (!list.length) return <p className="mt-2 text-xs leading-5 text-muted-foreground">{emptyText ?? t(locale, "materials.emptyDefault")}</p>;
   return (
     <div className="mt-2 space-y-1.5">
       {list.map((asset) => {

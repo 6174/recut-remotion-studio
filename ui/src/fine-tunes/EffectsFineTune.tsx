@@ -7,20 +7,23 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { LivePreview } from "../preview/PreviewCard";
+import { useRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 import type { FineTuneProps } from "./FineTuneProps";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  post: "后处理特效",
-  transform: "转场特效",
-  transition: "A/B 转场",
-  ambient: "环境氛围",
-  camera: "Three 镜头",
+  post: "effects.cat.post",
+  transform: "effects.cat.transform",
+  transition: "effects.cat.transition",
+  ambient: "effects.cat.ambient",
+  camera: "effects.cat.camera",
 };
 
 /** 支持镜头锚点（lens/center）的材质：需要视觉焦点。 */
 const LENS_MATERIALS = new Set(["magnify", "glass", "bubble", "ripple"]);
 
 export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, onPrompt, onReady }) => {
+  const locale = useRecutLocale();
   const effects = useMemo(
     () => (catalog.effects ?? []).filter((item) => item.engine === "three" || item.engine === "three-camera"),
     [catalog.effects],
@@ -37,64 +40,64 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
     const map = new Map<string, typeof effects>();
     for (const item of effects) {
       const category = (item.material?.category ?? item.layer) as string;
-      const key = CATEGORY_LABELS[category] ?? category;
+      const key = t(locale, CATEGORY_LABELS[category] ?? category);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(item);
     }
     return Array.from(map.entries());
-  }, [effects]);
+  }, [effects, locale]);
 
   const isLens = active ? LENS_MATERIALS.has(active.id) : false;
 
   const placementText = useMemo(() => {
     const schemaBlock = Object.keys(schema).length
-      ? `可用参数 schema：${JSON.stringify(schema)}。按镜头与内容自行选择必要参数，遵守 min/max，并将最终值写入 effectOptions。`
+      ? t(locale, "effects.schemaNote", { schema: JSON.stringify(schema) })
       : "";
     if (isCamera) {
       const camera = active?.camera;
       const surface = active?.surface;
-      const cameraBlock = camera ? JSON.stringify(camera) : "（缺少 preset）";
-      const surfaceBlock = surface ? JSON.stringify(surface) : "（缺少表面姿态 preset）";
+      const cameraBlock = camera ? JSON.stringify(camera) : t(locale, "effects.missingPreset");
+      const surfaceBlock = surface ? JSON.stringify(surface) : t(locale, "effects.missingSurfacePreset");
       const lensBlock = isLensInspect
-        ? `同时把 lens.anchor 与 camera.subject.anchor 设为同一个目标；使用 magnify 的 zoom=${camera?.lens?.zoom ?? 1.75}、radius=${camera?.lens?.radius ?? 138}，并让 lens 在相机抵达后出现。`
+        ? t(locale, "effects.lensBlock", { zoom: String(camera?.lens?.zoom ?? 1.75), radius: String(camera?.lens?.radius ?? 138) })
         : "";
       return [
-        `镜头部署：Agent 选择最能服务叙事的 ShotGraph 镜头，并在 descriptor 设置 camera 为 ${cameraBlock}、surface 为 ${surfaceBlock}。`,
-        "先读 SCENES 和场景排版，将 subject.anchor 替换为唯一、可读的真实目标；surface 的 position / rotation / scale / bend 负责表面落位；一个镜头只保留一个主动作。",
+        t(locale, "effects.cameraDeploy", { camera: cameraBlock, surface: surfaceBlock }),
+        t(locale, "effects.cameraInstruction"),
         lensBlock,
       ].filter(Boolean).join("\n");
     }
     return [
-      `镜头部署：Agent 按叙事节奏在 ShotGraph 镜头 descriptor 上设置 effect/transition/ambient 为 "${active?.id}"，并将参数写入 effectOptions。`,
+      t(locale, "effects.effectDeploy", { id: active?.id ?? "" }),
       active?.id === "article-highlight"
-        ? "Article Highlight 选择关键文字，按排版写入 center、markerWidth、markerHeight，并让 marker 随镜头进度划出。"
+        ? t(locale, "effects.articleHighlight")
         : active?.id === "text-focus"
-          ? "Text Focus 选择清晰呈现的文字或卡片，按目标边界写入 focusBox=[left,top,width,height]。"
+          ? t(locale, "effects.textFocus")
           : isLens
-            ? "magnify/glass/ripple 选择画面焦点并以 descriptor.lens 驱动扫描中心；bubble 写入 effectOptions.center。"
+            ? t(locale, "effects.lensFocus")
             : null,
       schemaBlock,
     ].filter(Boolean).join("\n");
-  }, [active?.camera, active?.id, active?.surface, isCamera, isLens, isLensInspect, schema]);
+  }, [active?.camera, active?.id, active?.surface, isCamera, isLens, isLensInspect, locale, schema]);
 
   const prompt = useMemo(() => {
     if (!active) return "";
     return [
-      basePrompt || "请把当前视频的表达增强为我选择的 GPU 材质效果。",
-      `特效：${active.label}（${active.description}）`,
+      basePrompt || t(locale, "effects.defaultBasePrompt"),
+      t(locale, "effects.spec", { label: active.label, description: active.description }),
       isCamera
-        ? `引擎：Three Shot Language · @recut/remotion-kit/three · CameraMoveDescriptor + SurfaceMoveDescriptor（${active.camera?.verb ?? active.id}）`
-        : `引擎：Three GPU material · @recut/remotion-kit/materials · MaterialElement（${active.material?.category ?? active.layer}）`,
-      `推荐源码：${active.source.path}（项目落点 ${active.source.workspacePath}；在 ShotGraph 镜头 descriptor 挂载，禁止写独立 demo）`,
+        ? t(locale, "effects.engineCamera", { verb: active.camera?.verb ?? active.id })
+        : t(locale, "effects.engineMaterial", { category: active.material?.category ?? active.layer }),
+      t(locale, "effects.source", { path: active.source.path, workspacePath: active.source.workspacePath }),
       placementText,
       isCamera
-        ? "实现方式：改 workspace 的 ProjectVideo/ShotGraph 镜头 descriptor.camera 与 descriptor.surface；所有值由 shot progress 派生。surface 的 keyframes 可同时写 position、rotation、scale、bend，默认在约 1 秒内落位并保持阅读。Lens Inspect 额外用相同 subject 配置 magnify 的 lens/anchor，禁止手填两套目标坐标。"
-        : "实现方式：改 workspace 的 ProjectVideo/ShotGraph 镜头 descriptor：effect（主效果）/ transition（转场 {material,durationFrames}）/ ambient（环境）；语义参数放 effectOptions；用 schema 声明的参数名。",
+        ? t(locale, "effects.implementCamera")
+        : t(locale, "effects.implementMaterial"),
       isCamera
-        ? "验收：走 Three-first GPU 合成（HtmlSurfaceProvider 真实树光栅化 + SurfaceMotion 真实网格弯曲/姿态 + CameraDirector）；预览/导出逐帧一致；单平面可以有透视与曲面，但不得声称真实景深。"
-        : "验收：走 Three-first GPU 合成（HtmlSurfaceProvider 真实树光栅化 + MaterialElement 逐帧只更新 uniform）；预览/导出逐帧一致；禁止回退到旧 html-canvas / GpuCompositor 效果。",
+        ? t(locale, "effects.acceptCamera")
+        : t(locale, "effects.acceptMaterial"),
     ].join("\n");
-  }, [active, basePrompt, isCamera, placementText]);
+  }, [active, basePrompt, isCamera, locale, placementText]);
 
   useEffect(() => {
     onPrompt(prompt);
@@ -102,7 +105,7 @@ export const EffectsFineTune: React.FC<FineTuneProps> = ({ catalog, basePrompt, 
   }, [onPrompt, onReady, prompt]);
 
   if (effects.length === 0) {
-    return <p className="text-xs text-muted-foreground">目录中暂无可用的 Three GPU 材质。</p>;
+    return <p className="text-xs text-muted-foreground">{t(locale, "effects.noMaterials")}</p>;
   }
 
   return (

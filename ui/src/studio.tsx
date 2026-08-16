@@ -17,7 +17,8 @@ import { Button } from "./components/ui/button";
 import { Textarea } from "./components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Modal } from "./ui";
-import { recut } from "./recut-sdk";
+import { recut, useRecutLocale } from "./recut-sdk";
+import { t } from "./i18n";
 import { PlayerPanel, type PlayerPanelHandle } from "./player-panel";
 import { LogPanel } from "./log-panel";
 import { TerminalPanel } from "./terminal-panel";
@@ -53,53 +54,53 @@ type FineTuneKind = "template" | "captions" | "canvas" | "component" | "material
 
 interface FineTuneConfig {
   kind: FineTuneKind;
-  title: string;
-  description: string;
-  basePrompt: string;
+  titleKey: string;
+  descriptionKey: string;
+  basePromptKey: string;
   Icon: React.FC<{ className?: string }>;
 }
 
 const FINE_TUNES: FineTuneConfig[] = [
   {
     kind: "effects" as const,
-    title: "表达特效",
-    description: "选择 Three 材质或真实相机：聚焦、放大镜、推进、移镜与 crane。",
-    basePrompt: "请把当前视频的表达增强为我选择的 Three 镜头层效果。组件回答“画面里有什么”，材质和相机回答“观众如何感受、注意和理解它”。",
+    titleKey: "fineTune.effects.title",
+    descriptionKey: "fineTune.effects.description",
+    basePromptKey: "fineTune.effects.basePrompt",
     Icon: MousePointer2,
   },
   {
     kind: "component" as const,
-    title: "内容组件",
-    description: "选择内置组件，强化一个重点段落。",
-    basePrompt: "请在最能强化叙事的场景中加入我选择的内置 Remotion 组件。先阅读组件源码确认 API，只在内容需要的地方使用，并保持时间轴和视觉风格协调。",
+    titleKey: "fineTune.component.title",
+    descriptionKey: "fineTune.component.description",
+    basePromptKey: "fineTune.component.basePrompt",
     Icon: Sparkles,
   },
   {
     kind: "materials" as const,
-    title: "使用素材",
-    description: "选择素材，再说明希望如何使用。",
-    basePrompt: "",
+    titleKey: "fineTune.materials.title",
+    descriptionKey: "fineTune.materials.description",
+    basePromptKey: "fineTune.materials.basePrompt",
     Icon: ImagePlus,
   },
   {
     kind: "template" as const,
-    title: "选择成片模板",
-    description: "重组整支视频的视觉、镜头与组件组合。",
-    basePrompt: "请将当前视频改造成我选择的 Remotion 成片模板，按模板默认的视觉、场景结构、镜头顺序和组件组合重建。每个 beat 只突出一个巨大主张，禁止小字、小 tag、chip 和弱对比说明；背景、主色块、文字或光晕至少使用两层协调渐变，字幕无底框。",
+    titleKey: "fineTune.template.title",
+    descriptionKey: "fineTune.template.description",
+    basePromptKey: "fineTune.template.basePrompt",
     Icon: Clapperboard,
   },
   {
     kind: "captions" as const,
-    title: "选择字幕风格",
-    description: "为现有时间轴换一套字幕主题。",
-    basePrompt: "请将当前视频的字幕替换为我选择的字幕风格，保持原有时间轴和文案不变，同时调整字号、行数、关键词强调和安全边距，确保可读性。字幕是无底框的高对比文字层，不得缩小成看不清的小字，也不能遮住主视觉。",
+    titleKey: "fineTune.captions.title",
+    descriptionKey: "fineTune.captions.description",
+    basePromptKey: "fineTune.captions.basePrompt",
     Icon: Captions,
   },
   {
     kind: "canvas" as const,
-    title: "适配目标画幅",
-    description: "选择画布，重构移动端版式。",
-    basePrompt: "请把当前视频适配为我选择的画布尺寸。重新安排安全边距、文字长度、素材裁切和信息层级，确保关键内容在该画幅下第一眼就能读清。",
+    titleKey: "fineTune.canvas.title",
+    descriptionKey: "fineTune.canvas.description",
+    basePromptKey: "fineTune.canvas.basePrompt",
     Icon: Expand,
   },
 ];
@@ -114,6 +115,11 @@ const FINE_TUNE_MODULES: Partial<Record<FineTuneKind, React.FC<FineTuneProps>>> 
 };
 
 export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus, onHeaderActionsChange }: StudioProps) {
+  const locale = useRecutLocale();
+  const fineTunes = useMemo<Array<FineTuneConfig & { title: string; description: string; basePrompt: string }>>(
+    () => FINE_TUNES.map((item) => ({ ...item, title: t(locale, item.titleKey), description: t(locale, item.descriptionKey), basePrompt: t(locale, item.basePromptKey) })),
+    [locale],
+  );
   const completed = assets.filter((item) => item.status === "completed");
   const playerRef = useRef<PlayerPanelHandle>(null);
   const resizeRef = useRef<{ startY: number; startHeight: number } | null>(null);
@@ -122,7 +128,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const [resetOpen, setResetOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const [fineTune, setFineTune] = useState<(FineTuneConfig & { key: number }) | null>(null);
+  const [fineTune, setFineTune] = useState<(FineTuneConfig & { title: string; description: string; basePrompt: string; key: number }) | null>(null);
   const [fineTunePrompt, setFineTunePrompt] = useState("");
   const [fineTuneSupplement, setFineTuneSupplement] = useState("");
   const [fineTuneReady, setFineTuneReady] = useState(true);
@@ -135,10 +141,10 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const kitVersionHint = useMemo(() => {
     if (!kitState) return undefined;
     if (kitState.seededKitVersion && kitState.seededKitVersion !== kitState.kitVersion) {
-      return `项目组件冻结于 v${kitState.seededKitVersion} · 目录 v${kitState.kitVersion}；选择后 AI 将按需升级所选组件`;
+      return t(locale, "kit.hintFrozen", { seeded: kitState.seededKitVersion, kit: kitState.kitVersion });
     }
-    return `组件目录 v${kitState.kitVersion}`;
-  }, [kitState]);
+    return t(locale, "kit.hintVersion", { kit: kitState.kitVersion });
+  }, [kitState, locale]);
 
   useEffect(() => {
     const move = (event: PointerEvent) => {
@@ -156,8 +162,8 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
     onHeaderActionsChange({
       openWorkspace: () => {
         void recut.background.call("workspace.open", {})
-          .then(() => setStatus("已在系统文件管理器中打开项目工作区。"))
-          .catch((cause) => setStatus(cause instanceof Error ? cause.message : "打开项目文件夹失败"));
+          .then(() => setStatus(t(locale, "studio.openWorkspaceDone")))
+          .catch((cause) => setStatus(cause instanceof Error ? cause.message : t(locale, "studio.openWorkspaceFailed")));
       },
       openExport: () => setExportOpen(true),
       buildPreview: () => void playerRef.current?.start(),
@@ -165,7 +171,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
       resetWorkspace: () => setResetOpen(true),
     });
     return () => onHeaderActionsChange(null);
-  }, [onHeaderActionsChange]);
+  }, [onHeaderActionsChange, locale]);
 
   const startResize = (event: React.PointerEvent<HTMLDivElement>) => {
     resizeRef.current = { startY: event.clientY, startHeight: consoleHeight };
@@ -177,10 +183,10 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
     try {
       await recut.background.call("workspace.reset", {});
       setResetOpen(false);
-      setStatus("工作区已重置回骨架，正在重新启动预览…");
+      setStatus(t(locale, "studio.resetStatus"));
       await playerRef.current?.restart();
     } catch (cause) {
-      setStatus(cause instanceof Error ? cause.message : "重置失败");
+      setStatus(cause instanceof Error ? cause.message : t(locale, "studio.resetFailed"));
     } finally {
       setResetting(false);
     }
@@ -190,10 +196,10 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
     const dynamic = fineTunePrompt.trim();
     const supplement = fineTuneSupplement.trim();
     if (!supplement) return dynamic;
-    return `${dynamic}\n\n补充要求：\n${supplement}`;
-  }, [fineTunePrompt, fineTuneSupplement]);
+    return t(locale, "prompt.supplement", { supplement });
+  }, [fineTunePrompt, fineTuneSupplement, locale]);
 
-  const openFineTune = (next: FineTuneConfig) => {
+  const openFineTune = (next: FineTuneConfig & { title: string; description: string; basePrompt: string }) => {
     const key = Date.now();
     const hasModule = Boolean(FINE_TUNE_MODULES[next.kind]);
     setFineTune({ ...next, key });
@@ -205,21 +211,21 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const copyPrompt = async () => {
     try {
       await navigator.clipboard?.writeText(finalPrompt);
-      setStatus("编辑提示词已复制，可以补充后发送给 AI。");
+      setStatus(t(locale, "studio.promptCopied"));
     } catch {
-      setStatus("无法访问剪贴板，请直接选择“交给 AI”。");
+      setStatus(t(locale, "studio.promptCopyFailed"));
     }
   };
 
   const submitFineTune = () => {
     if (!fineTune) return;
     if (!fineTuneReady) {
-      setStatus("请至少选择一个要使用的素材。");
+      setStatus(t(locale, "studio.needMaterial"));
       return;
     }
     const prompt = finalPrompt.trim();
     if (!prompt) {
-      setStatus("请输入要交给 AI 的 Prompt。");
+      setStatus(t(locale, "studio.needPrompt"));
       return;
     }
     setFineTune(null);
@@ -236,17 +242,17 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
           <section className="rounded-sm border border-primary/25 bg-primary/5 p-3">
             <div className="flex items-start justify-between gap-3">
-              <div><p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-primary">TEMPLATE</p><h2 className="mt-1 text-sm font-semibold">选择成片模板</h2></div>
-              <span className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="size-1.5 rounded-full bg-primary" />预览已连接</span>
+              <div><p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-primary">TEMPLATE</p><h2 className="mt-1 text-sm font-semibold">{t(locale, "studio.templateTitle")}</h2></div>
+              <span className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground"><span className="size-1.5 rounded-full bg-primary" />{t(locale, "studio.previewConnected")}</span>
             </div>
-            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">模板就是完整成片方案。选择后，Agent 会按它的导演视角重写视频的视觉、镜头与组件组合。</p>
-            <Button className="mt-3 w-full" onClick={() => openFineTune(FINE_TUNES.find((item) => item.kind === "template")!)} type="button"><Clapperboard className="size-3.5" />从模板开始</Button>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">{t(locale, "studio.templateDescription")}</p>
+            <Button className="mt-3 w-full" onClick={() => openFineTune(fineTunes.find((item) => item.kind === "template")!)} type="button"><Clapperboard className="size-3.5" />{t(locale, "studio.startFromTemplate")}</Button>
           </section>
 
           <section className="rounded-sm border border-border bg-card p-3">
             <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground">EDIT CURRENT VIDEO</p>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {FINE_TUNES.filter((item) => item.kind !== "template").map((item) => (
+              {fineTunes.filter((item) => item.kind !== "template").map((item) => (
                 <button className="min-h-24 rounded-xs border border-border bg-muted/20 p-2.5 text-left outline-none transition-colors hover:border-primary/30 hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-ring/30" key={item.title} onClick={() => openFineTune(item)} type="button">
                   <span className="grid size-6 place-items-center rounded-xs bg-primary/10 text-primary"><item.Icon className="size-3.5" /></span>
                   <span className="mt-2 block text-xs font-semibold leading-4">{item.title}</span>
@@ -256,16 +262,16 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
             </div>
           </section>
 
-          <ExportPanel brief={brief} catalog={catalog} onOpenChange={setExportOpen} onRenderStarted={(renderId) => setStatus(`渲染任务 ${renderId} 已启动`)} open={exportOpen} showTrigger={false} />
+          <ExportPanel brief={brief} catalog={catalog} onOpenChange={setExportOpen} onRenderStarted={(renderId) => setStatus(t(locale, "studio.renderStarted", { renderId }))} open={exportOpen} showTrigger={false} />
 
         </div>
 
         <div className="relative shrink-0 border-t border-border bg-card" style={{ height: consoleHeight }}>
-          <div aria-label="拖拽调整日志/终端高度" className="absolute inset-x-0 -top-1 z-10 h-2 cursor-ns-resize" onPointerDown={startResize} role="separator" tabIndex={0} />
+          <div aria-label={t(locale, "studio.resizeAria")} className="absolute inset-x-0 -top-1 z-10 h-2 cursor-ns-resize" onPointerDown={startResize} role="separator" tabIndex={0} />
           <Tabs className="h-full" onValueChange={setConsoleTab} value={consoleTab}>
             <TabsList className="justify-start">
-              <TabsTrigger value="terminal">终端</TabsTrigger>
-              <TabsTrigger value="logs">日志</TabsTrigger>
+              <TabsTrigger value="terminal">{t(locale, "studio.tabTerminal")}</TabsTrigger>
+              <TabsTrigger value="logs">{t(locale, "studio.tabLogs")}</TabsTrigger>
             </TabsList>
             <TabsContent value="terminal"><TerminalPanel active={consoleTab === "terminal"} /></TabsContent>
             <TabsContent value="logs"><LogPanel active={consoleTab === "logs"} /></TabsContent>
@@ -273,18 +279,18 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
         </div>
       </aside>
 
-      <Modal eyebrow="WORKSPACE" onClose={() => setResetOpen(false)} open={resetOpen} title="重置项目工作区？">
-        <p className="text-sm leading-6 text-muted-foreground">会把项目 workspace 整体重置回 App 骨架并重新 seed（含预览/渲染所需的 Makefile、Vite 配置与工程结构）。</p>
-        <p className="mt-2 rounded-xs border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs leading-5 text-destructive">这会删除当前工作区里 AI 改写过的 composition 代码、素材登记与运行状态，且无法撤销。仅用于修复损坏/过旧的工作区。</p>
+      <Modal eyebrow="WORKSPACE" onClose={() => setResetOpen(false)} open={resetOpen} title={t(locale, "studio.resetModalTitle")}>
+        <p className="text-sm leading-6 text-muted-foreground">{t(locale, "studio.resetModalBody1")}</p>
+        <p className="mt-2 rounded-xs border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs leading-5 text-destructive">{t(locale, "studio.resetModalBody2")}</p>
         <div className="mt-5 flex justify-end gap-2">
-          <Button disabled={resetting} onClick={() => setResetOpen(false)} type="button" variant="ghost">取消</Button>
-          <Button disabled={resetting} onClick={() => void confirmReset()} type="button" variant="destructive">{resetting ? "正在重置…" : "确认重置"}</Button>
+          <Button disabled={resetting} onClick={() => setResetOpen(false)} type="button" variant="ghost">{t(locale, "studio.cancel")}</Button>
+          <Button disabled={resetting} onClick={() => void confirmReset()} type="button" variant="destructive">{resetting ? t(locale, "studio.resetting") : t(locale, "studio.confirmReset")}</Button>
         </div>
       </Modal>
 
-      <Modal eyebrow="AI FINE-TUNE" onClose={() => setFineTune(null)} open={fineTune !== null} title={fineTune?.title ?? "配置微调动作"} wide>
+      <Modal eyebrow="AI FINE-TUNE" onClose={() => setFineTune(null)} open={fineTune !== null} title={fineTune?.title ?? t(locale, "studio.fineTuneModalTitle")} wide>
         {fineTune ? <div className="space-y-4">
-          <p className="text-sm leading-6 text-muted-foreground">选择要用的系统资源，自动生成 Prompt；你的补充要求单独填写，互不覆盖。</p>
+          <p className="text-sm leading-6 text-muted-foreground">{t(locale, "studio.fineTuneModalBody")}</p>
           {(() => {
             const Module = FINE_TUNE_MODULES[fineTune.kind];
             if (!Module) return null;
@@ -301,14 +307,14 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
             />;
           })()}
           <div className="border-t border-border pt-3">
-            <label className="mb-1.5 block text-xs font-medium" htmlFor="fine-tune-prompt">生成的 Prompt（由选择自动生成）</label>
+            <label className="mb-1.5 block text-xs font-medium" htmlFor="fine-tune-prompt">{t(locale, "studio.fineTunePromptLabel")}</label>
             <Textarea className="max-h-56 min-h-32 resize-y bg-muted/30 font-mono text-[11px] leading-5 text-foreground" id="fine-tune-prompt" readOnly value={fineTunePrompt} />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium" htmlFor="fine-tune-supplement">补充 Prompt（可选）</label>
-            <Textarea className="max-h-48 min-h-24 resize-y bg-muted/10 text-[11px] leading-5 text-foreground" id="fine-tune-supplement" onChange={(event) => setFineTuneSupplement(event.target.value)} placeholder="补充你对这支视频的要求，如：竖屏 9:16、强调关键词、字幕放大、风格更克制等" value={fineTuneSupplement} />
+            <label className="mb-1.5 block text-xs font-medium" htmlFor="fine-tune-supplement">{t(locale, "studio.fineTuneSupplementLabel")}</label>
+            <Textarea className="max-h-48 min-h-24 resize-y bg-muted/10 text-[11px] leading-5 text-foreground" id="fine-tune-supplement" onChange={(event) => setFineTuneSupplement(event.target.value)} placeholder={t(locale, "prompt.fineTuneSupplementPlaceholder")} value={fineTuneSupplement} />
           </div>
-          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt()} type="button" variant="ghost">复制 Prompt</Button><Button disabled={!fineTuneReady} onClick={submitFineTune} type="button">交给 AI</Button></div>
+          <div className="flex justify-end gap-2 pt-1"><Button onClick={() => void copyPrompt()} type="button" variant="ghost">{t(locale, "studio.copyPrompt")}</Button><Button disabled={!fineTuneReady} onClick={submitFineTune} type="button">{t(locale, "studio.submitToAI")}</Button></div>
         </div> : null}
       </Modal>
     </div>

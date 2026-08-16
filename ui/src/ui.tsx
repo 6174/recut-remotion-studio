@@ -6,8 +6,11 @@
  */
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
+import { getRecutLocale } from "./recut-sdk";
+import { t } from "./i18n";
 
 export function Modal({ open, title, eyebrow, onClose, children, wide }: { open: boolean; title: string; eyebrow?: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  const locale = getRecutLocale();
   if (!open) return null;
   return (
     <div aria-label={title} aria-modal="true" className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-6 backdrop-blur-[1px]" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }} role="dialog">
@@ -17,7 +20,7 @@ export function Modal({ open, title, eyebrow, onClose, children, wide }: { open:
             {eyebrow ? <p className="font-mono text-[10px] font-semibold tracking-[0.16em] text-primary">{eyebrow}</p> : null}
             <h2 className="mt-1 text-base font-semibold">{title}</h2>
           </div>
-          <button aria-label="关闭" className="grid size-8 shrink-0 place-items-center rounded-xs text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30" onClick={onClose} type="button"><X className="size-4" /></button>
+          <button aria-label={t(locale, "modal.closeAria")} className="grid size-8 shrink-0 place-items-center rounded-xs text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/30" onClick={onClose} type="button"><X className="size-4" /></button>
         </header>
         <div className="max-h-[70vh] overflow-y-auto p-5">{children}</div>
       </section>

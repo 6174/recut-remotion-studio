@@ -177,7 +177,7 @@ const CameraFixtureSurface: React.FC<{ id: string }> = ({ id }) => {
       cameraMove={CAMERA_PRESETS[id] ?? CAMERA_PRESETS["camera-drift"]}
       cameraProgress={progress}
     >
-      <group position={surface.position} rotation={surface.rotation} scale={surface.scale}>
+      <group position={surface.position} rotation={surface.rotation as unknown as THREE.Euler} scale={surface.scale}>
         {isBrowserShell ? <BrowserSurfaceShell height={PLANE_HEIGHT} width={(width / height) * PLANE_HEIGHT} /> : null}
         <mesh>
           <SurfacePlaneGeometry bend={surface.bend} cloth={SURFACE_PRESETS[id]?.cloth} corner={surface.corner} cornerCurl={surface.cornerCurl} height={PLANE_HEIGHT} time={frame / fps} width={(width / height) * PLANE_HEIGHT} />

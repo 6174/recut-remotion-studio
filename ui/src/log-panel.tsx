@@ -8,7 +8,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Copy, Trash2 } from "lucide-react";
 import { Button } from "./components/ui/button";
-import { recut } from "./recut-sdk";
+import { recut, useRecutLocale } from "./recut-sdk";
+import { t } from "./i18n";
 
 const APP_ID = "recut.remotion-studio";
 // 当前会话保留的总行数上限：实时日志超出后丢弃最旧行，避免 DOM 无限增长。
@@ -18,7 +19,7 @@ const BACKFILL_MAX = 120;
 
 interface LogLine { jobId: string; stream: string; text: string; timestamp: string; sequence?: number; }
 
-function jobLabel(jobId: string): string { return jobId.startsWith("preview-") ? "预览服务" : `任务 ${jobId.slice(0, 8)}`; }
+function jobLabel(locale: "zh" | "en", jobId: string): string { return jobId.startsWith("preview-") ? t(locale, "log.jobPreview") : t(locale, "log.jobTask", { id: jobId.slice(0, 8) }); }
 
 function lineKey(line: LogLine): string { return `${line.jobId}:${line.sequence ?? 0}:${line.text}:${line.timestamp}`; }
 
@@ -27,6 +28,7 @@ function belongsToSession(line: LogLine, startedAt: string): boolean { return Da
 interface LogPanelProps { active: boolean; }
 
 export function LogPanel({ active }: LogPanelProps) {
+  const locale = useRecutLocale();
   const [lines, setLines] = useState<LogLine[]>([]);
   const [filter, setFilter] = useState("all");
   const [copied, setCopied] = useState(false);
@@ -132,17 +134,17 @@ export function LogPanel({ active }: LogPanelProps) {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-2">
-        <select aria-label="日志过滤" className="h-7 min-w-36 rounded-xs border border-input bg-background px-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" onChange={(event) => setFilter(event.target.value)} value={filter}>
-          <option value="all">当前会话</option>
-          {jobIds.map((jobId) => <option key={jobId} value={jobId}>{jobLabel(jobId)} · {jobId.slice(0, 8)}</option>)}
+        <select aria-label={t(locale, "log.filterAria")} className="h-7 min-w-36 rounded-xs border border-input bg-background px-2 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" onChange={(event) => setFilter(event.target.value)} value={filter}>
+          <option value="all">{t(locale, "log.currentSession")}</option>
+          {jobIds.map((jobId) => <option key={jobId} value={jobId}>{jobLabel(locale, jobId)} · {jobId.slice(0, 8)}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-1">
-          <Button disabled={!visible.length} onClick={() => void copy()} title="复制当前日志" type="button" variant="ghost"><Copy className="size-3.5" />{copied ? "已复制" : "复制"}</Button>
-          <Button disabled={!lines.length} onClick={() => setLines([])} title="清空日志" type="button" variant="ghost"><Trash2 className="size-3.5" />清空</Button>
+          <Button disabled={!visible.length} onClick={() => void copy()} title={t(locale, "log.copyTitle")} type="button" variant="ghost"><Copy className="size-3.5" />{copied ? t(locale, "log.copied") : t(locale, "log.copy")}</Button>
+          <Button disabled={!lines.length} onClick={() => setLines([])} title={t(locale, "log.clearTitle")} type="button" variant="ghost"><Trash2 className="size-3.5" />{t(locale, "log.clear")}</Button>
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto bg-background px-3 py-2 font-mono text-[11px] leading-5" onScroll={onScroll} ref={bodyRef}>
-        {visible.length === 0 ? <p className="py-2 text-muted-foreground">暂无日志。预览服务、终端命令与渲染任务的输出会显示在这里。</p> : (
+        {visible.length === 0 ? <p className="py-2 text-muted-foreground">{t(locale, "log.empty")}</p> : (
           <div className="relative" style={{ height: virtualizer.getTotalSize() }}>
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const line = visible[virtualRow.index];

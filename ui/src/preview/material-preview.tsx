@@ -21,6 +21,8 @@ import {
 } from "@recut/remotion-kit";
 import { RemotionFrameInvalidator, ThreeVideoCanvas } from "@recut/remotion-kit/three";
 import * as THREE from "three";
+import { getRecutLocale } from "../recut-sdk";
+import { t } from "../i18n";
 
 const PLANE_HEIGHT = 4.9;
 type SampleVariant = 0 | 1 | 2;
@@ -88,7 +90,7 @@ const drawSampleScene = (
   context.fillStyle = "#94a3b8";
   context.font = `600 ${Math.round(h * 0.024)}px system-ui, -apple-system, sans-serif`;
   context.fillText("HTML content surface → CanvasTexture → Three material", w * 0.06, h * 0.43);
-  context.fillText("逐帧只更新 uniform，绝不重建 shader", w * 0.06, h * 0.47);
+  context.fillText(t(getRecutLocale(), "preview.materialUniformNote"), w * 0.06, h * 0.47);
 
   context.fillStyle = "#38bdf8";
   context.fillRect(w * 0.06, h * 0.55, w * 0.34, h * 0.008);

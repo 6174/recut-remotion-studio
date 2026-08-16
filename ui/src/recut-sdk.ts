@@ -1,9 +1,11 @@
 /**
- * [INPUT]: 依赖 Host 注入的 MessageChannel，并向 Host 发出可重试的 UI 就绪握手
- * [OUTPUT]: 对外提供等待 Host MessageChannel 就绪、以 debug 输出成功通信诊断的 iframe React UI SDK、只回填不提交的 Agent compose 请求
+ * [INPUT]: 依赖 Host 注入的 MessageChannel、iframe URL 的 locale 参数，并向 Host 发出可重试的 UI 就绪握手
+ * [OUTPUT]: 对外提供等待 Host MessageChannel 就绪、以 debug 输出成功通信诊断的 iframe React UI SDK、只回填不提交的 Agent compose 请求与当前 locale 查询/React locale hook
  * [POS]: remotion-studio 的 UI 通信边界；业务 UI 不直接访问 SQLite 或终端，实时事件由宿主转发，Agent 内容必须经全局 chat 可见
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
+import { useSyncExternalStore } from "react";
+import type { Locale } from "./i18n";
 type RequestType = "state.query" | "background.call" | "agent.compose" | "media.pick";
 type Request = { id: string; type: RequestType; input: Record<string, unknown> };
 let port: MessagePort | null = null;
@@ -13,6 +15,26 @@ const pending = new Map<string, { type: RequestType; resolve: (value: any) => vo
 let requestSequence = 0;
 let readyAttempts = 0;
 const hostOrigin = document.referrer ? new URL(document.referrer).origin : "*";
+
+function resolveRecutLocale(): Locale {
+  const fromQuery = new URLSearchParams(window.location.search).get("locale");
+  if (fromQuery === "zh" || fromQuery === "en") return fromQuery;
+  return String(navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en";
+}
+
+export function getRecutLocale(): Locale {
+  return resolveRecutLocale();
+}
+
+const localeListeners = new Set<() => void>();
+function subscribeLocale(listener: () => void) {
+  localeListeners.add(listener);
+  return () => { localeListeners.delete(listener); };
+}
+
+export function useRecutLocale(): Locale {
+  return useSyncExternalStore(subscribeLocale, getRecutLocale);
+}
 
 function announceReady() {
   if (port || window.parent === window || readyAttempts >= 40) return;
