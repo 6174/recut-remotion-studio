@@ -7,10 +7,12 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 export const BeastTheme: React.FC<InternalThemeProps> = ({
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -65,7 +67,7 @@ export const BeastTheme: React.FC<InternalThemeProps> = ({
             key={index}
             style={{
               color: "#ffffff",
-              fontFamily: '"Arial Black", "PingFang SC", "Noto Sans SC", sans-serif',
+              fontFamily: resolveFontFamily('"Arial Black", "PingFang SC", "Noto Sans SC", sans-serif', fontFamily),
               fontSize: baseSize,
               fontWeight: 900,
               fontStyle: "normal",

@@ -137,8 +137,32 @@
     {
       "name": "preview.props",
       "surfaces": ["api"],
-      "description": "把当前 Brief、素材映射（assetId→内容 URL）与画布设置写入 workspace/preview/props.json，供预览页读取；素材或设置变化时调用。",
-      "inputSchema": { "type": "object", "required": [], "properties": { "media": { "type": "object", "additionalProperties": { "type": "object" } }, "settings": { "type": "object", "additionalProperties": { "type": "object" } } } }
+      "description": "把当前 Brief、素材映射（assetId→内容 URL）、画布设置与已选配乐写入 workspace/preview/props.json，供预览页读取；素材或设置变化时调用。",
+      "inputSchema": { "type": "object", "required": [], "properties": { "media": { "type": "object", "additionalProperties": { "type": "object" } }, "settings": { "type": "object", "additionalProperties": { "type": "object" } }, "music": { "type": "object", "properties": { "assetId": { "type": "string" } }, "additionalProperties": false } } }
+    },
+    {
+      "name": "music.import",
+      "surfaces": ["api"],
+      "description": "把用户从 Recut CDN 音乐目录选中的曲目下载并导入为媒体音频资产（幂等；同一曲目重复选择返回已导入的 assetId）。曲目的 url 与元数据由界面从 CDN 目录传入（catalog-first）。传入空 trackId 时解除配乐选择。composition 用 resolveMediaUrl(assetId) 引用并用 composition.assets 登记。",
+      "inputSchema": { "type": "object", "properties": { "trackId": { "type": "string", "description": "CDN 音频目录里 music 条目的 id；空字符串表示移除配乐。" }, "url": { "type": "string", "description": "曲目 CDN 音频面地址（来自目录的 url 字段）。" }, "name": { "type": "string" }, "duration": { "type": "number" }, "license": { "type": "string" }, "source": { "type": "string" }, "attribution": { "type": "string" } } }
+    },
+    {
+      "name": "music.selected",
+      "surfaces": ["api"],
+      "description": "读取当前项目已选的配乐媒体资产 id（供预览 props 与界面刷新）。",
+      "inputSchema": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "fonts.select",
+      "surfaces": ["api"],
+      "description": "持久化当前选择的字体家族 id（Recut CDN 字体目录里的家族）。实际 @font-face 由组成代码经 @recut/remotion-kit/fonts 从 CDN 注入。",
+      "inputSchema": { "type": "object", "required": ["familyId"], "properties": { "familyId": { "type": "string" } } }
+    },
+    {
+      "name": "fonts.selected",
+      "surfaces": ["api"],
+      "description": "读取当前项目已选的字体家族 id（供界面刷新）。",
+      "inputSchema": { "type": "object", "properties": {} }
     },
     {
       "name": "terminal.exec",

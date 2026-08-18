@@ -11,7 +11,9 @@ import {
   Expand,
   ImagePlus,
   MousePointer2,
+  Music,
   Sparkles,
+  Type,
 } from "lucide-react";
 import { Button } from "./components/ui/button";
 import { Textarea } from "./components/ui/textarea";
@@ -29,6 +31,9 @@ import { CanvasFineTune } from "./fine-tunes/CanvasFineTune";
 import { ComponentFineTune } from "./fine-tunes/ComponentFineTune";
 import { EffectsFineTune } from "./fine-tunes/EffectsFineTune";
 import { MaterialsFineTune } from "./fine-tunes/MaterialsFineTune";
+import { MusicFineTune } from "./fine-tunes/MusicFineTune";
+import { FontFineTune } from "./fine-tunes/FontFineTune";
+import { loadResourceCatalogs, type ResourceCatalogs } from "./fine-tunes/catalog";
 import type { FineTuneProps } from "./fine-tunes/FineTuneProps";
 import type { Brief, Catalog, KitState, MediaAsset, MediaMap } from "./app";
 
@@ -50,7 +55,7 @@ export interface WorkspaceActions {
   resetWorkspace: () => void;
 }
 
-type FineTuneKind = "template" | "captions" | "canvas" | "component" | "materials" | "effects";
+type FineTuneKind = "template" | "captions" | "canvas" | "component" | "materials" | "effects" | "music" | "fonts";
 
 interface FineTuneConfig {
   kind: FineTuneKind;
@@ -103,6 +108,20 @@ const FINE_TUNES: FineTuneConfig[] = [
     basePromptKey: "fineTune.canvas.basePrompt",
     Icon: Expand,
   },
+{
+    kind: "music" as const,
+    titleKey: "fineTune.music.title",
+    descriptionKey: "fineTune.music.description",
+    basePromptKey: "fineTune.music.basePrompt",
+    Icon: Music,
+  },
+  {
+    kind: "fonts" as const,
+    titleKey: "fineTune.fonts.title",
+    descriptionKey: "fineTune.fonts.description",
+    basePromptKey: "fineTune.fonts.basePrompt",
+    Icon: Type,
+  },
 ];
 
 const FINE_TUNE_MODULES: Partial<Record<FineTuneKind, React.FC<FineTuneProps>>> = {
@@ -112,6 +131,8 @@ const FINE_TUNE_MODULES: Partial<Record<FineTuneKind, React.FC<FineTuneProps>>> 
   component: ComponentFineTune,
   effects: EffectsFineTune,
   materials: MaterialsFineTune,
+  music: MusicFineTune,
+  fonts: FontFineTune,
 };
 
 export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus, onHeaderActionsChange }: StudioProps) {
@@ -133,9 +154,16 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const [fineTuneSupplement, setFineTuneSupplement] = useState("");
   const [fineTuneReady, setFineTuneReady] = useState(true);
   const [kitState, setKitState] = useState<KitState | null>(null);
+  const [resources, setResources] = useState<ResourceCatalogs | null>(null);
 
   useEffect(() => {
     recut.background.call("workspace.kit-state", {}).then(setKitState).catch(() => setKitState(null));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadResourceCatalogs().then((next) => { if (!cancelled) setResources(next); }).catch(() => { if (!cancelled) setResources(null); });
+    return () => { cancelled = true; };
   }, []);
 
   const kitVersionHint = useMemo(() => {
@@ -304,6 +332,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
               onPrompt={setFineTunePrompt}
               onReady={setFineTuneReady}
               onStatus={setStatus}
+              resources={resources}
             />;
           })()}
           <div className="border-t border-border pt-3">

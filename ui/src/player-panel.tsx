@@ -58,7 +58,14 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
 
   const writeProps = useCallback(async () => {
     if (!brief) return;
-    await recut.background.call("preview.props", { media: mediaMap, settings: PREVIEW_SETTINGS });
+    let music: { assetId: string | null } | null = null;
+    try {
+      const selected = (await recut.background.call("music.selected", {})) as { assetId: string | null };
+      music = selected?.assetId ? { assetId: selected.assetId } : null;
+    } catch {
+      /* 配乐选择读取失败不阻塞预览 props 写入。 */
+    }
+    await recut.background.call("preview.props", { media: mediaMap, settings: PREVIEW_SETTINGS, music });
   }, [brief, mediaMap]);
 
   const refreshServe = useCallback(async () => {

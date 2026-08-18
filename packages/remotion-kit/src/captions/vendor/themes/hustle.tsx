@@ -1,12 +1,14 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 export const HustleTheme: React.FC<InternalThemeProps> = ({
   primaryColor,
   secondaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -61,7 +63,7 @@ export const HustleTheme: React.FC<InternalThemeProps> = ({
             key={index}
             style={{
               color,
-              fontFamily: '"Montserrat", "Arial Black", sans-serif',
+              fontFamily: resolveFontFamily('"Montserrat", "Arial Black", sans-serif', fontFamily),
               fontSize: scaledFontSize,
               fontWeight: 900,
               fontStyle: "italic",

@@ -5,6 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { Brief, Catalog, MediaAsset } from "../app";
+import type { ResourceCatalogs } from "./catalog";
 
 export interface FineTuneProps {
   brief: Brief;
@@ -12,6 +13,8 @@ export interface FineTuneProps {
   completedAssets: MediaAsset[];
   basePrompt: string;
   kitVersionHint?: string;
+  /** Studio 拉取的 Recut CDN 资源目录（音乐/字体）；不存在时为 null。 */
+  resources?: ResourceCatalogs | null;
   onPrompt: (prompt: string) => void;
   onReady: (ready: boolean) => void;
   onStatus: (message: string) => void;

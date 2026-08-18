@@ -15,6 +15,7 @@ export const CaptionTheme: React.FC<CaptionThemeProps> = ({
   data,
   theme = "pop",
   fontSize,
+  fontFamily,
 }) => {
   const colors = resolveColors(primaryColor, secondaryColor);
   const Theme = themeRegistry[theme] ?? themeRegistry.pop;
@@ -24,6 +25,7 @@ export const CaptionTheme: React.FC<CaptionThemeProps> = ({
       secondaryColor={colors.secondary}
       data={data}
       fontSize={fontSize}
+      fontFamily={fontFamily}
     />
   );
 };

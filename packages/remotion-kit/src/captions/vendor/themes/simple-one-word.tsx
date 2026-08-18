@@ -1,11 +1,13 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 export const SimpleOneWordTheme: React.FC<InternalThemeProps> = ({
   primaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -43,7 +45,7 @@ export const SimpleOneWordTheme: React.FC<InternalThemeProps> = ({
       <span
         style={{
           color: primaryColor,
-          fontFamily: '"Outfit", "Inter", sans-serif',
+          fontFamily: resolveFontFamily('"Outfit", "Inter", sans-serif', fontFamily),
           fontSize: scaledFontSize,
           fontWeight: 800,
           textTransform: "uppercase",

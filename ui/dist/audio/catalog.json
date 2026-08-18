@@ -1,0 +1,2025 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-15T06:48:25.683Z",
+  "music": [
+    {
+      "id": "oga-bossa-nova",
+      "name": "8-Bit Bossa",
+      "moods": [
+        "Happy",
+        "Relaxed"
+      ],
+      "styles": [
+        "Latin",
+        "Acoustic"
+      ],
+      "duration": 59.61,
+      "filesize": 1036480,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/bossa-nova",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-bossa-nova.mp3"
+    },
+    {
+      "id": "oga-field-of-dreams",
+      "name": "The Field of Dreams",
+      "moods": [
+        "Emotional",
+        "Inspiring"
+      ],
+      "styles": [
+        "Cinematic",
+        "Orchestral"
+      ],
+      "duration": 84.64,
+      "filesize": 1471162,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/the-field-of-dreams",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-field-of-dreams.mp3"
+    },
+    {
+      "id": "oga-tragic-ambient",
+      "name": "Tragic Ambient Main Menu",
+      "moods": [
+        "Dark",
+        "Sad"
+      ],
+      "styles": [
+        "Ambient",
+        "Piano"
+      ],
+      "duration": 100,
+      "filesize": 1583287,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/tragic-ambient-main-menu",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-tragic-ambient.mp3"
+    },
+    {
+      "id": "oga-mysterious-ambience",
+      "name": "Mysterious Ambience",
+      "moods": [
+        "Mysterious",
+        "Dark"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 42.95,
+      "filesize": 558510,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/mysterious-ambience-song21",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-mysterious-ambience.mp3"
+    },
+    {
+      "id": "oga-rain-and-thunders",
+      "name": "Rain and Thunders",
+      "moods": [
+        "Calm",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient",
+        "Nature"
+      ],
+      "duration": 278.77,
+      "filesize": 5143032,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/rain-and-thunders",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-rain-and-thunders.mp3"
+    },
+    {
+      "id": "oga-next-to-you",
+      "name": "Next to You",
+      "moods": [
+        "Emotional",
+        "Romantic"
+      ],
+      "styles": [
+        "Piano",
+        "Acoustic"
+      ],
+      "duration": 83.54,
+      "filesize": 1210896,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/next-to-you",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-next-to-you.mp3"
+    },
+    {
+      "id": "ae-doomed",
+      "name": "Doomed",
+      "moods": [
+        "Dark",
+        "Intense"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 151.25,
+      "filesize": 2731522,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-doomed.mp3"
+    },
+    {
+      "id": "ae-flags",
+      "name": "Flags",
+      "moods": [
+        "Inspiring",
+        "Epic"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 98.64,
+      "filesize": 1962886,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-flags.mp3"
+    },
+    {
+      "id": "ae-great-mission",
+      "name": "Great Mission",
+      "moods": [
+        "Epic",
+        "Inspiring"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 118.54,
+      "filesize": 2252874,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-great-mission.mp3"
+    },
+    {
+      "id": "ae-spacetime",
+      "name": "Spacetime",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient",
+        "Electronic"
+      ],
+      "duration": 116.06,
+      "filesize": 2189848,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-spacetime.mp3"
+    },
+    {
+      "id": "ae-twists",
+      "name": "Twists",
+      "moods": [
+        "Intense",
+        "Dark"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 180.06,
+      "filesize": 3476717,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-twists.mp3"
+    },
+    {
+      "id": "ae-waking-the-devil",
+      "name": "Waking the Devil",
+      "moods": [
+        "Dark",
+        "Intense"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 80.69,
+      "filesize": 1508673,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-waking-the-devil.mp3"
+    },
+    {
+      "id": "ae-warped",
+      "name": "Warped",
+      "moods": [
+        "Mysterious",
+        "Intense"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 114.08,
+      "filesize": 2215075,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-music-pack",
+      "attribution": "Alexander Ehlers (OpenGameArt)",
+      "url": "audio/music/ae-warped.mp3"
+    },
+    {
+      "id": "oga-8bit-title-screen",
+      "name": "8-Bit Title Screen",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Chiptune",
+        "Retro"
+      ],
+      "duration": 22,
+      "filesize": 364436,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/8bit-title-screen",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-8bit-title-screen.mp3"
+    },
+    {
+      "id": "oga-a-new-town",
+      "name": "A New Town",
+      "moods": [
+        "Happy",
+        "Inspiring"
+      ],
+      "styles": [
+        "Orchestral",
+        "Acoustic"
+      ],
+      "duration": 62.32,
+      "filesize": 1008610,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/a-new-town-rpg-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-a-new-town.mp3"
+    },
+    {
+      "id": "oga-at-the-end-of-hope",
+      "name": "At the End of Hope",
+      "moods": [
+        "Emotional",
+        "Sad"
+      ],
+      "styles": [
+        "Cinematic",
+        "Orchestral"
+      ],
+      "duration": 182.89,
+      "filesize": 3742410,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/at-the-end-of-hope",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-at-the-end-of-hope.mp3"
+    },
+    {
+      "id": "oga-battle-theme-a",
+      "name": "Battle Theme A",
+      "moods": [
+        "Intense",
+        "Epic"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 95.9,
+      "filesize": 1890737,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/battle-theme-a",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-battle-theme-a.mp3"
+    },
+    {
+      "id": "oga-battle-theme-b",
+      "name": "Battle Theme B",
+      "moods": [
+        "Intense",
+        "Epic"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 66.04,
+      "filesize": 1196688,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/battle-theme-b-for-rpg",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-battle-theme-b.mp3"
+    },
+    {
+      "id": "oga-carnival-rides",
+      "name": "Carnival Rides",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Retro",
+        "Acoustic"
+      ],
+      "duration": 25.5,
+      "filesize": 487837,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/carnival-rides",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-carnival-rides.mp3"
+    },
+    {
+      "id": "oga-cave-theme",
+      "name": "Cave Theme",
+      "moods": [
+        "Mysterious",
+        "Dark"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 280,
+      "filesize": 4597805,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/cave-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-cave-theme.mp3"
+    },
+    {
+      "id": "oga-chill-lofi",
+      "name": "Chill Lofi",
+      "moods": [
+        "Calm",
+        "Relaxed"
+      ],
+      "styles": [
+        "Lo-fi",
+        "Chill"
+      ],
+      "duration": 123.19,
+      "filesize": 2191478,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/chill-lofi-inspired",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-chill-lofi.mp3"
+    },
+    {
+      "id": "oga-chill-main-menu",
+      "name": "Chill Main Menu",
+      "moods": [
+        "Calm",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 99,
+      "filesize": 1537343,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/chill-main-menu-music",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-chill-main-menu.mp3"
+    },
+    {
+      "id": "oga-creepy-forest",
+      "name": "Creepy Forest",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 216,
+      "filesize": 3245998,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/creepy-forest-f",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-creepy-forest.mp3"
+    },
+    {
+      "id": "oga-crystal-cave",
+      "name": "Crystal Cave",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 49.61,
+      "filesize": 722449,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/crystal-cave-song18",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-crystal-cave.mp3"
+    },
+    {
+      "id": "oga-cyberpunk-moonlight",
+      "name": "Cyberpunk Moonlight Sonata",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Electronic",
+        "Piano"
+      ],
+      "duration": 116.74,
+      "filesize": 2523618,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/cyberpunk-moonlight-sonata",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-cyberpunk-moonlight.mp3"
+    },
+    {
+      "id": "oga-dark-forest",
+      "name": "Dark Forest Theme",
+      "moods": [
+        "Dark",
+        "Emotional"
+      ],
+      "styles": [
+        "Orchestral",
+        "Ambient"
+      ],
+      "duration": 93.13,
+      "filesize": 1846814,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/dark-forest-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-dark-forest.mp3"
+    },
+    {
+      "id": "oga-determined-pursuit",
+      "name": "Determined Pursuit",
+      "moods": [
+        "Epic",
+        "Inspiring"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 108,
+      "filesize": 2050142,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/determined-pursuit-epic-orchestra-loop",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-determined-pursuit.mp3"
+    },
+    {
+      "id": "oga-doodle-menu",
+      "name": "Doodle Menu",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Acoustic"
+      ],
+      "duration": 83.51,
+      "filesize": 1217714,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/doodle-menu-like-song",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-doodle-menu.mp3"
+    },
+    {
+      "id": "oga-emotional-piano",
+      "name": "Emotional Piano Loop",
+      "moods": [
+        "Emotional",
+        "Calm"
+      ],
+      "styles": [
+        "Piano"
+      ],
+      "duration": 27.84,
+      "filesize": 321200,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/emotional-piano-loop",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-emotional-piano.mp3"
+    },
+    {
+      "id": "oga-empty-city",
+      "name": "Empty City",
+      "moods": [
+        "Dark",
+        "Sad"
+      ],
+      "styles": [
+        "Ambient",
+        "Electronic"
+      ],
+      "duration": 100,
+      "filesize": 1171866,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/emptycity-background-music",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-empty-city.mp3"
+    },
+    {
+      "id": "oga-enchanted-tiki",
+      "name": "Enchanted Tiki 86",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Chiptune",
+        "Retro"
+      ],
+      "duration": 117.45,
+      "filesize": 2160525,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/enchanted-tiki-86",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-enchanted-tiki.mp3"
+    },
+    {
+      "id": "oga-eye-of-the-storm",
+      "name": "Eye of the Storm",
+      "moods": [
+        "Epic",
+        "Intense"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 46.13,
+      "filesize": 757606,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/eye-of-the-storm",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-eye-of-the-storm.mp3"
+    },
+    {
+      "id": "oga-flare-main",
+      "name": "Flare Main",
+      "moods": [
+        "Calm",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient",
+        "Electronic"
+      ],
+      "duration": 76,
+      "filesize": 931417,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/flare-main",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-flare-main.mp3"
+    },
+    {
+      "id": "oga-forest-ambience",
+      "name": "Forest Ambience",
+      "moods": [
+        "Calm",
+        "Relaxed"
+      ],
+      "styles": [
+        "Nature",
+        "Ambient"
+      ],
+      "duration": 44.76,
+      "filesize": 837231,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/forest-ambience",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-forest-ambience.mp3"
+    },
+    {
+      "id": "oga-forgotten-tomb",
+      "name": "Forgotten Tomb Ambience",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 214.2,
+      "filesize": 4358671,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/forgoten-tomb-ambience",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-forgotten-tomb.mp3"
+    },
+    {
+      "id": "oga-free-run",
+      "name": "Free Run",
+      "moods": [
+        "Happy",
+        "Upbeat"
+      ],
+      "styles": [
+        "Chiptune",
+        "Retro"
+      ],
+      "duration": 83.28,
+      "filesize": 1631198,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/free-run-8-bitish",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-free-run.mp3"
+    },
+    {
+      "id": "oga-gone-fishin",
+      "name": "Gone Fishin",
+      "moods": [
+        "Happy",
+        "Relaxed"
+      ],
+      "styles": [
+        "Acoustic",
+        "Jazz"
+      ],
+      "duration": 107.71,
+      "filesize": 2085266,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/gone-fishin",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-gone-fishin.mp3"
+    },
+    {
+      "id": "oga-happy-adventure",
+      "name": "Happy Adventure Loop",
+      "moods": [
+        "Happy",
+        "Upbeat"
+      ],
+      "styles": [
+        "Orchestral",
+        "Acoustic"
+      ],
+      "duration": 46.79,
+      "filesize": 676213,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/happy-adventure-loop",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-happy-adventure.mp3"
+    },
+    {
+      "id": "oga-happy-lullaby",
+      "name": "Happy Lullaby",
+      "moods": [
+        "Happy",
+        "Calm"
+      ],
+      "styles": [
+        "Piano",
+        "Retro"
+      ],
+      "duration": 39.56,
+      "filesize": 594105,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/happy-lullaby-song17",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-happy-lullaby.mp3"
+    },
+    {
+      "id": "oga-horror-wastelands",
+      "name": "Post Apocalyptic Wastelands",
+      "moods": [
+        "Dark",
+        "Intense"
+      ],
+      "styles": [
+        "Ambient",
+        "Horror"
+      ],
+      "duration": 323.85,
+      "filesize": 5177796,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/horror-atmosphere",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-horror-wastelands.mp3"
+    },
+    {
+      "id": "oga-i-swear-i-saw-it",
+      "name": "I Swear I Saw It",
+      "moods": [
+        "Mysterious",
+        "Dark"
+      ],
+      "styles": [
+        "Ambient",
+        "Retro"
+      ],
+      "duration": 207.43,
+      "filesize": 2614391,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/i-swear-i-saw-it-background-track",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-i-swear-i-saw-it.mp3"
+    },
+    {
+      "id": "oga-insistent-loop",
+      "name": "Insistent Loop",
+      "moods": [
+        "Intense",
+        "Dark"
+      ],
+      "styles": [
+        "Electronic"
+      ],
+      "duration": 128.69,
+      "filesize": 1698721,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/insistent-background-loop",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-insistent-loop.mp3"
+    },
+    {
+      "id": "oga-long-away-home",
+      "name": "Long Away Home",
+      "moods": [
+        "Emotional",
+        "Calm"
+      ],
+      "styles": [
+        "Piano",
+        "Chiptune"
+      ],
+      "duration": 121.33,
+      "filesize": 3746915,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/long-away-home-8bit",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-long-away-home.mp3"
+    },
+    {
+      "id": "oga-magic-space",
+      "name": "Magic Space",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Space",
+        "Ambient"
+      ],
+      "duration": 54.91,
+      "filesize": 959117,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/magic-space",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-magic-space.mp3"
+    },
+    {
+      "id": "oga-minstrel-dance",
+      "name": "Minstrel Dance",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Medieval",
+        "Acoustic"
+      ],
+      "duration": 138.61,
+      "filesize": 2425804,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/medieval-minstrel-dance",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-minstrel-dance.mp3"
+    },
+    {
+      "id": "oga-bards-tale",
+      "name": "The Bard's Tale",
+      "moods": [
+        "Calm",
+        "Emotional"
+      ],
+      "styles": [
+        "Medieval",
+        "Acoustic"
+      ],
+      "duration": 158.59,
+      "filesize": 2844046,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/medieval-the-bards-tale",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-bards-tale.mp3"
+    },
+    {
+      "id": "oga-old-tower-inn",
+      "name": "The Old Tower Inn",
+      "moods": [
+        "Calm",
+        "Happy"
+      ],
+      "styles": [
+        "Medieval",
+        "Acoustic"
+      ],
+      "duration": 105.48,
+      "filesize": 2043475,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/medieval-the-old-tower-inn",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-old-tower-inn.mp3"
+    },
+    {
+      "id": "oga-mythica",
+      "name": "Mythica",
+      "moods": [
+        "Epic",
+        "Inspiring"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 312.06,
+      "filesize": 5511104,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/mythica",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-mythica.mp3"
+    },
+    {
+      "id": "oga-night-of-the-streets",
+      "name": "Night of the Streets",
+      "moods": [
+        "Dark",
+        "Intense"
+      ],
+      "styles": [
+        "Cinematic",
+        "Horror"
+      ],
+      "duration": 163.68,
+      "filesize": 2797136,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/night-of-the-streets-horrorsuspense",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-night-of-the-streets.mp3"
+    },
+    {
+      "id": "oga-night-prowler",
+      "name": "Night Prowler",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Electronic",
+        "Retro"
+      ],
+      "duration": 152.72,
+      "filesize": 2973670,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/night-prowler",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-night-prowler.mp3"
+    },
+    {
+      "id": "oga-november-snow",
+      "name": "November Snow",
+      "moods": [
+        "Calm",
+        "Emotional"
+      ],
+      "styles": [
+        "Ambient",
+        "Piano"
+      ],
+      "duration": 349.54,
+      "filesize": 7247620,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/november-snow",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-november-snow.mp3"
+    },
+    {
+      "id": "oga-prepare-your-swords",
+      "name": "Prepare Your Swords",
+      "moods": [
+        "Epic",
+        "Intense"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 88.35,
+      "filesize": 1465495,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/prepare-your-swords",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-prepare-your-swords.mp3"
+    },
+    {
+      "id": "oga-sad-orchestral",
+      "name": "Sad Orchestral Theme",
+      "moods": [
+        "Sad",
+        "Emotional"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 316.38,
+      "filesize": 5734970,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/sad-orchestral-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-sad-orchestral.mp3"
+    },
+    {
+      "id": "oga-searching",
+      "name": "Searching",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 104.58,
+      "filesize": 1429582,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/searching",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-searching.mp3"
+    },
+    {
+      "id": "oga-shrine",
+      "name": "Shrine",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient",
+        "Medieval"
+      ],
+      "duration": 54.32,
+      "filesize": 817619,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/shrine",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-shrine.mp3"
+    },
+    {
+      "id": "oga-sirens-in-darkness",
+      "name": "Sirens in Darkness",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Electronic",
+        "Ambient"
+      ],
+      "duration": 229.9,
+      "filesize": 4092061,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/sirens-in-darkness",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-sirens-in-darkness.mp3"
+    },
+    {
+      "id": "oga-snowfall",
+      "name": "Snowfall",
+      "moods": [
+        "Calm",
+        "Emotional"
+      ],
+      "styles": [
+        "Ambient",
+        "Piano"
+      ],
+      "duration": 49.5,
+      "filesize": 775733,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/snowfall",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-snowfall.mp3"
+    },
+    {
+      "id": "oga-space-out-there",
+      "name": "Out There",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Space",
+        "Ambient"
+      ],
+      "duration": 242,
+      "filesize": 3513430,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/space-music-out-there",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-space-out-there.mp3"
+    },
+    {
+      "id": "oga-spacelife-14",
+      "name": "Spacelife 14",
+      "moods": [
+        "Mysterious",
+        "Dark"
+      ],
+      "styles": [
+        "Space",
+        "Electronic"
+      ],
+      "duration": 110.29,
+      "filesize": 1489846,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/spacelife-14",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-spacelife-14.mp3"
+    },
+    {
+      "id": "oga-story-time",
+      "name": "Story Time",
+      "moods": [
+        "Calm",
+        "Happy"
+      ],
+      "styles": [
+        "Acoustic",
+        "Retro"
+      ],
+      "duration": 55.05,
+      "filesize": 721090,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/story-time",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-story-time.mp3"
+    },
+    {
+      "id": "oga-talking-cute-chiptune",
+      "name": "Talking Cute Chiptune",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Chiptune",
+        "Retro"
+      ],
+      "duration": 152.01,
+      "filesize": 3162238,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/talking-cute-chiptune",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-talking-cute-chiptune.mp3"
+    },
+    {
+      "id": "oga-the-9th-circle",
+      "name": "The 9th Circle",
+      "moods": [
+        "Dark",
+        "Epic"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 170.74,
+      "filesize": 3445108,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/the-9th-circle",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-the-9th-circle.mp3"
+    },
+    {
+      "id": "oga-the-rush",
+      "name": "The Rush",
+      "moods": [
+        "Epic",
+        "Intense"
+      ],
+      "styles": [
+        "Cinematic",
+        "Electronic"
+      ],
+      "duration": 139.7,
+      "filesize": 3874694,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/the-rush",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-the-rush.mp3"
+    },
+    {
+      "id": "oga-tower-defense",
+      "name": "Tower Defense Theme",
+      "moods": [
+        "Epic",
+        "Intense"
+      ],
+      "styles": [
+        "Orchestral",
+        "Cinematic"
+      ],
+      "duration": 199.42,
+      "filesize": 4029299,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/tower-defense-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-tower-defense.mp3"
+    },
+    {
+      "id": "oga-underwater",
+      "name": "Underwater Theme",
+      "moods": [
+        "Calm",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 170.21,
+      "filesize": 3473953,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/underwater-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-underwater.mp3"
+    },
+    {
+      "id": "oga-vampires-piano",
+      "name": "Vampire's Piano",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Piano",
+        "Classical"
+      ],
+      "duration": 89.44,
+      "filesize": 1433517,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/vampires-piano",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-vampires-piano.mp3"
+    },
+    {
+      "id": "oga-where-was-i",
+      "name": "Where Was I",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient",
+        "Retro"
+      ],
+      "duration": 68.23,
+      "filesize": 1162528,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/where-was-i",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-where-was-i.mp3"
+    },
+    {
+      "id": "oga-zombies-march",
+      "name": "Zombies March",
+      "moods": [
+        "Dark",
+        "Intense"
+      ],
+      "styles": [
+        "Retro",
+        "Horror"
+      ],
+      "duration": 84,
+      "filesize": 1762449,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/zombies-march",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-zombies-march.mp3"
+    },
+    {
+      "id": "oga-adventure-time",
+      "name": "Adventure Time",
+      "moods": [
+        "Happy",
+        "Upbeat"
+      ],
+      "styles": [
+        "Retro",
+        "Acoustic"
+      ],
+      "duration": 86.07,
+      "filesize": 1449919,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/adventure-time",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-adventure-time.mp3"
+    },
+    {
+      "id": "oga-desert-theme",
+      "name": "Desert Theme",
+      "moods": [
+        "Mysterious",
+        "Calm"
+      ],
+      "styles": [
+        "Ambient",
+        "Acoustic"
+      ],
+      "duration": 98.4,
+      "filesize": 1278451,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/desert-theme",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-desert-theme.mp3"
+    },
+    {
+      "id": "oga-dungeon-ambience",
+      "name": "Dungeon Ambience",
+      "moods": [
+        "Dark",
+        "Mysterious"
+      ],
+      "styles": [
+        "Ambient"
+      ],
+      "duration": 206,
+      "filesize": 2480846,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/dungeon-ambience",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-dungeon-ambience.mp3"
+    },
+    {
+      "id": "oga-breves-dies-hominis",
+      "name": "Breves Dies Hominis",
+      "moods": [
+        "Sad",
+        "Epic"
+      ],
+      "styles": [
+        "Orchestral",
+        "Choral"
+      ],
+      "duration": 175.52,
+      "filesize": 2524206,
+      "license": "CC0",
+      "source": "https://opengameart.org/content/breves-dies-hominis",
+      "attribution": "OpenGameArt",
+      "url": "audio/music/oga-breves-dies-hominis.mp3"
+    }
+  ],
+  "sfx": [
+    {
+      "id": "kenney-interface-sounds-click-001",
+      "name": "click_001",
+      "category": "UI",
+      "tags": [
+        "click",
+        "ui"
+      ],
+      "duration": 0.13,
+      "filesize": 1503,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-click-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-click-002",
+      "name": "click_002",
+      "category": "UI",
+      "tags": [
+        "click",
+        "ui"
+      ],
+      "duration": 0.05,
+      "filesize": 1087,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-click-002.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-click-003",
+      "name": "click_003",
+      "category": "UI",
+      "tags": [
+        "click",
+        "ui"
+      ],
+      "duration": 0.05,
+      "filesize": 1087,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-click-003.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-confirmation-001",
+      "name": "confirmation_001",
+      "category": "UI",
+      "tags": [
+        "confirm",
+        "success"
+      ],
+      "duration": 0.34,
+      "filesize": 2308,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-confirmation-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-confirmation-002",
+      "name": "confirmation_002",
+      "category": "UI",
+      "tags": [
+        "confirm",
+        "success"
+      ],
+      "duration": 0.57,
+      "filesize": 3817,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-confirmation-002.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-error-001",
+      "name": "error_001",
+      "category": "UI",
+      "tags": [
+        "error",
+        "alert"
+      ],
+      "duration": 0.21,
+      "filesize": 2624,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-error-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-error-002",
+      "name": "error_002",
+      "category": "UI",
+      "tags": [
+        "error",
+        "alert"
+      ],
+      "duration": 0.21,
+      "filesize": 2701,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-error-002.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-switch-001",
+      "name": "switch_001",
+      "category": "UI",
+      "tags": [
+        "switch",
+        "toggle"
+      ],
+      "duration": 0.65,
+      "filesize": 3974,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-switch-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-switch-002",
+      "name": "switch_002",
+      "category": "UI",
+      "tags": [
+        "switch",
+        "toggle"
+      ],
+      "duration": 0.65,
+      "filesize": 3922,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-switch-002.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-toggle-001",
+      "name": "toggle_001",
+      "category": "UI",
+      "tags": [
+        "toggle",
+        "switch"
+      ],
+      "duration": 0.18,
+      "filesize": 2050,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-toggle-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-toggle-002",
+      "name": "toggle_002",
+      "category": "UI",
+      "tags": [
+        "toggle",
+        "switch"
+      ],
+      "duration": 0.18,
+      "filesize": 2155,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-toggle-002.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-open-001",
+      "name": "open_001",
+      "category": "UI",
+      "tags": [
+        "open",
+        "panel"
+      ],
+      "duration": 0.18,
+      "filesize": 2494,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-open-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-close-001",
+      "name": "close_001",
+      "category": "UI",
+      "tags": [
+        "close",
+        "panel"
+      ],
+      "duration": 0.18,
+      "filesize": 2388,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-close-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-back-001",
+      "name": "back_001",
+      "category": "UI",
+      "tags": [
+        "back",
+        "nav"
+      ],
+      "duration": 0.1,
+      "filesize": 2026,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-back-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-drop-001",
+      "name": "drop_001",
+      "category": "UI",
+      "tags": [
+        "drop",
+        "drag"
+      ],
+      "duration": 0.18,
+      "filesize": 1842,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-drop-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-glass-001",
+      "name": "glass_001",
+      "category": "UI",
+      "tags": [
+        "glass",
+        "break"
+      ],
+      "duration": 0.31,
+      "filesize": 2127,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-glass-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-glitch-001",
+      "name": "glitch_001",
+      "category": "UI",
+      "tags": [
+        "glitch",
+        "tech"
+      ],
+      "duration": 0.05,
+      "filesize": 1244,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-glitch-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-scroll-001",
+      "name": "scroll_001",
+      "category": "UI",
+      "tags": [
+        "scroll",
+        "wheel"
+      ],
+      "duration": 1.04,
+      "filesize": 12033,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-scroll-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-select-001",
+      "name": "select_001",
+      "category": "UI",
+      "tags": [
+        "select",
+        "tick"
+      ],
+      "duration": 0.08,
+      "filesize": 1348,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-select-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-tick-001",
+      "name": "tick_001",
+      "category": "UI",
+      "tags": [
+        "tick",
+        "beep"
+      ],
+      "duration": 0.08,
+      "filesize": 1295,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-tick-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-question-001",
+      "name": "question_001",
+      "category": "UI",
+      "tags": [
+        "question",
+        "prompt"
+      ],
+      "duration": 0.52,
+      "filesize": 2828,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-question-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-bong-001",
+      "name": "bong_001",
+      "category": "UI",
+      "tags": [
+        "bong",
+        "chime"
+      ],
+      "duration": 0.16,
+      "filesize": 1398,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-bong-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-maximize-001",
+      "name": "maximize_001",
+      "category": "UI",
+      "tags": [
+        "maximize",
+        "expand"
+      ],
+      "duration": 0.29,
+      "filesize": 3590,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-maximize-001.mp3"
+    },
+    {
+      "id": "kenney-interface-sounds-minimize-001",
+      "name": "minimize_001",
+      "category": "UI",
+      "tags": [
+        "minimize",
+        "collapse"
+      ],
+      "duration": 0.29,
+      "filesize": 3328,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-interface-sounds-minimize-001.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactgeneric-light-000",
+      "name": "impactGeneric_light_000",
+      "category": "Impact",
+      "tags": [
+        "impact",
+        "hit",
+        "generic"
+      ],
+      "duration": 0.21,
+      "filesize": 1789,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactgeneric-light-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactgeneric-light-001",
+      "name": "impactGeneric_light_001",
+      "category": "Impact",
+      "tags": [
+        "impact",
+        "hit",
+        "generic"
+      ],
+      "duration": 0.16,
+      "filesize": 1633,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactgeneric-light-001.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactpunch-heavy-000",
+      "name": "impactPunch_heavy_000",
+      "category": "Impact",
+      "tags": [
+        "punch",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.68,
+      "filesize": 4285,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactpunch-heavy-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactpunch-medium-000",
+      "name": "impactPunch_medium_000",
+      "category": "Impact",
+      "tags": [
+        "punch",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.47,
+      "filesize": 3219,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactpunch-medium-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactwood-heavy-000",
+      "name": "impactWood_heavy_000",
+      "category": "Impact",
+      "tags": [
+        "wood",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.34,
+      "filesize": 2204,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactwood-heavy-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactwood-medium-000",
+      "name": "impactWood_medium_000",
+      "category": "Impact",
+      "tags": [
+        "wood",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.37,
+      "filesize": 2282,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactwood-medium-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactglass-heavy-000",
+      "name": "impactGlass_heavy_000",
+      "category": "Impact",
+      "tags": [
+        "glass",
+        "impact",
+        "break"
+      ],
+      "duration": 0.29,
+      "filesize": 2518,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactglass-heavy-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactglass-medium-000",
+      "name": "impactGlass_medium_000",
+      "category": "Impact",
+      "tags": [
+        "glass",
+        "impact",
+        "break"
+      ],
+      "duration": 0.57,
+      "filesize": 3271,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactglass-medium-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactmetal-heavy-000",
+      "name": "impactMetal_heavy_000",
+      "category": "Impact",
+      "tags": [
+        "metal",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.21,
+      "filesize": 1815,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactmetal-heavy-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactmetal-medium-000",
+      "name": "impactMetal_medium_000",
+      "category": "Impact",
+      "tags": [
+        "metal",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.31,
+      "filesize": 2362,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactmetal-medium-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactsoft-heavy-000",
+      "name": "impactSoft_heavy_000",
+      "category": "Impact",
+      "tags": [
+        "soft",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.57,
+      "filesize": 3166,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactsoft-heavy-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-impactsoft-medium-000",
+      "name": "impactSoft_medium_000",
+      "category": "Impact",
+      "tags": [
+        "soft",
+        "impact",
+        "hit"
+      ],
+      "duration": 0.16,
+      "filesize": 1554,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-impactsoft-medium-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-footstep-carpet-000",
+      "name": "footstep_carpet_000",
+      "category": "Footstep",
+      "tags": [
+        "footstep",
+        "walk"
+      ],
+      "duration": 0.21,
+      "filesize": 2207,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-footstep-carpet-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-footstep-concrete-000",
+      "name": "footstep_concrete_000",
+      "category": "Footstep",
+      "tags": [
+        "footstep",
+        "walk"
+      ],
+      "duration": 0.13,
+      "filesize": 1581,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-footstep-concrete-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-footstep-grass-000",
+      "name": "footstep_grass_000",
+      "category": "Footstep",
+      "tags": [
+        "footstep",
+        "walk"
+      ],
+      "duration": 0.81,
+      "filesize": 4624,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-footstep-grass-000.mp3"
+    },
+    {
+      "id": "kenney-impact-sounds-footstep-wood-000",
+      "name": "footstep_wood_000",
+      "category": "Footstep",
+      "tags": [
+        "footstep",
+        "walk"
+      ],
+      "duration": 0.31,
+      "filesize": 2074,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/impact-sounds",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-impact-sounds-footstep-wood-000.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-dooropen-1",
+      "name": "doorOpen_1",
+      "category": "Door",
+      "tags": [
+        "door",
+        "open"
+      ],
+      "duration": 0.97,
+      "filesize": 14339,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-dooropen-1.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-doorclose-1",
+      "name": "doorClose_1",
+      "category": "Door",
+      "tags": [
+        "door",
+        "close"
+      ],
+      "duration": 0.71,
+      "filesize": 9482,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-doorclose-1.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-handlecoins",
+      "name": "handleCoins",
+      "category": "Coins",
+      "tags": [
+        "coin",
+        "money"
+      ],
+      "duration": 0.89,
+      "filesize": 13292,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-handlecoins.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-bookflip1",
+      "name": "bookFlip1",
+      "category": "Book",
+      "tags": [
+        "book",
+        "flip",
+        "page"
+      ],
+      "duration": 0.81,
+      "filesize": 10996,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-bookflip1.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-metalclick",
+      "name": "metalClick",
+      "category": "Metal",
+      "tags": [
+        "metal",
+        "click"
+      ],
+      "duration": 0.5,
+      "filesize": 7003,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-metalclick.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-chop",
+      "name": "chop",
+      "category": "Impact",
+      "tags": [
+        "chop",
+        "slice"
+      ],
+      "duration": 0.29,
+      "filesize": 4425,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-chop.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-cloth1",
+      "name": "cloth1",
+      "category": "Foley",
+      "tags": [
+        "cloth",
+        "fabric"
+      ],
+      "duration": 0.71,
+      "filesize": 9247,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-cloth1.mp3"
+    },
+    {
+      "id": "kenney-rpg-audio-creak1",
+      "name": "creak1",
+      "category": "Foley",
+      "tags": [
+        "creak",
+        "wood"
+      ],
+      "duration": 0.71,
+      "filesize": 7758,
+      "license": "CC0",
+      "source": "https://kenney.nl/assets/rpg-audio",
+      "attribution": "Kenney",
+      "url": "audio/sfx/kenney-rpg-audio-creak1.mp3"
+    }
+  ]
+}

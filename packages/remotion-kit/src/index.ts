@@ -6,6 +6,7 @@
  */
 export * from "./captions";
 export * from "./effects";
+export * from "./fonts";
 export * from "./palette";
 export * from "./components";
 export * from "./styles";

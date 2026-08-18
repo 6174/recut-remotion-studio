@@ -335,9 +335,116 @@ function previewProps(input, ctx) {
   const brief = latestBrief({}, ctx);
   const media = input.media && typeof input.media === "object" && !Array.isArray(input.media) ? input.media : {};
   const settings = input.settings && typeof input.settings === "object" && !Array.isArray(input.settings) ? input.settings : { width: 1920, height: 1080, fps: 30 };
-  const payload = { brief, media, settings, at: new Date().toISOString() };
+  const musicInput = input.music && typeof input.music === "object" && !Array.isArray(input.music) ? input.music : null;
+  const music = musicInput && typeof musicInput.assetId === "string" && musicInput.assetId.trim() ? { assetId: musicInput.assetId } : null;
+  const payload = { brief, media, settings, music, fonts: projectFonts(ctx), at: new Date().toISOString() };
   ctx.files.writeText(`${WORKSPACE}/preview/props.json`, JSON.stringify(payload));
   return { ok: true, path: `${WORKSPACE}/preview/props.json` };
+}
+
+// ── 资源微调：音乐与字体（目录与二进制复用 Recut CDN，与编辑器同一份数据）──
+// 音乐「选择即导入」为媒体资产，composition 以 resolveMediaUrl(assetId) 引用并
+// composition.assets 登记；预览用 service 内容 URL、渲染用物化本地路径，离线可用。
+// 字体只持久化选择；实际 @font-face 由组成代码经 @recut/remotion-kit/fonts 从 CDN 注入。
+// 数据流：UI 已用 loadResourceCatalogs 持有 CDN 目录（catalog-first，与编辑器同一份），
+// 选择后把所选曲目的 url/元数据随 music.import 传入；后台仅下载该 mp3 为文件并导入为资产，
+// 不再回源拉 catalog、不再经 stdout 传 base64（避免大文件超 shell 日志 1MB 扫描上限）。
+function resourceMeta(ctx, key) {
+  ensureSchema(ctx);
+  const rows = ctx.sqlite.query("select value from app_meta where key = ?", [key]);
+  if (!rows.length) return null;
+  try { return JSON.parse(String(rows[0].value || "null")); } catch (_) { return null; }
+}
+
+function resourceSetMeta(ctx, key, value) {
+  ensureSchema(ctx);
+  ctx.sqlite.execute("insert or replace into app_meta (key, value) values (?, ?)", [key, JSON.stringify(value)]);
+}
+
+function musicMetaKey(ctx) {
+  return `music_asset:${scope(ctx)}`;
+}
+
+/** 把 CDN 音频二进制下载到项目 files 根的相对路径（单次 shell 写文件、不走 stdout）。 */
+function downloadToFile(ctx, url, relPath) {
+  const target = String(url || "").trim();
+  if (!/^https?:\/\//i.test(target)) throw new Error(msg(ctx, "非法资源地址", "Invalid resource URL"));
+  const abs = `music/${relPath}`;
+  // node -e 直接 fs.writeFileSync 落盘；shell 日志只记录一行完成标记，不携带二进制，
+  // 彻底规避大文件走 stdout 超过 1MB 扫描行的缺陷。
+  const script = "const fs=require('fs'),u=process.argv[1],o=process.argv[2];fetch(u).then((r)=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then((b)=>{fs.writeFileSync(o,Buffer.from(b));console.log('downloaded');}).catch((e)=>{console.error(String(e&&e.stack||e));process.exit(1);});";
+  const result = ctx.shell.run({ command: "node", args: ["-e", script, target, abs], cwd: "files", timeoutSeconds: 180 });
+  if (result.exitCode !== 0) {
+    const detail = String(result.error || (result.stdout || "").slice(0, 300) || "无响应");
+    throw new Error(msg(ctx, `音乐下载失败：${detail}`, `Music download failed: ${detail}`));
+  }
+  return abs;
+}
+
+function musicImport(input, ctx) {
+  ensureSchema(ctx);
+  const trackId = String(input.trackId || "").trim();
+  const key = musicMetaKey(ctx);
+  if (!trackId) {
+    ctx.sqlite.execute("delete from app_meta where key = ?", [key]);
+    return { assetId: null, track: null };
+  }
+  const existing = resourceMeta(ctx, key);
+  if (existing && existing.trackId === trackId && existing.assetId) {
+    return { assetId: existing.assetId, track: existing.track || null };
+  }
+  // 曲目元数据由 UI 从 CDN 目录传入（catalog-first，UI 已持有同一份目录），后台只校验必要字段。
+  const url = String(input.url || "").trim();
+  if (!url) throw new Error(msg(ctx, "曲目缺少可下载地址", "Track is missing a download URL"));
+  const safeId = String(trackId).replace(/[^\w.-]/g, "_");
+  const filePath = downloadToFile(ctx, url, `${safeId}.mp3`);
+  const asset = ctx.media.importFile({ path: filePath, name: `${String(input.name || trackId).trim() || trackId}.mp3`, mimeType: "audio/mpeg" });
+  if (!asset || !asset.id) throw new Error(msg(ctx, "音乐资产导入失败", "Failed to import the music asset"));
+  const track = {
+    id: trackId,
+    name: String(input.name || trackId).trim() || trackId,
+    duration: Number(input.duration) || 0,
+    license: String(input.license || "").trim(),
+    attribution: String(input.attribution || "").trim(),
+    source: String(input.source || "").trim(),
+  };
+  resourceSetMeta(ctx, key, { trackId, assetId: asset.id, track });
+  return { assetId: asset.id, track };
+}
+
+function musicSelected(_, ctx) {
+  ensureSchema(ctx);
+  const meta = resourceMeta(ctx, musicMetaKey(ctx));
+  return { assetId: meta && meta.assetId ? meta.assetId : null };
+}
+
+function fontMetaKey(ctx) {
+  return `font_family:${scope(ctx)}`;
+}
+
+/** 按持久化的字体选择构建 props.fonts：google 家族给 CDN 端 CSS（渲染由 render.js 物化为本地 /fonts/{id}.css）；system 家族直接可用，无需 css。 */
+function projectFonts(ctx) {
+  const meta = resourceMeta(ctx, fontMetaKey(ctx));
+  if (!meta || !meta.familyId) return {};
+  if (meta.source === "system") {
+    return { [meta.familyId]: { family: meta.familyId, system: true } };
+  }
+  return { [meta.familyId]: { css: `https://cdn.recut.video/fonts/google/${encodeURIComponent(meta.familyId)}.css`, family: meta.familyId } };
+}
+
+function fontsSelect(input, ctx) {
+  ensureSchema(ctx);
+  const familyId = String(input.familyId || "").trim();
+  if (!familyId) throw new Error(msg(ctx, "familyId 是必填项", "familyId is required"));
+  const source = String(input.source || "google").trim() === "system" ? "system" : "google";
+  resourceSetMeta(ctx, fontMetaKey(ctx), { familyId, source });
+  return { familyId, source };
+}
+
+function fontsSelected(_, ctx) {
+  ensureSchema(ctx);
+  const meta = resourceMeta(ctx, fontMetaKey(ctx));
+  return { familyId: meta && meta.familyId ? meta.familyId : null, source: meta && meta.source ? meta.source : "google" };
 }
 
 function terminalExec(input, ctx) {
@@ -448,6 +555,16 @@ function workflowContext(_, ctx) {
     preview: serve,
     registeredAssets: registeredAssets(ctx),
     catalogs: catalog,
+    resources: {
+      music: (() => {
+        const meta = resourceMeta(ctx, musicMetaKey(ctx));
+        return meta && meta.assetId ? { assetId: meta.assetId, trackId: meta.trackId || null, name: meta.name || null, license: meta.license || null, attribution: meta.attribution || null, source: meta.source || null } : null;
+      })(),
+      fonts: (() => {
+        const meta = resourceMeta(ctx, fontMetaKey(ctx));
+        return meta && meta.familyId ? { familyId: meta.familyId, source: meta.source || "google" } : null;
+      })(),
+    },
     // 只列出 Agent 可经 MCP 调用的 operation：代码读写与版本对比由原生文件工具完成，
     // 预览服务与渲染导出由界面触发。
     allowedActions: stage === "brief" ? ["project.create"] : ["workspace.ensure", "composition.assets"],
@@ -482,7 +599,10 @@ function renderExport(input, ctx) {
     media[assetId] = { kind: materialized.kind, mimeType: materialized.mimeType, path: materialized.path };
   });
 
-  const payload = { brief, media, settings: { width, height, fps, codec } };
+  // 已选配乐随导出 props 下发：composition 以 props.music.assetId + resolveMediaUrl 引用。
+  const musicMeta = resourceMeta(ctx, musicMetaKey(ctx));
+  const music = musicMeta && musicMeta.assetId ? { assetId: musicMeta.assetId } : null;
+  const payload = { brief, media, settings: { width, height, fps, codec }, music, fonts: projectFonts(ctx) };
   ctx.files.writeText(`exports/${renderId}/props.json`, JSON.stringify(payload));
   ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: msg(ctx, "任务已排队", "Task queued") }));
 
@@ -560,6 +680,10 @@ recut.operation.register("preview.serve.start", previewServeStart);
 recut.operation.register("preview.serve.status", previewServeStatus);
 recut.operation.register("preview.serve.stop", previewServeStop);
 recut.operation.register("preview.props", previewProps);
+recut.operation.register("music.import", musicImport);
+recut.operation.register("music.selected", musicSelected);
+recut.operation.register("fonts.select", fontsSelect);
+recut.operation.register("fonts.selected", fontsSelected);
 recut.operation.register("terminal.exec", terminalExec);
 recut.operation.register("logs.read", readLogs);
 recut.operation.register("logs.list", listLogs);

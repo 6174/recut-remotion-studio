@@ -123,6 +123,63 @@ function writeProgress(phase, progress, message) {
     resolvedMedia[assetId] = { kind: ref.kind, mimeType: ref.mimeType, url: `/public/media/${targetName}`, path: sourcePath };
   }
 
+  // Materialize fonts into the same public directory so the composition can load
+  // them locally (/fonts/{id}.css) during rendering — zero runtime network, and
+  // preview (CDN URL) vs render (local path) share one props-driven code path.
+  writeProgress("fonts", 0.04, "准备字体");
+  const rawFonts = (rawProps) && (rawProps.fonts && typeof rawProps.fonts === "object" ? rawProps.fonts : {}) || {};
+  const resolvedFonts = {};
+  for (const [familyId, entry] of Object.entries(rawFonts)) {
+    if (!entry || typeof entry !== "object") {
+      resolvedFonts[familyId] = entry;
+      continue;
+    }
+    const id = String(familyId).replace(/[^a-z0-9-]/gi, "-");
+    // 系统字体家族本机直接可用，无需 css/woff2 物化。
+    if (entry.system) {
+      resolvedFonts[familyId] = { family: entry.family, system: true };
+      continue;
+    }
+    const cdnCss = entry.css;
+    if (!cdnCss || typeof cdnCss !== "string") {
+      resolvedFonts[familyId] = { css: cdnCss, family: entry.family };
+      continue;
+    }
+    if (!/^https?:\/\//i.test(cdnCss) || !cdnCss.includes("fonts/google/")) {
+      // 已是本地物化路径（如重复渲染），直接沿用。
+      resolvedFonts[familyId] = { css: cdnCss, family: entry.family };
+      continue;
+    }
+    const fontsDir = path.join(publicDir, "fonts", id);
+    fs.mkdirSync(fontsDir, { recursive: true });
+    const cssDownload = await fetch(cdnCss, { signal: AbortSignal.timeout(20000) });
+    if (!cssDownload.ok) throw new Error(`字体 CSS 下载失败：HTTP ${cssDownload.status} for ${cdnCss}`);
+    const rawCss = await cssDownload.text();
+    // 重写 @font-face 的 src url()（绝对 CDN）为本地 /fonts/{id}/{file}，并把 woff2 落到同目录。
+    const localCss = rawCss.replace(/url\((https?:\/\/[^)]*\/fonts\/google\/[^/]+\/([^)/]+\.woff2))\)/g, (match, _full, file) => {
+      const basename = file.split("/").pop();
+      // 同名文件只下载一次。
+      return `url(/fonts/${id}/${basename})`;
+    });
+    // 收集重写后的 woff2 文件名并落盘。
+    const used = new Set();
+    for (const m of localCss.matchAll(/url\(\/fonts\/[^/]+\/([^)]+\.woff2)\)/g)) {
+      used.add(m[1]);
+    }
+    for (const file of used) {
+      const cdnFile = `https://cdn.recut.video/fonts/google/${id}/${file}`;
+      const dest = path.join(fontsDir, file);
+      if (!fs.existsSync(dest)) {
+        const res = await fetch(cdnFile, { signal: AbortSignal.timeout(30000) });
+        if (!res.ok) throw new Error(`字体文件下载失败：HTTP ${res.status} for ${file}`);
+        fs.writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
+      }
+    }
+    const localCssPath = `/fonts/${id}/${id}.css`;
+    fs.writeFileSync(path.join(publicDir, "fonts", id, `${id}.css`), localCss);
+    resolvedFonts[familyId] = { css: localCssPath, family: entry.family };
+  }
+
   writeProgress("bundling", 0.05, "打包 Remotion 项目");
   const compiledCss = await compileTailwindCSS(__dirname, workDir);
   const entryPoint = makeEntry(compiledCss, workspaceEntry);
@@ -134,7 +191,7 @@ function writeProgress(phase, progress, message) {
     webpackOverride: (config) => ({ ...config, resolve: { ...config.resolve, alias: kitWebpackAlias(__dirname) } }),
   });
 
-  const inputProps = { brief, media: resolvedMedia, settings };
+  const inputProps = { brief, media: resolvedMedia, settings, fonts: resolvedFonts };
 
   writeProgress("compositions", 0.08, "读取合成配置");
   const compositions = await getCompositions({

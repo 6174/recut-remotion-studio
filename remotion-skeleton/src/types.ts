@@ -46,6 +46,14 @@ export interface ProjectVideoProps {
   settings?: RenderSettings;
   /** HTML-in-Canvas 舞台计划：interaction + effects + targets；提供时整片进入唯一捕获面。 */
   stagePlan?: import("@recut/remotion-kit").StagePlan | null;
+  /** 已选配乐：assetId 指向 media 映射里的 audio 资产；composition 用它铺底并做确定性 duck。 */
+  music?: { assetId?: string | null } | null;
+  /**
+   * 字体映射：familyId → 按环境物化的字体条目。google 家族给 css 路径（预览=Recut CDN
+   * 绝对 URL；渲染=render.js 生成的 /fonts/{id}.css 本地路径）；system 家族带 system 标记，
+   * 本机直接用、无需 css。FontProvider 据此注入，无 css 的 system 条目直接以 fontFamily 使用。
+   */
+  fonts?: Record<string, { css?: string | null; family?: string | null; system?: boolean }> | null;
 }
 
 export const defaultProjectVideoProps = (): ProjectVideoProps => ({

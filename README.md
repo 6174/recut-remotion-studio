@@ -8,6 +8,7 @@
 - **代码驱动的创作台**：AI 用原生文件工具直接读写项目私有 `workspace/`（绝对路径由 `workflow.context` 的 `paths` 提供）里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
 - **Vite 热更新预览**：每个项目一个 Vite dev server，iframe 嵌入其预览页（`@remotion/player`，播放/暂停/进度条）；AI 改代码即热更新。
 - **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置动态组件与素材库仅作为局部编辑工具。SRT 或视频叙事来源在 Brief 创建阶段作为可选输入，不在工作台重复出现。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
+- **配乐与字体微调**：fine-tune 面板新增「音乐」「字体」两张卡。「音乐」从 Recut CDN 音频目录（`https://cdn.recut.video/audio/catalog.json`，与 apps/editor 同一份 catalog）试听与选择，选择即通过 `music.import` 下载并导入为媒体音频资产（幂等），composition 以 `resolveMediaUrl(assetId)` 引用并 `composition.assets` 登记——预览用 service 内容 URL、渲染用物化本地路径，导出含确定性的 BGM 音轨（旁白自动 duck、片头淡入片尾淡出）；Prompt 携带 license/attribution 合规信息。「字体」从 Recut CDN 字体目录（`https://cdn.recut.video/fonts/google/catalog.json`，37 家族含 CJK，与编辑器同一份二进制）按名称/脚本筛选，选择后字体经**物化到本地**加载（预览用 CDN css、渲染把 css+woff2 物化到渲染 public 目录并重写为本地 /fonts/{id}.css，经 `@recut/remotion-kit/fonts` 注入并阻塞到就绪），统一应用到标题、正文与字幕（`palette.font` + CaptionTheme 覆盖）。预览播放器默认静音，仅当项目已选配乐时解锁音量。
 - **重置项目**：一键把 workspace 重置回骨架（丢失 AI 改写，仅测试/回退用）。
 - **打开项目文件夹**：从右上角在 Finder、Windows 资源管理器或 Linux 默认文件管理器中直接打开当前项目的 `workspace/`。
 - **本地导出**：`render.js` 使用 `@remotion/bundler` + `@remotion/renderer` 在本地 headless Chrome 中把项目 workspace 的 composition 渲染为 MP4，并归档为 Recut 媒体素材；每次完成导出自动将该 MP4 设为 Project 封面。
@@ -46,7 +47,7 @@ ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作�
 
 - **模板是单一真相源**：`brief.template` 存成片模板 id；模板代码、视觉原语、场景技能和建议组件都在 `@recut/remotion-kit` 的 `src/scenarios/<id>/`。不再维护独立的设计系统选择。
 - **每项目一个 Remotion 工程**：首次 `workspace.ensure` 把 `remotion-skeleton/` 整体复制到项目私有目录，AI 直接改写项目代码；项目间互不干扰，骨架改动只影响新项目。
-- **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入）。
+- **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入，含已选配乐 music）。
 - **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、组件、画布和素材重剪等局部编辑工具；SRT 或视频叙事来源由 Brief 作为首版成片输入持久化。打开项目文件夹、导出、构建预览、重启与重置为次级操作。
 - **场景计划先于成片代码**：无真人解说和产品发布片先由 workspace 内的 `remotion-kit/scripts/validate-scene-plan.mjs` 校验 `SCENE_PLAN.md`；它直接改编 HyperFrames 两个场景共用的 storyboard parser，计划通过后才落成 `SCENES`，避免 Prompt 直接跳到散乱代码。
 - **日志与终端**：右侧下半分栏。日志以 iframe 本次加载时间划定当前 session：`logs.list` 只回填该时刻之后当前预览服务与最近两个任务的片段（服务端最多 300 行，界面首屏最多 120 行），项目事件流重放的历史日志会被丢弃；其后由 `shell.job.log` 实时追加，界面总量封顶 300 行。列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件连接 Service PTY，在项目 `workspace/` 启动用户本机的交互式 zsh，原样转发输入、输出与窗口尺寸，因此补全、`cd`、历史和作业控制均由 shell 自己完成。服务统一注入登录 shell 环境与 `xterm-256color` 终端能力。
@@ -74,6 +75,7 @@ make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
 
 - **remotion-templates**（reactvideoeditor.com，免费）：全部 81 个单文件模板组件拷贝到 `remotion-skeleton/src/components/`（含 README 目录表），背景特效已封装进 `src/effects/registry.tsx`、文字特效封装进 `src/effects/text.tsx`；目录见 `skills/remotion-studio/references/effects.md`。
 - **remotion-captions-themes**（vshukla7，MIT）：字幕主题源码整体拷贝到 `remotion-skeleton/src/captions/vendor/`（保持原结构），目录见 `references/captions.md`。
+- **Recut CDN 资源共享**：配乐目录/文件（`cdn/buckets/audio`）与自托管字体（`cdn/buckets/fonts/google`）与 apps/editor 是同一份数据、同一份二进制——本 App 只复用 CDN 与 catalog-first 架构，不做代码复用。音乐资源按 CC0/署名许可使用，Prompt 与成片遵守 attribution。
 - **创作参考资料**：镜头配方、制作流程、审美、声音、共同创作与终检资料均直接位于 `skills/remotion-studio/references/`；它们由唯一的 `remotion-studio` skill 按需读取，组件实现统一由 `@recut/remotion-kit` 提供。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 README.md

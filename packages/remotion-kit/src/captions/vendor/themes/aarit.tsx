@@ -1,6 +1,7 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 const seededRandom = (seed: number) => {
   const x = Math.sin(seed) * 10000;
@@ -34,6 +35,7 @@ export const AaritTheme: React.FC<InternalThemeProps> = ({
   secondaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -153,7 +155,7 @@ export const AaritTheme: React.FC<InternalThemeProps> = ({
                   key={letterIndex}
                   style={{
                     display: "inline-block",
-                    fontFamily: '"Poppins", sans-serif',
+                    fontFamily: resolveFontFamily('"Poppins", sans-serif', fontFamily),
                     fontSize: scaledFontSize,
                     fontWeight: 900,
                     textTransform: "uppercase",

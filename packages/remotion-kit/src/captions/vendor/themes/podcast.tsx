@@ -1,6 +1,7 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate, spring } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 const ACCENT_COLORS = [
   "#FF2D6B", // hot pink
@@ -16,6 +17,7 @@ export const PodcastTheme: React.FC<InternalThemeProps> = ({
   secondaryColor,
   data,
   fontSize,
+  fontFamily: fontFamilyOverride,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -104,7 +106,7 @@ export const PodcastTheme: React.FC<InternalThemeProps> = ({
     const swayX  = isBottom ? bottomSwayX  : topSwayX;
 
     // Both lines now share the exact same clean typography styling
-    const fontFamily = 'Impact';
+    const fontFamily = fontFamilyOverride ?? 'Impact';
 
     // Prominent multi-layered text shadow for extra depth and readability
     const shadow =

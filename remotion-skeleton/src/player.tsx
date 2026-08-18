@@ -34,6 +34,10 @@ export function App() {
     return <ErrorView title="composition 元数据计算失败" detail={(cause as Error).stack || String(cause)} />;
   }
 
+  // 无声门控：项目只有真选了配乐（props.music.assetId）才解锁音量，否则保持默认静音，
+  // 避免宿主无音频设备时创建 WebAudio（histamine behavior 不回归）。
+  const hasMusic = Boolean(props && (props as { music?: { assetId?: string | null } | null }).music?.assetId);
+
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1017" }}>
       <div style={{ width: "100%", height: "100%", maxWidth: 960, maxHeight: 540 }}>
@@ -45,11 +49,11 @@ export function App() {
           controls
           durationInFrames={meta.durationInFrames}
           fps={meta.fps}
-          initialVolume={0}
-          initiallyMuted
+          initialVolume={hasMusic ? 1 : 0}
+          initiallyMuted={!hasMusic}
           inputProps={props}
           loop
-          showVolumeControls={false}
+          showVolumeControls={hasMusic}
           style={{ width: "100%", height: "100%" }}
           errorFallback={({ error: renderError }) => (
             <ErrorView title="composition 渲染出错" detail={(renderError as Error).stack || String(renderError)} />

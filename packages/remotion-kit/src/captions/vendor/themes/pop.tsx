@@ -1,12 +1,14 @@
 import React from "react";
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 export const PopTheme: React.FC<InternalThemeProps> = ({
   primaryColor,
   secondaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -43,7 +45,7 @@ export const PopTheme: React.FC<InternalThemeProps> = ({
         gap: "15px 25px",
         fontSize: size,
         fontWeight: 900,
-        fontFamily: "'Outfit', sans-serif",
+        fontFamily: resolveFontFamily("'Outfit', sans-serif", fontFamily),
         textAlign: "center",
         padding: "20px 40px",
         textShadow: "2px 2px 10px rgba(0, 0, 0, 0.5)",

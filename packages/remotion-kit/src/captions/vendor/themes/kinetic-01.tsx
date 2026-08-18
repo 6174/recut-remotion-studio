@@ -1,6 +1,7 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { WordTiming, InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 import { computeLayout } from "../layout/layoutEngine";
 import { TextElementSpec, AnchorName } from "../layout/types";
 
@@ -83,6 +84,7 @@ export const Kinetic01: React.FC<InternalThemeProps> = ({
   secondaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -345,7 +347,7 @@ export const Kinetic01: React.FC<InternalThemeProps> = ({
       >
         <div
           style={{
-            fontFamily: '"Dancing Script", cursive',
+            fontFamily: resolveFontFamily('"Dancing Script", cursive', fontFamily),
             fontSize: `${sideBaseSize * scaleFactor}px`,
             fontWeight: 700,
             color: secondaryColor,
@@ -540,8 +542,8 @@ export const Kinetic01: React.FC<InternalThemeProps> = ({
           }
 
           const font = isMainWord
-            ? '"Helvetica Neue", Helvetica, "Montserrat", Arial, sans-serif'
-            : '"Dancing Script", cursive';
+            ? resolveFontFamily('"Helvetica Neue", Helvetica, "Montserrat", Arial, sans-serif', fontFamily)
+            : resolveFontFamily('"Dancing Script", cursive', fontFamily);
           const size = isMainWord ? mainBaseSize : sideBaseSize;
           const weight = isMainWord ? 900 : 700;
           const color = isCurrentWordActive ? secondaryColor : primaryColor;

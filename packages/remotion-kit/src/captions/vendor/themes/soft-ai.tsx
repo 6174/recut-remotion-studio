@@ -1,12 +1,14 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { InternalThemeProps } from "../types";
+import { resolveFontFamily } from "../utils/font";
 
 export const SoftAITheme: React.FC<InternalThemeProps> = ({
   primaryColor,
   secondaryColor,
   data,
   fontSize,
+  fontFamily,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
@@ -68,7 +70,7 @@ export const SoftAITheme: React.FC<InternalThemeProps> = ({
             key={index}
             style={{
               color,
-              fontFamily: '"Outfit", sans-serif',
+              fontFamily: resolveFontFamily('"Outfit", sans-serif', fontFamily),
               fontSize: scaledFontSize,
               fontWeight: 800,
               letterSpacing: "-0.03em",
