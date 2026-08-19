@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 @remotion/player、ProjectVideo 与 preview/props.json
  * [OUTPUT]: 对外提供读取 preview/props.json 并渲染 ProjectVideo 的 App 组件（由 bootstrap 动态加载并挂载）；Player 内容区域限制最大 960×540，居中显示
- * [POS]: remotion-skeleton 的浏览器预览根组件；固定无声视觉预览，避免宿主音频设备缺失时创建 WebAudio；入口与全局错误捕获在 bootstrap.tsx
+ * [POS]: remotion-skeleton 的浏览器预览根组件；是否出声完全由成片 composition 代码决定，播放器始终允许音量（用户可用控件静音）；入口与全局错误捕获在 bootstrap.tsx
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import React, { useEffect, useState } from "react";
@@ -34,10 +34,6 @@ export function App() {
     return <ErrorView title="composition 元数据计算失败" detail={(cause as Error).stack || String(cause)} />;
   }
 
-  // 无声门控：项目只有真选了配乐（props.music.assetId）才解锁音量，否则保持默认静音，
-  // 避免宿主无音频设备时创建 WebAudio（histamine behavior 不回归）。
-  const hasMusic = Boolean(props && (props as { music?: { assetId?: string | null } | null }).music?.assetId);
-
   return (
     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1017" }}>
       <div style={{ width: "100%", height: "100%", maxWidth: 960, maxHeight: 540 }}>
@@ -49,11 +45,9 @@ export function App() {
           controls
           durationInFrames={meta.durationInFrames}
           fps={meta.fps}
-          initialVolume={hasMusic ? 1 : 0}
-          initiallyMuted={!hasMusic}
           inputProps={props}
           loop
-          showVolumeControls={hasMusic}
+          showVolumeControls
           style={{ width: "100%", height: "100%" }}
           errorFallback={({ error: renderError }) => (
             <ErrorView title="composition 渲染出错" detail={(renderError as Error).stack || String(renderError)} />

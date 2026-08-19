@@ -88,7 +88,12 @@ async function call(type: RequestType, input: Record<string, unknown>) {
 
 export const recut = {
   state: { query: (name: string) => call("state.query", { name }) },
-  background: { call: (name: string, input: Record<string, unknown>) => call("background.call", { name, ...input }) },
+  background: {
+    // operation 名单独封装在 `operation` 字段，避免与业务 payload 的合法 `name`
+    // 字段冲突（例如 music.import 的曲目名），宿主据此路由并保留 payload 的 name。
+    call: (operation: string, input: Record<string, unknown>) =>
+      call("background.call", { operation, ...input }),
+  },
   agent: {
     compose: (input: { prompt: string }) => call("agent.compose", input),
   },

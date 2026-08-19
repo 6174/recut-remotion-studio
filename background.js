@@ -343,12 +343,14 @@ function previewProps(input, ctx) {
 }
 
 // ── 资源微调：音乐与字体（目录与二进制复用 Recut CDN，与编辑器同一份数据）──
-// 音乐「选择即导入」为媒体资产，composition 以 resolveMediaUrl(assetId) 引用并
-// composition.assets 登记；预览用 service 内容 URL、渲染用物化本地路径，离线可用。
+// 音乐主路径：UI「选择即出 Prompt」，由 Agent 按 Prompt 把 mp3 下载到 workspace
+//（audio/music/<trackId>.mp3）并以静态引用接入成片，Vite/Remotion 打包、离线可用，
+// 不再经这里自动下载/导入。music.import/music.selected 保留为可选的 Agent 工具：
+// 传入曲目 url/元数据后下载为文件并导入为平台媒体资产（幂等，供 resolveMediaUrl 引用）。
 // 字体只持久化选择；实际 @font-face 由组成代码经 @recut/remotion-kit/fonts 从 CDN 注入。
-// 数据流：UI 已用 loadResourceCatalogs 持有 CDN 目录（catalog-first，与编辑器同一份），
-// 选择后把所选曲目的 url/元数据随 music.import 传入；后台仅下载该 mp3 为文件并导入为资产，
-// 不再回源拉 catalog、不再经 stdout 传 base64（避免大文件超 shell 日志 1MB 扫描上限）。
+// 数据流：UI 已用 loadResourceCatalogs 持有 CDN 目录（catalog-first，与编辑器同一份）。
+// music.import 后台仅下载该 mp3 为文件并导入为资产，不再回源拉 catalog、
+// 不再经 stdout 传 base64（避免大文件超 shell 日志 1MB 扫描上限）。
 function resourceMeta(ctx, key) {
   ensureSchema(ctx);
   const rows = ctx.sqlite.query("select value from app_meta where key = ?", [key]);
@@ -370,12 +372,15 @@ function downloadToFile(ctx, url, relPath) {
   const target = String(url || "").trim();
   if (!/^https?:\/\//i.test(target)) throw new Error(msg(ctx, "非法资源地址", "Invalid resource URL"));
   const abs = `music/${relPath}`;
-  // node -e 直接 fs.writeFileSync 落盘；shell 日志只记录一行完成标记，不携带二进制，
+  // node -e 直接 fs.writeFileSync 落盘；先 mkdir 父目录，否则首次下载会因
+  // files/music 不存在而 ENOENT。shell 日志只记录一行完成标记，不携带二进制，
   // 彻底规避大文件走 stdout 超过 1MB 扫描行的缺陷。
-  const script = "const fs=require('fs'),u=process.argv[1],o=process.argv[2];fetch(u).then((r)=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then((b)=>{fs.writeFileSync(o,Buffer.from(b));console.log('downloaded');}).catch((e)=>{console.error(String(e&&e.stack||e));process.exit(1);});";
+  const script = "const fs=require('fs'),p=require('path'),u=process.argv[1],o=process.argv[2];fetch(u).then((r)=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();}).then((b)=>{fs.mkdirSync(p.dirname(o),{recursive:true});fs.writeFileSync(o,Buffer.from(b));console.log('downloaded');}).catch((e)=>{console.error(String(e&&e.stack||e));process.exit(1);});";
   const result = ctx.shell.run({ command: "node", args: ["-e", script, target, abs], cwd: "files", timeoutSeconds: 180 });
   if (result.exitCode !== 0) {
-    const detail = String(result.error || (result.stdout || "").slice(0, 300) || "无响应");
+    // result.stdout 合并了 stdout+stderr，优先展示真实错误（node 脚本的 stack trace），
+    // 而不是通用 exit status 1。
+    const detail = String((result.stdout || "").trim().slice(0, 300) || result.error || "无响应");
     throw new Error(msg(ctx, `音乐下载失败：${detail}`, `Music download failed: ${detail}`));
   }
   return abs;

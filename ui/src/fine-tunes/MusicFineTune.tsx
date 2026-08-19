@@ -1,23 +1,19 @@
 /**
- * [INPUT]: 依赖 Recut CDN 音乐目录、music.import 后台操作与 FineTuneProps 回调
- * [OUTPUT]: 对外提供 MusicFineTune：在网格中直接试听与选择，选择即生成配乐 Prompt 并
- *          「选择即导入」为媒体资产（幂等）；导入完成后 Prompt 携带 assetId 与合规信息
+ * [INPUT]: 依赖 Recut CDN 音乐目录与 FineTuneProps 回调
+ * [OUTPUT]: 对外提供 MusicFineTune：在网格中直接试听与选择，选择即生成携带下载指令的配乐
+ *          Prompt（曲目 CDN url、workspace 目标路径与合规信息），由 Agent 负责把 mp3 下载到
+ *          workspace 并以静态引用接入成片——选择本身不触发任何下载/导入
  * [POS]: remotion-studio/ui/fine-tunes 的配乐微调动作；曲目来自 catalog-first 的 CDN 目录，
- *        后台仅下载所选 mp3 并导入，用户不接触导入/移除等内部机制
+ *        下载动作交给 AI 在创作阶段执行，UI 不接触下载/导入等内部机制
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Loader2, Pause, Play } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Check, Pause, Play } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { recut, useRecutLocale } from "../recut-sdk";
+import { useRecutLocale } from "../recut-sdk";
 import { t } from "../i18n";
 import { audioAssetUrl, type MusicCatalog, type MusicTrack } from "./catalog";
 import type { FineTuneProps } from "./FineTuneProps";
-
-interface ImportResult {
-  assetId: string | null;
-  track?: MusicTrack | null;
-}
 
 function formatDuration(seconds: number): string {
   const min = Math.floor(seconds / 60);
@@ -32,11 +28,7 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
 
   const [value, setValue] = useState<string>("");
   const [playing, setPlaying] = useState<string | null>(null);
-  const [assetId, setAssetId] = useState<string | null>(null);
-  const [importing, setImporting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const pendingRef = useRef(false);
 
   const selected = tracks.find((item) => item.id === value) ?? null;
 
@@ -48,46 +40,30 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
 
   useEffect(() => () => stopPreview(), [stopPreview]);
 
-  // 选择即导入（幂等）。后台仅下载所选 mp3 为文件并导入为媒体资产；
-  // 成功才把 assetId 交还，Prompt 依此填写。失败时在选中卡显示可读原因。
-  const importTrack = useCallback(
-    async (track: MusicTrack) => {
-      if (pendingRef.current) return;
-      pendingRef.current = true;
-      setImporting(true);
-      setError(null);
-      setAssetId(null);
-      try {
-        const result = (await recut.background.call("music.import", {
-          trackId: track.id,
-          url: audioAssetUrl(track.url),
-          name: track.name,
-          duration: track.duration,
-          license: track.license,
-          source: track.source,
-          attribution: track.attribution,
-        })) as ImportResult;
-        setAssetId(result?.assetId ?? null);
-        if (!result?.assetId) setError(t(locale, "music.importFailed"));
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : t(locale, "music.importFailed"));
-      } finally {
-        pendingRef.current = false;
-        setImporting(false);
-      }
-    },
-    [locale],
-  );
-
+  // 选择即生成下载指令 Prompt：曲目名、CDN 下载地址、workspace 目标路径与许可/署名信息
+  // 全部写进 Prompt，由 Agent 在创作阶段下载 mp3 到 workspace 并静态引用接入成片。
+  // 不再调用 music.import，避免「一选就下载」。
   const selectTrack = useCallback(
     (track: MusicTrack) => {
       stopPreview();
       setValue(track.id);
-      // 幂等命中已导入资产：后续会写入 app_meta，导出/预览经 music.selected 读取。
-      setAssetId(null);
-      void importTrack(track);
+      onPrompt(
+        t(locale, "music.prompt", {
+          basePrompt,
+          name: track.name,
+          duration: formatDuration(track.duration),
+          styles: track.styles.join("、") || "-",
+          moods: track.moods.join("、") || "-",
+          url: audioAssetUrl(track.url),
+          target: `audio/music/${track.id}.mp3`,
+          license: track.license,
+          source: track.source,
+          attribution: track.attribution,
+        }),
+      );
+      onReady(true);
     },
-    [importTrack, stopPreview],
+    [basePrompt, locale, onPrompt, onReady, stopPreview],
   );
 
   const previewPlay = useCallback(
@@ -118,25 +94,6 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
     [locale, onStatus, playing, stopPreview],
   );
 
-  // Prompt 只在选中且导入成功后完整生成并 onReady，避免「空 Prompt」可提交。
-  const prompt = useMemo(() => {
-    if (!selected || !assetId) return "";
-    return t(locale, "music.prompt", {
-      basePrompt,
-      name: selected.name,
-      duration: formatDuration(selected.duration),
-      styles: selected.styles.join("、") || "-",
-      moods: selected.moods.join("、") || "-",
-      assetId,
-      license: selected.license,
-      source: selected.source,
-      attribution: selected.attribution,
-    });
-  }, [assetId, basePrompt, locale, selected]);
-
-  useEffect(() => { onPrompt(prompt); }, [onPrompt, prompt]);
-  useEffect(() => { onReady(Boolean(selected && assetId)); }, [onReady, selected, assetId]);
-
   if (!catalog || tracks.length === 0) {
     return <p className="text-xs leading-5 text-muted-foreground">{t(locale, "music.noCatalog")}</p>;
   }
@@ -161,17 +118,9 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
             </Button>
           </div>
           <div className="border-t border-primary/15 px-4 py-2 text-[11px]">
-            {importing ? (
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin" />{t(locale, "music.importing")}
-              </span>
-            ) : error ? (
-              <span className="text-destructive">{error}</span>
-            ) : assetId ? (
-              <span className="flex items-center gap-1.5 font-medium text-primary">
-                <Check className="size-3.5" />{t(locale, "music.imported")} · {selected.source ? t(locale, "music.attribution") + selected.source : ""}
-              </span>
-            ) : null}
+            <span className="flex items-center gap-1.5 font-medium text-primary">
+              <Check className="size-3.5" />{t(locale, "music.selectedStatus")} · {selected.source ? t(locale, "music.attribution") + selected.source : ""}
+            </span>
           </div>
         </section>
       ) : (
