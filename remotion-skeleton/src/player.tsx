@@ -25,7 +25,7 @@ export function App() {
   }, []);
 
   if (error) return <ErrorView title="无法加载预览配置" detail={error} />;
-  if (!props) return <div style={{ height: "100%", display: "grid", placeItems: "center", background: "#0d1017", color: "#9aa4b5", fontSize: 13 }}>加载预览…</div>;
+  if (!props) return <div style={{ height: "100%", display: "grid", placeItems: "center", background: "var(--background)", color: "var(--muted-foreground)", fontSize: 13 }}>加载预览…</div>;
 
   let meta;
   try {
@@ -35,7 +35,7 @@ export function App() {
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "#0d1017" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--background)" }}>
       <div style={{ width: "100%", height: "100%", maxWidth: 960, maxHeight: 540 }}>
         <Player
           acknowledgeRemotionLicense

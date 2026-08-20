@@ -123,13 +123,13 @@ const DigitRollDemo: React.FC = () => (
 const VerticalTickerDemo: React.FC = () => {
   const cards = (text: string, color: string) =>
     Array.from({ length: 5 }).map((_, index) => (
-      <div key={index} style={{ background: color, borderRadius: 14, padding: "16px 24px", color: "#0d1017", fontWeight: 700, fontSize: 32, fontFamily: "system-ui, sans-serif" }}>{text}</div>
+      <div key={index} style={{ background: color, borderRadius: 14, padding: "16px 24px", color: "var(--card)", fontWeight: 700, fontSize: 32, fontFamily: "system-ui, sans-serif" }}>{text}</div>
     ));
   const locale = getRecutLocale();
   return (
-    <AbsoluteFill style={{ background: "#0d1017" }}>
+    <AbsoluteFill style={{ background: "var(--background)" }}>
       <VerticalTicker
-        backgroundColor="#0d1017"
+        backgroundColor="var(--background)"
         columnWidth={340}
         columns={[
           { durationInSeconds: 3, direction: -1, items: cards(t(locale, "preview.tickerTopic"), "#f5c044") },
@@ -144,10 +144,10 @@ const VerticalTickerDemo: React.FC = () => {
 };
 
 const FlashCutDemo: React.FC = () => (
-  <AbsoluteFill style={{ background: "#0d1017" }}>
+  <AbsoluteFill style={{ background: "var(--background)" }}>
     <FlashCut duration={10} />
     <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-      <span style={{ fontFamily: MONO, fontSize: 28, letterSpacing: "0.28em", color: "#9aa4b5" }}>{t(getRecutLocale(), "preview.flash")}</span>
+      <span style={{ fontFamily: MONO, fontSize: 28, letterSpacing: "0.28em", color: "var(--muted-foreground)" }}>{t(getRecutLocale(), "preview.flash")}</span>
     </div>
   </AbsoluteFill>
 );
@@ -163,10 +163,10 @@ const PageCamDemo: React.FC = () => (
 );
 
 const PlaceholderDemo: React.FC<{ label: string; note: string }> = ({ label, note }) => (
-  <AbsoluteFill style={{ background: "#0d1017", display: "grid", placeItems: "center", padding: 32, textAlign: "center" }}>
+  <AbsoluteFill style={{ background: "var(--background)", display: "grid", placeItems: "center", padding: 32, textAlign: "center" }}>
     <div>
-      <p style={{ fontFamily: MONO, fontSize: 20, letterSpacing: "0.2em", color: "#9aa4b5" }}>{label}</p>
-      <p style={{ color: "#5b6472", fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>{note}</p>
+      <p style={{ fontFamily: MONO, fontSize: 20, letterSpacing: "0.2em", color: "var(--muted-foreground)" }}>{label}</p>
+      <p style={{ color: "var(--muted-foreground)", fontSize: 13, marginTop: 10, lineHeight: 1.6 }}>{note}</p>
     </div>
   </AbsoluteFill>
 );
@@ -237,8 +237,8 @@ export const PreviewScene: React.FC<PreviewSpec> = ({ kind, id, thumbnail }) => 
   if (kind === "camera") return <CameraPreview id={id} />;
   if (kind === "effect") return <EffectPreview id={id} />;
   return (
-    <AbsoluteFill style={{ background: "#0c100d", display: "grid", placeItems: "center", padding: "3.5%" }}>
-      <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", border: "1px solid #2c352f", borderRadius: 14, background: "#0c100d", boxShadow: "0 24px 80px rgba(0, 0, 0, 0.45)" }}>
+    <AbsoluteFill style={{ background: "var(--background)", display: "grid", placeItems: "center", padding: "3.5%" }}>
+      <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", border: "1px solid var(--border)", borderRadius: 14, background: "var(--background)", boxShadow: "0 24px 80px rgba(0, 0, 0, 0.45)" }}>
         <ComponentDemo id={id} kind={kind} />
       </div>
     </AbsoluteFill>

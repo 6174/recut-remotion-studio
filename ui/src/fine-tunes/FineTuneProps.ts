@@ -5,7 +5,16 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { Brief, Catalog, MediaAsset } from "../app";
-import type { ResourceCatalogs } from "./catalog";
+import type { MusicTrack, ResourceCatalogs } from "./catalog";
+
+export interface MusicSelection {
+  trackId: string;
+  url: string;
+  assetId?: string | null;
+  track?: MusicTrack;
+  /** 仅用于忽略快速切歌时后到的旧导入结果。 */
+  selectedAt?: number;
+}
 
 export interface FineTuneProps {
   brief: Brief;
@@ -18,4 +27,5 @@ export interface FineTuneProps {
   onPrompt: (prompt: string) => void;
   onReady: (ready: boolean) => void;
   onStatus: (message: string) => void;
+  onMusicSelected?: (selection: MusicSelection | null) => void;
 }

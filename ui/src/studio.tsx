@@ -34,7 +34,7 @@ import { MaterialsFineTune } from "./fine-tunes/MaterialsFineTune";
 import { MusicFineTune } from "./fine-tunes/MusicFineTune";
 import { FontFineTune } from "./fine-tunes/FontFineTune";
 import { loadResourceCatalogs, type ResourceCatalogs } from "./fine-tunes/catalog";
-import type { FineTuneProps } from "./fine-tunes/FineTuneProps";
+import type { FineTuneProps, MusicSelection } from "./fine-tunes/FineTuneProps";
 import type { Brief, Catalog, KitState, MediaAsset, MediaMap } from "./app";
 
 interface StudioProps {
@@ -155,6 +155,28 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   const [fineTuneReady, setFineTuneReady] = useState(true);
   const [kitState, setKitState] = useState<KitState | null>(null);
   const [resources, setResources] = useState<ResourceCatalogs | null>(null);
+  const [musicSelection, setMusicSelection] = useState<MusicSelection | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void recut.background.call("music.selected", {}).then((selected: {
+      assetId?: string | null;
+      trackId?: string | null;
+      url?: string | null;
+      track?: MusicSelection["track"];
+      selectedAt?: number | null;
+    }) => {
+      if (cancelled || !selected?.trackId || !selected.url) return;
+      setMusicSelection({
+        trackId: selected.trackId,
+        url: selected.url,
+        assetId: selected.assetId ?? null,
+        track: selected.track,
+        selectedAt: Number(selected.selectedAt) || undefined,
+      });
+    }).catch(() => { /* 已保存的音乐读取失败不阻塞工作台。 */ });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     recut.background.call("workspace.kit-state", {}).then(setKitState).catch(() => setKitState(null));
@@ -263,7 +285,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
   return (
     <div className="flex min-h-0 flex-1 max-[1100px]:flex-col">
       <section className="min-h-0 min-w-0 flex-1 bg-terminal max-[1100px]:min-h-[24rem]">
-        <PlayerPanel brief={brief} mediaMap={mediaMap} onAskAI={onRedesign} ref={playerRef} setStatus={setStatus} />
+        <PlayerPanel brief={brief} mediaMap={mediaMap} musicSelection={musicSelection} onAskAI={onRedesign} ref={playerRef} setStatus={setStatus} />
       </section>
 
       <aside className="flex w-96 min-h-0 shrink-0 flex-col border-l border-border bg-background max-[1100px]:w-full max-[1100px]:min-h-[30rem] max-[1100px]:border-l-0 max-[1100px]:border-t">
@@ -329,6 +351,7 @@ export function Studio({ assets, brief, catalog, mediaMap, onRedesign, setStatus
               completedAssets={completed}
               key={fineTune.key}
               kitVersionHint={kitVersionHint}
+              onMusicSelected={setMusicSelection}
               onPrompt={setFineTunePrompt}
               onReady={setFineTuneReady}
               onStatus={setStatus}

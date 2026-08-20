@@ -46,8 +46,8 @@ export interface ProjectVideoProps {
   settings?: RenderSettings;
   /** HTML-in-Canvas 舞台计划：interaction + effects + targets；提供时整片进入唯一捕获面。 */
   stagePlan?: import("@recut/remotion-kit").StagePlan | null;
-  /** 已选配乐：assetId 指向 media 映射里的 audio 资产；composition 用它铺底并做确定性 duck。 */
-  music?: { assetId?: string | null } | null;
+  /** 已选配乐：优先使用 materialized assetId；刚选择但尚未物化时可用 CDN url 预览。 */
+  music?: { assetId?: string | null; url?: string | null } | null;
   /**
    * 字体映射：familyId → 按环境物化的字体条目。google 家族给 css 路径（预览=Recut CDN
    * 绝对 URL；渲染=render.js 生成的 /fonts/{id}.css 本地路径）；system 家族带 system 标记，

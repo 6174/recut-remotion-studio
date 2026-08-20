@@ -16,7 +16,7 @@ log-panel.tsx: 以 iframe 本次加载时间切断历史的当前会话日志；
 player-panel.tsx: 项目 Vite 预览服务健康检查与 iframe 承载；首次 pnpm bootstrap 时显示安装态，并把 Shell Job 实时输出引导到日志分栏。
 terminal-panel.tsx: 连接 Service PTY 的交互式 zsh 终端；从项目 `workspace/` 启动，shell 原生处理补全、历史、cwd 与作业控制。
 recut-sdk.ts: iframe 与 Recut Host 通信、状态与媒体 API 适配。
-style.css: 工作台的 Tailwind 补充样式与布局细节。
+style.css: 工作台的暗色优先 Tailwind 补充样式与布局细节。
 ui.tsx: Modal 等工作台级复合 UI。
 
 依赖边界

@@ -367,7 +367,7 @@ export const CompositionGraphScene: React.FC<{
   htmlRasterizer: HtmlRasterizer;
 }> = ({ htmlAnimation, magnify, htmlRasterizer }) => (
   <>
-    <color attach="background" args={["#08131f"]} />
+    <color attach="background" args={["#070c08"]} />
     <HtmlNode
       animate={htmlAnimation}
       magnify={magnify}

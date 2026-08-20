@@ -1,16 +1,16 @@
 /**
  * [INPUT]: 依赖 Recut CDN 音乐目录与 FineTuneProps 回调
  * [OUTPUT]: 对外提供 MusicFineTune：在网格中直接试听与选择，选择即生成携带下载指令的配乐
- *          Prompt（曲目 CDN url、workspace 目标路径与合规信息），由 Agent 负责把 mp3 下载到
- *          workspace 并以静态引用接入成片——选择本身不触发任何下载/导入
+ *          Prompt（曲目 CDN url、workspace 目标路径与合规信息），并立即把 url 写入预览；
+ *          后台异步 music.import 物化平台 Asset，完成后补充 assetId
  * [POS]: remotion-studio/ui/fine-tunes 的配乐微调动作；曲目来自 catalog-first 的 CDN 目录，
- *        下载动作交给 AI 在创作阶段执行，UI 不接触下载/导入等内部机制
+ *        预览先使用当前选择的 url，预览与导出在 Asset 物化后共享同一 selected metadata
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, Pause, Play } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { useRecutLocale } from "../recut-sdk";
+import { recut, useRecutLocale } from "../recut-sdk";
 import { t } from "../i18n";
 import { audioAssetUrl, type MusicCatalog, type MusicTrack } from "./catalog";
 import type { FineTuneProps } from "./FineTuneProps";
@@ -21,7 +21,7 @@ function formatDuration(seconds: number): string {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
-export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, onPrompt, onReady, onStatus }) => {
+export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, onPrompt, onReady, onStatus, onMusicSelected }) => {
   const locale = useRecutLocale();
   const catalog: MusicCatalog | null = resources?.music ?? null;
   const tracks = catalog?.music ?? [];
@@ -29,6 +29,7 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
   const [value, setValue] = useState<string>("");
   const [playing, setPlaying] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const selectionRef = useRef(0);
 
   const selected = tracks.find((item) => item.id === value) ?? null;
 
@@ -40,13 +41,45 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
 
   useEffect(() => () => stopPreview(), [stopPreview]);
 
-  // 选择即生成下载指令 Prompt：曲目名、CDN 下载地址、workspace 目标路径与许可/署名信息
-  // 全部写进 Prompt，由 Agent 在创作阶段下载 mp3 到 workspace 并静态引用接入成片。
-  // 不再调用 music.import，避免「一选就下载」。
+  useEffect(() => {
+    let cancelled = false;
+    void recut.background.call("music.selected", {}).then((current: { trackId?: string | null; selectedAt?: number | null }) => {
+      if (!cancelled && current?.trackId) {
+        selectionRef.current = Number(current.selectedAt) || 0;
+        setValue(current.trackId);
+      }
+    }).catch(() => { /* 初始选择读取失败时保留空状态。 */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // 选择即生成下载指令 Prompt；同时先写入 url 让预览立即跟随，再异步物化平台 Asset。
   const selectTrack = useCallback(
     (track: MusicTrack) => {
       stopPreview();
       setValue(track.id);
+      const selectedAt = Math.max(Date.now(), selectionRef.current + 1);
+      selectionRef.current = selectedAt;
+      const url = audioAssetUrl(track.url);
+      // 先把当前选择写入 UI 工作面，预览立即跟随；资产导入完成后补上
+      // assetId，保证导出与预览最终使用同一份选择，而不是旧的 selected 记录。
+      onMusicSelected?.({ trackId: track.id, url, track, selectedAt });
+      void recut.background.call("music.import", {
+        trackId: track.id,
+        selectedAt,
+        url,
+        name: track.name,
+        duration: track.duration,
+        license: track.license,
+        source: track.source,
+        attribution: track.attribution,
+      }).then((result: { assetId?: string | null; url?: string | null; stale?: boolean }) => {
+        // 用户快速切换曲目时，旧请求完成不能覆盖最新选择。
+        if (selectionRef.current !== selectedAt || result?.stale) return;
+        onMusicSelected?.({ trackId: track.id, url: result?.url || url, assetId: result?.assetId ?? null, track, selectedAt });
+      }).catch((error: unknown) => {
+        if (selectionRef.current !== selectedAt) return;
+        onStatus(error instanceof Error ? error.message : t(locale, "music.importFailed"));
+      });
       onPrompt(
         t(locale, "music.prompt", {
           basePrompt,
@@ -54,7 +87,7 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
           duration: formatDuration(track.duration),
           styles: track.styles.join("、") || "-",
           moods: track.moods.join("、") || "-",
-          url: audioAssetUrl(track.url),
+          url,
           target: `audio/music/${track.id}.mp3`,
           license: track.license,
           source: track.source,
@@ -63,7 +96,7 @@ export const MusicFineTune: React.FC<FineTuneProps> = ({ resources, basePrompt, 
       );
       onReady(true);
     },
-    [basePrompt, locale, onPrompt, onReady, stopPreview],
+    [basePrompt, locale, onMusicSelected, onPrompt, onReady, onStatus, stopPreview],
   );
 
   const previewPlay = useCallback(

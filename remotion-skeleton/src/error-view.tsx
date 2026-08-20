@@ -9,10 +9,10 @@ import React from "react";
 
 export function ErrorView({ title, detail }: { title: string; detail: string }) {
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24, boxSizing: "border-box", background: "#0d1017", color: "#e8ecf4", fontFamily: "system-ui, sans-serif" }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 24, boxSizing: "border-box", background: "var(--background)", color: "var(--foreground)", fontFamily: "system-ui, sans-serif" }}>
       <strong style={{ fontSize: 15 }}>{title}</strong>
-      <pre style={{ margin: 0, maxWidth: 720, maxHeight: 240, overflow: "auto", padding: 10, border: "1px solid #3a2730", borderRadius: 8, background: "#1a1114", color: "#ffb4b4", fontSize: 11, whiteSpace: "pre-wrap" }}>{detail}</pre>
-      <span style={{ fontSize: 12, color: "#9aa4b5" }}>改代码后预览会自动热更新（必要时会整页刷新恢复）；构建/渲染问题可看 App 底部日志区。</span>
+      <pre style={{ margin: 0, maxWidth: 720, maxHeight: 240, overflow: "auto", padding: 10, border: "1px solid oklch(0.5 0.14 28)", borderRadius: 8, background: "oklch(0.2 0.05 28)", color: "oklch(0.9 0.1 28)", fontSize: 11, whiteSpace: "pre-wrap" }}>{detail}</pre>
+      <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>改代码后预览会自动热更新（必要时会整页刷新恢复）；构建/渲染问题可看 App 底部日志区。</span>
     </div>
   );
 }

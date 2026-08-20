@@ -336,17 +336,21 @@ function previewProps(input, ctx) {
   const media = input.media && typeof input.media === "object" && !Array.isArray(input.media) ? input.media : {};
   const settings = input.settings && typeof input.settings === "object" && !Array.isArray(input.settings) ? input.settings : { width: 1920, height: 1080, fps: 30 };
   const musicInput = input.music && typeof input.music === "object" && !Array.isArray(input.music) ? input.music : null;
-  const music = musicInput && typeof musicInput.assetId === "string" && musicInput.assetId.trim() ? { assetId: musicInput.assetId } : null;
+  const assetId = musicInput && typeof musicInput.assetId === "string" ? musicInput.assetId.trim() : "";
+  const url = musicInput && typeof musicInput.url === "string" ? musicInput.url.trim() : "";
+  // 选择后的第一帧可先用 catalog 的 CDN url；Asset 物化完成后同一字段切换到 assetId。
+  const music = assetId || url ? { assetId: assetId || null, url: url || null } : null;
   const payload = { brief, media, settings, music, fonts: projectFonts(ctx), at: new Date().toISOString() };
   ctx.files.writeText(`${WORKSPACE}/preview/props.json`, JSON.stringify(payload));
   return { ok: true, path: `${WORKSPACE}/preview/props.json` };
 }
 
 // ── 资源微调：音乐与字体（目录与二进制复用 Recut CDN，与编辑器同一份数据）──
-// 音乐主路径：UI「选择即出 Prompt」，由 Agent 按 Prompt 把 mp3 下载到 workspace
-//（audio/music/<trackId>.mp3）并以静态引用接入成片，Vite/Remotion 打包、离线可用，
-// 不再经这里自动下载/导入。music.import/music.selected 保留为可选的 Agent 工具：
-// 传入曲目 url/元数据后下载为文件并导入为平台媒体资产（幂等，供 resolveMediaUrl 引用）。
+// 音乐主路径：UI「选择即出 Prompt」，同时先把当前曲目的 CDN url 写入预览状态，
+// 再异步调用 music.import 物化平台 Asset；Agent 仍按 Prompt 把 mp3 下载到 workspace
+//（audio/music/<trackId>.mp3）并以静态引用接入成片，Vite/Remotion 打包、离线可用。
+// music.import/music.selected 也可由 Agent 直接调用：传入曲目 url/元数据后下载为文件
+// 并导入为平台媒体资产（幂等，供 resolveMediaUrl 引用）。
 // 字体只持久化选择；实际 @font-face 由组成代码经 @recut/remotion-kit/fonts 从 CDN 注入。
 // 数据流：UI 已用 loadResourceCatalogs 持有 CDN 目录（catalog-first，与编辑器同一份）。
 // music.import 后台仅下载该 mp3 为文件并导入为资产，不再回源拉 catalog、
@@ -392,35 +396,57 @@ function musicImport(input, ctx) {
   const key = musicMetaKey(ctx);
   if (!trackId) {
     ctx.sqlite.execute("delete from app_meta where key = ?", [key]);
-    return { assetId: null, track: null };
+    return { assetId: null, trackId: null, url: null, track: null };
   }
   const existing = resourceMeta(ctx, key);
+  const requestedAt = Number(input.selectedAt);
+  const selectedAt = Number.isFinite(requestedAt) && requestedAt > 0 ? requestedAt : Date.now();
+  const existingAt = Number(existing && existing.selectedAt) || 0;
+  // 快速切歌时 RPC 可以乱序完成；时间更早的请求只能读取当前选择，不能覆写它。
+  if (existing && existingAt > selectedAt) {
+    return { assetId: existing.assetId || null, trackId: existing.trackId || null, url: existing.url || null, track: existing.track || null, selectedAt: existingAt, stale: true };
+  }
   if (existing && existing.trackId === trackId && existing.assetId) {
-    return { assetId: existing.assetId, track: existing.track || null };
+    resourceSetMeta(ctx, key, { trackId, assetId: existing.assetId, url: existing.url || null, track: existing.track || null, selectedAt });
+    return { assetId: existing.assetId, trackId, url: existing.url || null, track: existing.track || null, selectedAt };
   }
   // 曲目元数据由 UI 从 CDN 目录传入（catalog-first，UI 已持有同一份目录），后台只校验必要字段。
-  const url = String(input.url || "").trim();
+  const url = String(input.url || (existing && existing.trackId === trackId ? existing.url : "") || "").trim();
   if (!url) throw new Error(msg(ctx, "曲目缺少可下载地址", "Track is missing a download URL"));
+  const previousTrack = existing && existing.trackId === trackId && existing.track ? existing.track : {};
+  const track = {
+    id: trackId,
+    name: String(input.name || previousTrack.name || trackId).trim() || trackId,
+    duration: Number(input.duration) || Number(previousTrack.duration) || 0,
+    license: String(input.license || previousTrack.license || "").trim(),
+    attribution: String(input.attribution || previousTrack.attribution || "").trim(),
+    source: String(input.source || previousTrack.source || "").trim(),
+  };
+  // 导入过程中也持久化当前选择：重新打开项目仍可用 URL 预览，而导出会明确等待 Asset。
+  resourceSetMeta(ctx, key, { trackId, assetId: null, url, track, selectedAt });
   const safeId = String(trackId).replace(/[^\w.-]/g, "_");
   const filePath = downloadToFile(ctx, url, `${safeId}.mp3`);
   const asset = ctx.media.importFile({ path: filePath, name: `${String(input.name || trackId).trim() || trackId}.mp3`, mimeType: "audio/mpeg" });
   if (!asset || !asset.id) throw new Error(msg(ctx, "音乐资产导入失败", "Failed to import the music asset"));
-  const track = {
-    id: trackId,
-    name: String(input.name || trackId).trim() || trackId,
-    duration: Number(input.duration) || 0,
-    license: String(input.license || "").trim(),
-    attribution: String(input.attribution || "").trim(),
-    source: String(input.source || "").trim(),
-  };
-  resourceSetMeta(ctx, key, { trackId, assetId: asset.id, track });
-  return { assetId: asset.id, track };
+  const latest = resourceMeta(ctx, key);
+  if (latest && Number(latest.selectedAt) > selectedAt) {
+    return { assetId: latest.assetId || null, trackId: latest.trackId || null, url: latest.url || null, track: latest.track || null, selectedAt: Number(latest.selectedAt), stale: true };
+  }
+  resourceSetMeta(ctx, key, { trackId, assetId: asset.id, url, track, selectedAt });
+  return { assetId: asset.id, trackId, url, track, selectedAt };
 }
 
 function musicSelected(_, ctx) {
   ensureSchema(ctx);
   const meta = resourceMeta(ctx, musicMetaKey(ctx));
-  return { assetId: meta && meta.assetId ? meta.assetId : null };
+  const track = meta && meta.track ? meta.track : null;
+  return {
+    assetId: meta && meta.assetId ? meta.assetId : null,
+    trackId: meta && meta.trackId ? meta.trackId : null,
+    url: meta && meta.url ? meta.url : null,
+    track,
+    selectedAt: meta && Number(meta.selectedAt) ? Number(meta.selectedAt) : null,
+  };
 }
 
 function fontMetaKey(ctx) {
@@ -563,7 +589,7 @@ function workflowContext(_, ctx) {
     resources: {
       music: (() => {
         const meta = resourceMeta(ctx, musicMetaKey(ctx));
-        return meta && meta.assetId ? { assetId: meta.assetId, trackId: meta.trackId || null, name: meta.name || null, license: meta.license || null, attribution: meta.attribution || null, source: meta.source || null } : null;
+        return meta && (meta.assetId || meta.trackId) ? { assetId: meta.assetId || null, trackId: meta.trackId || null, url: meta.url || null, track: meta.track || null } : null;
       })(),
       fonts: (() => {
         const meta = resourceMeta(ctx, fontMetaKey(ctx));
@@ -596,7 +622,14 @@ function renderExport(input, ctx) {
   const codec = String(input.codec || "h264");
   const label = String(input.label || msg(ctx, "Remotion 视频渲染导出", "Remotion video render export"));
 
-  const assetIds = Array.from(new Set([...(brief.materialAssetIds || []), ...registeredAssets(ctx)]));
+  // 选择状态由 music.import 先持久化，再写入 Asset。导出必须消费后者，不能悄悄丢曲目
+  // 或改在渲染期回源 URL；等待/重试能让导出的音轨与预览的当前选择一致。
+  const musicMeta = resourceMeta(ctx, musicMetaKey(ctx));
+  if (musicMeta && musicMeta.trackId && !musicMeta.assetId) {
+    throw new Error(msg(ctx, "所选音乐仍在导入，请完成后再导出", "The selected music is still importing; wait for it to finish before exporting"));
+  }
+  const musicAssetId = musicMeta && musicMeta.assetId ? musicMeta.assetId : null;
+  const assetIds = Array.from(new Set([...(brief.materialAssetIds || []), ...registeredAssets(ctx), ...(musicAssetId ? [musicAssetId] : [])]));
   const media = {};
   assetIds.forEach((assetId) => {
     if (media[assetId]) return;
@@ -604,9 +637,8 @@ function renderExport(input, ctx) {
     media[assetId] = { kind: materialized.kind, mimeType: materialized.mimeType, path: materialized.path };
   });
 
-  // 已选配乐随导出 props 下发：composition 以 props.music.assetId + resolveMediaUrl 引用。
-  const musicMeta = resourceMeta(ctx, musicMetaKey(ctx));
-  const music = musicMeta && musicMeta.assetId ? { assetId: musicMeta.assetId } : null;
+  // 已选配乐随导出 props 下发；其 assetId 已在上方物化进 media 映射。
+  const music = musicAssetId ? { assetId: musicAssetId } : null;
   const payload = { brief, media, settings: { width, height, fps, codec }, music, fonts: projectFonts(ctx) };
   ctx.files.writeText(`exports/${renderId}/props.json`, JSON.stringify(payload));
   ctx.files.writeText(`exports/${renderId}/progress.json`, JSON.stringify({ phase: "queued", progress: 0, message: msg(ctx, "任务已排队", "Task queued") }));

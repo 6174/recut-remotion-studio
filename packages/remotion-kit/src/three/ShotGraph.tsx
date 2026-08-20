@@ -251,7 +251,7 @@ export const ShotGraph: React.FC<ShotGraphProps> = ({
   height,
   rasterizer,
   onRasterized,
-  background = "#08131f",
+  background = "#070c08",
   camera,
 }) => {
   const frame = useCurrentFrame();

@@ -11,11 +11,11 @@ index.css: 正式预览与导出的 Tailwind 入口和 Recut 语义 token。
 error-view.tsx: 预览模块与 composition 错误的可读回退页。
 media.tsx: 项目媒体元素的预览组件。
 tw-probe.tsx: Tailwind 编译链的运行时探针。
-types.ts: ProjectVideo、媒体、可选 SRT/视频叙事来源、渲染设置与已选配乐（music）的共享类型。
+types.ts: ProjectVideo、媒体、可选 SRT/视频叙事来源、渲染设置与已选配乐（music）的共享类型；music 允许导入完成前的 url 与完成后的 assetId。
 lib/utils.ts: 本地 UI 原子的 className 合并工具。
 runtime/media.ts: 预览/导出共用的 assetId 媒体 URL 解析器。
 components/: 成片可复用的 UI、模板与动态组件。
-compositions/: 正式项目成片定义；配乐由 Agent 下载到 workspace（`audio/music/<trackId>.mp3`）后以静态引用接入 `<Audio>`（铺底与 duck 由 AI 在成片代码中确定性实现）。
+compositions/: 正式项目成片定义；预览优先使用已物化的 music assetId，刚选择时可回退到 CDN url；导出只使用已物化的 Asset，并在它加入 media 映射后渲染。Agent 仍按 Prompt 下载到 workspace（`audio/music/<trackId>.mp3`）后以静态引用接入 `<Audio>`（铺底与 duck 由 AI 在成片代码中确定性实现）。
 composition-graph/: 不依赖 Recut Host 的 Vite 独立实验页，验证 Remotion + Three Composition Graph。
 
 依赖边界

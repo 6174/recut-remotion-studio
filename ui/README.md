@@ -7,10 +7,10 @@ src/: Vite React 工作台源码；入口、工作面、微调模块、预览层
 src/main.tsx: Vite React 挂载入口。
 src/app.tsx: Remotion Studio 项目工作台入口；加载 brief、项目素材与 catalog，管理 Brief → 工作室切换，并在 Header 承载打开项目文件夹、导出、构建、重启、重置等次级操作。
 src/brief-form.tsx: 项目 brief 的创建表单（可播放预览的成片模板、选题、可选详细描述、优先从素材库选择且可本地上传兜底的 SRT，与单个支持多选的素材入口；未上传 SRT 时所选视频成为叙事来源）。
-src/studio.tsx: 工作室工作面：左预览 + 右侧创作列；以「选择成片模板」为主入口，微调保留表达特效、内容组件、素材、字幕、画布、**音乐与字体**，统一走「参数选择 → 可编辑 Prompt → Agent」，并以 FineTune 的 ready 合同禁用不满足资源或原生能力的提交。
+src/studio.tsx: 工作室工作面：左预览 + 右侧创作列；以「选择成片模板」为主入口，微调保留表达特效、内容组件、素材、字幕、画布、**音乐与字体**，统一走「参数选择 → 可编辑 Prompt → Agent」，并以 FineTune 的 ready 合同禁用不满足资源或原生能力的提交；恢复 `{ assetId, trackId, url, track }` 音乐选择并传给预览，导入完成后更新为 Asset。
 src/fine-tunes/: 当前成片的微调动作与 Prompt 生成模块；所有 UI 组件、类型和目录名均用 FineTune 区别于真正的成片模板。工作台动作顺序固定为「表达特效 → 内容组件 → 使用素材 → 其他微调」；EffectsFineTune 在同一弹框按「Three 镜头 / 后处理 / 转场 / 环境」分组，并以紧凑网格小卡片展示：用户只选择效果，参数 schema 自动附入 Prompt，Agent 决定 descriptor.camera 或 effect/transition/ambient 的语义挂载与最终参数；CaptionsFineTune 用白色网格 Player 检验无底框字幕动效；MusicFineTune 从 Recut CDN 试听/选择配乐并导入为媒体资产（music.import）；FontFineTune 从 Recut CDN 字体目录选择家族（fonts.select）。
 src/preview/: Remotion Player 样片选择器；字幕大预览使用完整白色网格画布、无内框，以高对比字重检验可读性，卡片停在代表帧。
-src/player-panel.tsx: 轮询每项目 Vite 预览服务器；仅在应用层 HTTP 健康检查和浏览器连通性均通过后显示 iframe，启动/重启的 15 秒轮询窗口始终展示 Loading，超时或真实失败才显示错误诊断。
+src/player-panel.tsx: 轮询每项目 Vite 预览服务器；仅在应用层 HTTP 健康检查和浏览器连通性均通过后显示 iframe，启动/重启的 15 秒轮询窗口始终展示 Loading，超时或真实失败才显示错误诊断；preview props 优先用当前音乐选择，未物化时保留 CDN url，Asset 完成后改用 assetId。
 src/export-panel.tsx: 轻量导出入口；用模态框承载本地导出设置、环境检查、渲染进度与历史产物。
 src/terminal-panel.tsx: xterm 终端，对接 service 层已有 terminal.exec 协议：行编辑、↑↓ 历史、cd 切换与清屏。
 src/log-panel.tsx: 仅显示 iframe 当前页面会话的有界日志回填（最近 3 个任务、界面首屏最新 120 行）+ shell.job.log 实时追加，支持按当前会话任务过滤、复制、清空。

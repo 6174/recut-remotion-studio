@@ -10,6 +10,7 @@ import { Button } from "./components/ui/button";
 import { recut, useRecutLocale } from "./recut-sdk";
 import { t } from "./i18n";
 import type { Brief, MediaMap } from "./app";
+import type { MusicSelection } from "./fine-tunes/FineTuneProps";
 
 interface ServeStatus {
   running: boolean;
@@ -29,6 +30,7 @@ interface PlayerPanelProps {
   mediaMap: MediaMap;
   onAskAI: (diagnostic: string) => void;
   setStatus: (status: string) => void;
+  musicSelection?: MusicSelection | null;
 }
 
 const PREVIEW_SETTINGS = { width: 1920, height: 1080, fps: 30 };
@@ -46,7 +48,7 @@ function PreviewLoading({ phase, starting, locale }: { phase?: string; starting:
   );
 }
 
-export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(function PlayerPanel({ brief, mediaMap, onAskAI, setStatus }, ref) {
+export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(function PlayerPanel({ brief, mediaMap, musicSelection, onAskAI, setStatus }, ref) {
   const locale = useRecutLocale();
   const [serve, setServe] = useState<ServeStatus | null>(null);
   const [starting, setStarting] = useState(false);
@@ -58,15 +60,31 @@ export const PlayerPanel = forwardRef<PlayerPanelHandle, PlayerPanelProps>(funct
 
   const writeProps = useCallback(async () => {
     if (!brief) return;
-    let music: { assetId: string | null } | null = null;
+    let music: { assetId?: string | null; url?: string | null } | null = musicSelection
+      ? { assetId: musicSelection.assetId ?? null, url: musicSelection.url }
+      : null;
     try {
-      const selected = (await recut.background.call("music.selected", {})) as { assetId: string | null };
-      music = selected?.assetId ? { assetId: selected.assetId } : null;
+      const selected = (await recut.background.call("music.selected", {})) as {
+        assetId?: string | null;
+        url?: string | null;
+      };
+      if (!music) {
+        music = selected?.assetId || selected?.url
+          ? { assetId: selected.assetId ?? null, url: selected.url ?? null }
+          : null;
+      }
     } catch {
       /* 配乐选择读取失败不阻塞预览 props 写入。 */
     }
-    await recut.background.call("preview.props", { media: mediaMap, settings: PREVIEW_SETTINGS, music });
-  }, [brief, mediaMap]);
+    const media = { ...mediaMap };
+    if (music?.assetId && !media[music.assetId]) {
+      media[music.assetId] = {
+        kind: "audio",
+        url: `${window.location.origin}/v1/media/assets/${encodeURIComponent(music.assetId)}/content`,
+      };
+    }
+    await recut.background.call("preview.props", { media, settings: PREVIEW_SETTINGS, music });
+  }, [brief, mediaMap, musicSelection]);
 
   const refreshServe = useCallback(async () => {
     try {

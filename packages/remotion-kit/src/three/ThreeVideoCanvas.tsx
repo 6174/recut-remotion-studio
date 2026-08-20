@@ -17,7 +17,7 @@ export interface ThreeVideoCanvasProps {
   scene?: React.ReactNode;
   /** JSX children 形式的场景节点；与 scene 二选一 */
   children?: React.ReactNode;
-  /** 背景色（默认深色底） */
+  /** 背景色（默认 Recut 深色画布 #070c08，即 oklch(0.145 0.012 150) 的 sRGB 近似） */
   background?: string;
   camera?: CameraDescriptor;
   /** 当前 Shot 的真实相机轨道；省略时维持静态默认机位。 */
@@ -33,7 +33,7 @@ export interface ThreeVideoCanvasProps {
 export const ThreeVideoCanvas: React.FC<ThreeVideoCanvasProps> = ({
   scene,
   children,
-  background = "#08131f",
+  background = "#070c08",
   camera,
   cameraMove,
   cameraProgress = 0,

@@ -137,19 +137,19 @@
     {
       "name": "preview.props",
       "surfaces": ["api"],
-      "description": "把当前 Brief、素材映射（assetId→内容 URL）、画布设置与已选配乐写入 workspace/preview/props.json，供预览页读取；素材或设置变化时调用。",
-      "inputSchema": { "type": "object", "required": [], "properties": { "media": { "type": "object", "additionalProperties": { "type": "object" } }, "settings": { "type": "object", "additionalProperties": { "type": "object" } }, "music": { "type": "object", "properties": { "assetId": { "type": "string" } }, "additionalProperties": false } } }
+      "description": "把当前 Brief、素材映射（assetId→内容 URL）、画布设置与已选配乐写入 workspace/preview/props.json，供预览页读取；music 在 Asset 物化前可传 CDN url 即时预览，完成后传 assetId；素材或设置变化时调用。",
+      "inputSchema": { "type": "object", "required": [], "properties": { "media": { "type": "object", "additionalProperties": { "type": "object" } }, "settings": { "type": "object", "additionalProperties": { "type": "object" } }, "music": { "type": "object", "properties": { "assetId": { "type": "string" }, "url": { "type": "string" } }, "additionalProperties": false } } }
     },
     {
       "name": "music.import",
       "surfaces": ["api"],
-      "description": "把用户从 Recut CDN 音乐目录选中的曲目下载并导入为媒体音频资产（幂等；同一曲目重复选择返回已导入的 assetId）。曲目的 url 与元数据由界面从 CDN 目录传入（catalog-first）。传入空 trackId 时解除配乐选择。composition 用 resolveMediaUrl(assetId) 引用并用 composition.assets 登记。",
-      "inputSchema": { "type": "object", "properties": { "trackId": { "type": "string", "description": "CDN 音频目录里 music 条目的 id；空字符串表示移除配乐。" }, "url": { "type": "string", "description": "曲目 CDN 音频面地址（来自目录的 url 字段）。" }, "name": { "type": "string" }, "duration": { "type": "number" }, "license": { "type": "string" }, "source": { "type": "string" }, "attribution": { "type": "string" } } }
+      "description": "把用户从 Recut CDN 音乐目录选中的曲目下载并导入为媒体音频资产（幂等；同一曲目重复选择返回相同的 assetId、trackId、url 与 track）。曲目的 url 与元数据由界面从 CDN 目录传入（catalog-first）；导入过程中会先持久化当前选择，供预览以 url 立即播放。selectedAt 用于忽略快速切歌时后到的旧请求。传入空 trackId 时解除配乐选择。导出会自动物化已选音乐 Asset 并放入 media 映射。",
+      "inputSchema": { "type": "object", "properties": { "trackId": { "type": "string", "description": "CDN 音频目录里 music 条目的 id；空字符串表示移除配乐。" }, "selectedAt": { "type": "number", "description": "用户选择该曲目的毫秒时间戳；较早的乱序请求不得覆写较新的选择。" }, "url": { "type": "string", "description": "曲目 CDN 音频面地址（来自目录的 url 字段）。" }, "name": { "type": "string" }, "duration": { "type": "number" }, "license": { "type": "string" }, "source": { "type": "string" }, "attribution": { "type": "string" } } }
     },
     {
       "name": "music.selected",
       "surfaces": ["api"],
-      "description": "读取当前项目已选的配乐媒体资产 id（供预览 props 与界面刷新）。",
+      "description": "读取当前项目已选配乐 `{ assetId, trackId, url, track }`（供预览 props、界面恢复与工作流上下文使用）。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {
@@ -191,7 +191,7 @@
     {
       "name": "render.export",
       "surfaces": ["api"],
-      "description": "把项目 workspace 的最新 composition 渲染为 MP4。会物化 Brief 与 composition.assets 登记的素材、写 props、启动后台 shell 渲染任务并返回 renderId + shellJobId；进度通过 render.status 或项目事件查询。",
+      "description": "把项目 workspace 的最新 composition 渲染为 MP4。会物化 Brief 与 composition.assets 登记的素材及已选音乐 Asset、写 props、启动后台 shell 渲染任务并返回 renderId + shellJobId；已选音乐仍在导入时会明确拒绝导出，避免静默漏音；进度通过 render.status 或项目事件查询。",
       "inputSchema": { "type": "object", "properties": { "width": { "type": "number" }, "height": { "type": "number" }, "fps": { "type": "number" }, "codec": { "type": "string" }, "label": { "type": "string" } } }
     },
     {

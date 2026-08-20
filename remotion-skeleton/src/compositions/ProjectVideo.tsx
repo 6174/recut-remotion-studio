@@ -36,7 +36,7 @@ const BlankTitle: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#ffffff",
+        backgroundColor: "var(--background)",
         padding: 80,
       }}
     >
@@ -49,7 +49,7 @@ const BlankTitle: React.FC = () => {
         <h1
           style={{
             margin: 0,
-            color: "#111111",
+            color: "var(--foreground)",
             fontSize: 96,
             fontWeight: 700,
             lineHeight: 1.15,
@@ -62,7 +62,7 @@ const BlankTitle: React.FC = () => {
         <p
           style={{
             margin: "24px 0 0",
-            color: "#666666",
+            color: "var(--muted-foreground)",
             fontSize: 32,
             fontWeight: 500,
             textAlign: "center",
@@ -81,7 +81,7 @@ export const ProjectVideo: React.FC<ProjectVideoProps> = ({ music, media, fonts 
     durationInFrames: BLANK_PROJECT_DURATION_SEC * fps,
     shots: [{ id: "blank", content: "html" }],
   };
-  const bgmSrc = music?.assetId ? resolveMediaUrl(music.assetId, media) : undefined;
+  const bgmSrc = music?.assetId ? resolveMediaUrl(music.assetId, media) : music?.url || undefined;
   // google 家族经 css 物化（预览=CDN、渲染=本地 /fonts/{id}.css）注入；system 家族本机直接用。
   const fontEntries = Object.entries(fonts ?? {}).filter(
     ([, entry]) => entry && typeof entry === "object" && !entry.system && typeof entry.css === "string" && entry.css.length > 0,
@@ -92,7 +92,7 @@ export const ProjectVideo: React.FC<ProjectVideoProps> = ({ music, media, fonts 
       {fontEntries.map(([id, entry]) => (
         <FontProvider key={id} id={id} css={entry.css} />
       ))}
-      <ShotGraph plan={plan} background="#ffffff" renderContent={() => <BlankTitle />} />
+      <ShotGraph plan={plan} background="#070c08" renderContent={() => <BlankTitle />} />
       {bgmSrc ? <Audio src={bgmSrc} /> : null}
     </AbsoluteFill>
   );

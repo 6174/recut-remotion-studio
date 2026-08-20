@@ -3,6 +3,7 @@
  * [OUTPUT]: 对外提供与 Recut 设计系统同源的语义 token、基础样式与 shadcn 原子所需的主题变量
  * [POS]: remotion-skeleton 的全局视觉入口；composition 渲染层只组合 Tailwind 工具类，不手写逐条样式
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ * 暗色模式：默认深色画布（oklch 0.145 0.012 150），预览舞台与空/错误态与主工作台同源。
  */
 @import "tailwindcss";
 
@@ -35,30 +36,35 @@
 }
 
 :root {
-  /* Recut Design System: quiet canvas, decisive green, low-radius surfaces. */
-  --background: oklch(0.99 0.003 150);
-  --foreground: oklch(0.18 0.012 150);
-  --card: oklch(1 0 0);
+  /* Recut Design System: dark-first canvas, decisive green, low-radius surfaces. */
+  --background: oklch(0.145 0.012 150);
+  --foreground: oklch(0.95 0.008 150);
+  --card: oklch(0.185 0.012 150);
   --card-foreground: var(--foreground);
-  --primary: oklch(0.66 0.17 151);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.955 0.012 150);
+  --popover: oklch(0.205 0.014 150);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.68 0.18 151);
+  --primary-foreground: oklch(0.12 0.012 150);
+  --secondary: oklch(0.235 0.016 150);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.965 0.006 150);
-  --muted-foreground: oklch(0.48 0.014 150);
-  --accent: oklch(0.935 0.055 151);
-  --accent-foreground: oklch(0.28 0.065 151);
-  --destructive: oklch(0.52 0.18 28);
+  --muted: oklch(0.225 0.012 150);
+  --muted-foreground: oklch(0.68 0.012 150);
+  --accent: oklch(0.28 0.06 151);
+  --accent-foreground: oklch(0.9 0.025 151);
+  --destructive: oklch(0.58 0.18 28);
   --destructive-foreground: oklch(1 0 0);
-  --success: oklch(0.64 0.16 151);
-  --warning: oklch(0.77 0.16 82);
-  --border: oklch(0.9 0.007 150);
-  --input: oklch(0.88 0.008 150);
-  --ring: oklch(0.69 0.17 151);
+  --success: oklch(0.68 0.16 151);
+  --warning: oklch(0.78 0.16 82);
+  --border: oklch(0.32 0.014 150);
+  --input: oklch(0.3 0.014 150);
+  --ring: oklch(0.68 0.18 151);
+  --terminal: oklch(0.12 0.008 150);
   --radius-xs: 0.375rem;
   --radius-sm: 0.5rem;
   --radius-md: 0.625rem;
   --radius-lg: 0.75rem;
+  --shadow-overlay: 0 14px 36px oklch(0.19 0.008 150 / 0.1);
+  color-scheme: dark;
 }
 
 @layer base {
