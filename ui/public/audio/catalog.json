@@ -1,1290 +1,846 @@
 {
-  "version": 1,
-  "generatedAt": "2026-08-15T06:48:25.683Z",
+  "version": 2,
+  "generatedAt": "2026-08-20T13:34:41.994Z",
   "music": [
     {
-      "id": "oga-bossa-nova",
-      "name": "8-Bit Bossa",
+      "id": "inc-nowhere-land",
+      "name": "Nowhere Land",
       "moods": [
-        "Happy",
-        "Relaxed"
-      ],
-      "styles": [
-        "Latin",
-        "Acoustic"
-      ],
-      "duration": 59.61,
-      "filesize": 1036480,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/bossa-nova",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-bossa-nova.mp3"
-    },
-    {
-      "id": "oga-field-of-dreams",
-      "name": "The Field of Dreams",
-      "moods": [
-        "Emotional",
-        "Inspiring"
-      ],
-      "styles": [
-        "Cinematic",
-        "Orchestral"
-      ],
-      "duration": 84.64,
-      "filesize": 1471162,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/the-field-of-dreams",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-field-of-dreams.mp3"
-    },
-    {
-      "id": "oga-tragic-ambient",
-      "name": "Tragic Ambient Main Menu",
-      "moods": [
-        "Dark",
-        "Sad"
-      ],
-      "styles": [
-        "Ambient",
-        "Piano"
-      ],
-      "duration": 100,
-      "filesize": 1583287,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/tragic-ambient-main-menu",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-tragic-ambient.mp3"
-    },
-    {
-      "id": "oga-mysterious-ambience",
-      "name": "Mysterious Ambience",
-      "moods": [
-        "Mysterious",
-        "Dark"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 42.95,
-      "filesize": 558510,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/mysterious-ambience-song21",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-mysterious-ambience.mp3"
-    },
-    {
-      "id": "oga-rain-and-thunders",
-      "name": "Rain and Thunders",
-      "moods": [
-        "Calm",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient",
-        "Nature"
-      ],
-      "duration": 278.77,
-      "filesize": 5143032,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/rain-and-thunders",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-rain-and-thunders.mp3"
-    },
-    {
-      "id": "oga-next-to-you",
-      "name": "Next to You",
-      "moods": [
-        "Emotional",
-        "Romantic"
-      ],
-      "styles": [
-        "Piano",
-        "Acoustic"
-      ],
-      "duration": 83.54,
-      "filesize": 1210896,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/next-to-you",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-next-to-you.mp3"
-    },
-    {
-      "id": "ae-doomed",
-      "name": "Doomed",
-      "moods": [
-        "Dark",
-        "Intense"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 151.25,
-      "filesize": 2731522,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-doomed.mp3"
-    },
-    {
-      "id": "ae-flags",
-      "name": "Flags",
-      "moods": [
-        "Inspiring",
-        "Epic"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 98.64,
-      "filesize": 1962886,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-flags.mp3"
-    },
-    {
-      "id": "ae-great-mission",
-      "name": "Great Mission",
-      "moods": [
-        "Epic",
-        "Inspiring"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 118.54,
-      "filesize": 2252874,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-great-mission.mp3"
-    },
-    {
-      "id": "ae-spacetime",
-      "name": "Spacetime",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Ambient",
-        "Electronic"
-      ],
-      "duration": 116.06,
-      "filesize": 2189848,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-spacetime.mp3"
-    },
-    {
-      "id": "ae-twists",
-      "name": "Twists",
-      "moods": [
-        "Intense",
-        "Dark"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 180.06,
-      "filesize": 3476717,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-twists.mp3"
-    },
-    {
-      "id": "ae-waking-the-devil",
-      "name": "Waking the Devil",
-      "moods": [
-        "Dark",
-        "Intense"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 80.69,
-      "filesize": 1508673,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-waking-the-devil.mp3"
-    },
-    {
-      "id": "ae-warped",
-      "name": "Warped",
-      "moods": [
-        "Mysterious",
-        "Intense"
-      ],
-      "styles": [
-        "Cinematic",
-        "Electronic"
-      ],
-      "duration": 114.08,
-      "filesize": 2215075,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-music-pack",
-      "attribution": "Alexander Ehlers (OpenGameArt)",
-      "url": "audio/music/ae-warped.mp3"
-    },
-    {
-      "id": "oga-8bit-title-screen",
-      "name": "8-Bit Title Screen",
-      "moods": [
-        "Happy",
-        "Playful"
-      ],
-      "styles": [
-        "Chiptune",
-        "Retro"
-      ],
-      "duration": 22,
-      "filesize": 364436,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/8bit-title-screen",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-8bit-title-screen.mp3"
-    },
-    {
-      "id": "oga-a-new-town",
-      "name": "A New Town",
-      "moods": [
-        "Happy",
-        "Inspiring"
-      ],
-      "styles": [
-        "Orchestral",
-        "Acoustic"
-      ],
-      "duration": 62.32,
-      "filesize": 1008610,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/a-new-town-rpg-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-a-new-town.mp3"
-    },
-    {
-      "id": "oga-at-the-end-of-hope",
-      "name": "At the End of Hope",
-      "moods": [
-        "Emotional",
-        "Sad"
-      ],
-      "styles": [
-        "Cinematic",
-        "Orchestral"
-      ],
-      "duration": 182.89,
-      "filesize": 3742410,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/at-the-end-of-hope",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-at-the-end-of-hope.mp3"
-    },
-    {
-      "id": "oga-battle-theme-a",
-      "name": "Battle Theme A",
-      "moods": [
-        "Intense",
-        "Epic"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 95.9,
-      "filesize": 1890737,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/battle-theme-a",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-battle-theme-a.mp3"
-    },
-    {
-      "id": "oga-battle-theme-b",
-      "name": "Battle Theme B",
-      "moods": [
-        "Intense",
-        "Epic"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 66.04,
-      "filesize": 1196688,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/battle-theme-b-for-rpg",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-battle-theme-b.mp3"
-    },
-    {
-      "id": "oga-carnival-rides",
-      "name": "Carnival Rides",
-      "moods": [
-        "Happy",
-        "Playful"
-      ],
-      "styles": [
-        "Retro",
-        "Acoustic"
-      ],
-      "duration": 25.5,
-      "filesize": 487837,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/carnival-rides",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-carnival-rides.mp3"
-    },
-    {
-      "id": "oga-cave-theme",
-      "name": "Cave Theme",
-      "moods": [
-        "Mysterious",
-        "Dark"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 280,
-      "filesize": 4597805,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/cave-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-cave-theme.mp3"
-    },
-    {
-      "id": "oga-chill-lofi",
-      "name": "Chill Lofi",
-      "moods": [
-        "Calm",
-        "Relaxed"
-      ],
-      "styles": [
-        "Lo-fi",
-        "Chill"
-      ],
-      "duration": 123.19,
-      "filesize": 2191478,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/chill-lofi-inspired",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-chill-lofi.mp3"
-    },
-    {
-      "id": "oga-chill-main-menu",
-      "name": "Chill Main Menu",
-      "moods": [
-        "Calm",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 99,
-      "filesize": 1537343,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/chill-main-menu-music",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-chill-main-menu.mp3"
-    },
-    {
-      "id": "oga-creepy-forest",
-      "name": "Creepy Forest",
-      "moods": [
-        "Dark",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 216,
-      "filesize": 3245998,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/creepy-forest-f",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-creepy-forest.mp3"
-    },
-    {
-      "id": "oga-crystal-cave",
-      "name": "Crystal Cave",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 49.61,
-      "filesize": 722449,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/crystal-cave-song18",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-crystal-cave.mp3"
-    },
-    {
-      "id": "oga-cyberpunk-moonlight",
-      "name": "Cyberpunk Moonlight Sonata",
-      "moods": [
-        "Dark",
-        "Mysterious"
-      ],
-      "styles": [
-        "Electronic",
-        "Piano"
-      ],
-      "duration": 116.74,
-      "filesize": 2523618,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/cyberpunk-moonlight-sonata",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-cyberpunk-moonlight.mp3"
-    },
-    {
-      "id": "oga-dark-forest",
-      "name": "Dark Forest Theme",
-      "moods": [
-        "Dark",
-        "Emotional"
-      ],
-      "styles": [
-        "Orchestral",
-        "Ambient"
-      ],
-      "duration": 93.13,
-      "filesize": 1846814,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/dark-forest-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-dark-forest.mp3"
-    },
-    {
-      "id": "oga-determined-pursuit",
-      "name": "Determined Pursuit",
-      "moods": [
-        "Epic",
-        "Inspiring"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 108,
-      "filesize": 2050142,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/determined-pursuit-epic-orchestra-loop",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-determined-pursuit.mp3"
-    },
-    {
-      "id": "oga-doodle-menu",
-      "name": "Doodle Menu",
-      "moods": [
-        "Happy",
-        "Playful"
-      ],
-      "styles": [
-        "Acoustic"
-      ],
-      "duration": 83.51,
-      "filesize": 1217714,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/doodle-menu-like-song",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-doodle-menu.mp3"
-    },
-    {
-      "id": "oga-emotional-piano",
-      "name": "Emotional Piano Loop",
-      "moods": [
-        "Emotional",
-        "Calm"
-      ],
-      "styles": [
-        "Piano"
-      ],
-      "duration": 27.84,
-      "filesize": 321200,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/emotional-piano-loop",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-emotional-piano.mp3"
-    },
-    {
-      "id": "oga-empty-city",
-      "name": "Empty City",
-      "moods": [
-        "Dark",
-        "Sad"
-      ],
-      "styles": [
-        "Ambient",
-        "Electronic"
-      ],
-      "duration": 100,
-      "filesize": 1171866,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/emptycity-background-music",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-empty-city.mp3"
-    },
-    {
-      "id": "oga-enchanted-tiki",
-      "name": "Enchanted Tiki 86",
-      "moods": [
-        "Happy",
-        "Playful"
-      ],
-      "styles": [
-        "Chiptune",
-        "Retro"
-      ],
-      "duration": 117.45,
-      "filesize": 2160525,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/enchanted-tiki-86",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-enchanted-tiki.mp3"
-    },
-    {
-      "id": "oga-eye-of-the-storm",
-      "name": "Eye of the Storm",
-      "moods": [
-        "Epic",
-        "Intense"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 46.13,
-      "filesize": 757606,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/eye-of-the-storm",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-eye-of-the-storm.mp3"
-    },
-    {
-      "id": "oga-flare-main",
-      "name": "Flare Main",
-      "moods": [
-        "Calm",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient",
-        "Electronic"
-      ],
-      "duration": 76,
-      "filesize": 931417,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/flare-main",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-flare-main.mp3"
-    },
-    {
-      "id": "oga-forest-ambience",
-      "name": "Forest Ambience",
-      "moods": [
-        "Calm",
-        "Relaxed"
-      ],
-      "styles": [
-        "Nature",
-        "Ambient"
-      ],
-      "duration": 44.76,
-      "filesize": 837231,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/forest-ambience",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-forest-ambience.mp3"
-    },
-    {
-      "id": "oga-forgotten-tomb",
-      "name": "Forgotten Tomb Ambience",
-      "moods": [
-        "Dark",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 214.2,
-      "filesize": 4358671,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/forgoten-tomb-ambience",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-forgotten-tomb.mp3"
-    },
-    {
-      "id": "oga-free-run",
-      "name": "Free Run",
-      "moods": [
-        "Happy",
-        "Upbeat"
-      ],
-      "styles": [
-        "Chiptune",
-        "Retro"
-      ],
-      "duration": 83.28,
-      "filesize": 1631198,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/free-run-8-bitish",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-free-run.mp3"
-    },
-    {
-      "id": "oga-gone-fishin",
-      "name": "Gone Fishin",
-      "moods": [
-        "Happy",
-        "Relaxed"
-      ],
-      "styles": [
-        "Acoustic",
-        "Jazz"
-      ],
-      "duration": 107.71,
-      "filesize": 2085266,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/gone-fishin",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-gone-fishin.mp3"
-    },
-    {
-      "id": "oga-happy-adventure",
-      "name": "Happy Adventure Loop",
-      "moods": [
-        "Happy",
-        "Upbeat"
-      ],
-      "styles": [
-        "Orchestral",
-        "Acoustic"
-      ],
-      "duration": 46.79,
-      "filesize": 676213,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/happy-adventure-loop",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-happy-adventure.mp3"
-    },
-    {
-      "id": "oga-happy-lullaby",
-      "name": "Happy Lullaby",
-      "moods": [
-        "Happy",
-        "Calm"
-      ],
-      "styles": [
-        "Piano",
-        "Retro"
-      ],
-      "duration": 39.56,
-      "filesize": 594105,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/happy-lullaby-song17",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-happy-lullaby.mp3"
-    },
-    {
-      "id": "oga-horror-wastelands",
-      "name": "Post Apocalyptic Wastelands",
-      "moods": [
-        "Dark",
-        "Intense"
-      ],
-      "styles": [
-        "Ambient",
-        "Horror"
-      ],
-      "duration": 323.85,
-      "filesize": 5177796,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/horror-atmosphere",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-horror-wastelands.mp3"
-    },
-    {
-      "id": "oga-i-swear-i-saw-it",
-      "name": "I Swear I Saw It",
-      "moods": [
-        "Mysterious",
-        "Dark"
-      ],
-      "styles": [
-        "Ambient",
-        "Retro"
-      ],
-      "duration": 207.43,
-      "filesize": 2614391,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/i-swear-i-saw-it-background-track",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-i-swear-i-saw-it.mp3"
-    },
-    {
-      "id": "oga-insistent-loop",
-      "name": "Insistent Loop",
-      "moods": [
-        "Intense",
-        "Dark"
-      ],
-      "styles": [
-        "Electronic"
-      ],
-      "duration": 128.69,
-      "filesize": 1698721,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/insistent-background-loop",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-insistent-loop.mp3"
-    },
-    {
-      "id": "oga-long-away-home",
-      "name": "Long Away Home",
-      "moods": [
-        "Emotional",
-        "Calm"
-      ],
-      "styles": [
-        "Piano",
-        "Chiptune"
-      ],
-      "duration": 121.33,
-      "filesize": 3746915,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/long-away-home-8bit",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-long-away-home.mp3"
-    },
-    {
-      "id": "oga-magic-space",
-      "name": "Magic Space",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Space",
-        "Ambient"
-      ],
-      "duration": 54.91,
-      "filesize": 959117,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/magic-space",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-magic-space.mp3"
-    },
-    {
-      "id": "oga-minstrel-dance",
-      "name": "Minstrel Dance",
-      "moods": [
-        "Happy",
-        "Playful"
-      ],
-      "styles": [
-        "Medieval",
-        "Acoustic"
-      ],
-      "duration": 138.61,
-      "filesize": 2425804,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/medieval-minstrel-dance",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-minstrel-dance.mp3"
-    },
-    {
-      "id": "oga-bards-tale",
-      "name": "The Bard's Tale",
-      "moods": [
-        "Calm",
-        "Emotional"
-      ],
-      "styles": [
-        "Medieval",
-        "Acoustic"
-      ],
-      "duration": 158.59,
-      "filesize": 2844046,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/medieval-the-bards-tale",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-bards-tale.mp3"
-    },
-    {
-      "id": "oga-old-tower-inn",
-      "name": "The Old Tower Inn",
-      "moods": [
-        "Calm",
+        "Upbeat",
         "Happy"
       ],
       "styles": [
-        "Medieval",
-        "Acoustic"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 105.48,
-      "filesize": 2043475,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/medieval-the-old-tower-inn",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-old-tower-inn.mp3"
+      "bpm": 120,
+      "duration": 132.1,
+      "filesize": 2617985,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Nowhere Land by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-nowhere-land.mp3"
     },
     {
-      "id": "oga-mythica",
-      "name": "Mythica",
+      "id": "inc-inspired",
+      "name": "Inspired",
       "moods": [
-        "Epic",
-        "Inspiring"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 312.06,
-      "filesize": 5511104,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/mythica",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-mythica.mp3"
-    },
-    {
-      "id": "oga-night-of-the-streets",
-      "name": "Night of the Streets",
-      "moods": [
-        "Dark",
-        "Intense"
-      ],
-      "styles": [
-        "Cinematic",
-        "Horror"
-      ],
-      "duration": 163.68,
-      "filesize": 2797136,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/night-of-the-streets-horrorsuspense",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-night-of-the-streets.mp3"
-    },
-    {
-      "id": "oga-night-prowler",
-      "name": "Night Prowler",
-      "moods": [
-        "Dark",
-        "Mysterious"
+        "Upbeat",
+        "Happy",
+        "Relaxed",
+        "Calm"
       ],
       "styles": [
         "Electronic",
-        "Retro"
+        "Synth"
       ],
-      "duration": 152.72,
-      "filesize": 2973670,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/night-prowler",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-night-prowler.mp3"
+      "bpm": 120,
+      "duration": 286.09,
+      "filesize": 5192456,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Inspired by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-inspired.mp3"
     },
     {
-      "id": "oga-november-snow",
-      "name": "November Snow",
+      "id": "inc-newer-wave",
+      "name": "Newer Wave",
       "moods": [
-        "Calm",
-        "Emotional"
-      ],
-      "styles": [
-        "Ambient",
-        "Piano"
-      ],
-      "duration": 349.54,
-      "filesize": 7247620,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/november-snow",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-november-snow.mp3"
-    },
-    {
-      "id": "oga-prepare-your-swords",
-      "name": "Prepare Your Swords",
-      "moods": [
-        "Epic",
-        "Intense"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 88.35,
-      "filesize": 1465495,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/prepare-your-swords",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-prepare-your-swords.mp3"
-    },
-    {
-      "id": "oga-sad-orchestral",
-      "name": "Sad Orchestral Theme",
-      "moods": [
-        "Sad",
-        "Emotional"
-      ],
-      "styles": [
-        "Orchestral",
-        "Cinematic"
-      ],
-      "duration": 316.38,
-      "filesize": 5734970,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/sad-orchestral-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-sad-orchestral.mp3"
-    },
-    {
-      "id": "oga-searching",
-      "name": "Searching",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 104.58,
-      "filesize": 1429582,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/searching",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-searching.mp3"
-    },
-    {
-      "id": "oga-shrine",
-      "name": "Shrine",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Ambient",
-        "Medieval"
-      ],
-      "duration": 54.32,
-      "filesize": 817619,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/shrine",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-shrine.mp3"
-    },
-    {
-      "id": "oga-sirens-in-darkness",
-      "name": "Sirens in Darkness",
-      "moods": [
-        "Dark",
-        "Mysterious"
+        "Upbeat",
+        "Happy",
+        "Energetic"
       ],
       "styles": [
         "Electronic",
-        "Ambient"
+        "Synth"
       ],
-      "duration": 229.9,
-      "filesize": 4092061,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/sirens-in-darkness",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-sirens-in-darkness.mp3"
+      "bpm": 110,
+      "duration": 174.63,
+      "filesize": 3346542,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Newer Wave by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-newer-wave.mp3"
     },
     {
-      "id": "oga-snowfall",
-      "name": "Snowfall",
+      "id": "inc-super-friendly",
+      "name": "Super Friendly",
       "moods": [
-        "Calm",
-        "Emotional"
+        "Upbeat",
+        "Happy",
+        "Playful"
       ],
       "styles": [
-        "Ambient",
-        "Piano"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 49.5,
-      "filesize": 775733,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/snowfall",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-snowfall.mp3"
+      "bpm": 108,
+      "duration": 134.4,
+      "filesize": 2571949,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Super Friendly by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-super-friendly.mp3"
     },
     {
-      "id": "oga-space-out-there",
-      "name": "Out There",
+      "id": "inc-electrodoodle",
+      "name": "Electrodoodle",
       "moods": [
-        "Mysterious",
-        "Calm"
+        "Upbeat",
+        "Playful"
       ],
       "styles": [
-        "Space",
-        "Ambient"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 242,
-      "filesize": 3513430,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/space-music-out-there",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-space-out-there.mp3"
+      "bpm": 120,
+      "duration": 166.09,
+      "filesize": 2772710,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Electrodoodle by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-electrodoodle.mp3"
     },
     {
-      "id": "oga-spacelife-14",
-      "name": "Spacelife 14",
+      "id": "inc-life-of-riley",
+      "name": "Life of Riley",
       "moods": [
-        "Mysterious",
-        "Dark"
+        "Upbeat",
+        "Happy",
+        "Relaxed"
       ],
       "styles": [
-        "Space",
+        "Pop",
         "Electronic"
       ],
-      "duration": 110.29,
-      "filesize": 1489846,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/spacelife-14",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-spacelife-14.mp3"
+      "bpm": 102,
+      "duration": 235.39,
+      "filesize": 4890426,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Life of Riley by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-life-of-riley.mp3"
     },
     {
-      "id": "oga-story-time",
-      "name": "Story Time",
+      "id": "inc-glitter-blast",
+      "name": "Glitter Blast",
       "moods": [
-        "Calm",
-        "Happy"
+        "Happy",
+        "Playful",
+        "Energetic"
       ],
       "styles": [
-        "Acoustic",
-        "Retro"
+        "Pop",
+        "Electronic"
       ],
-      "duration": 55.05,
-      "filesize": 721090,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/story-time",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-story-time.mp3"
+      "bpm": 100,
+      "duration": 177.84,
+      "filesize": 3867766,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Glitter Blast by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-glitter-blast.mp3"
     },
     {
-      "id": "oga-talking-cute-chiptune",
-      "name": "Talking Cute Chiptune",
+      "id": "inc-show-your-moves",
+      "name": "Show Your Moves",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 136,
+      "duration": 215.38,
+      "filesize": 4687803,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Show Your Moves by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-show-your-moves.mp3"
+    },
+    {
+      "id": "inc-laser-groove",
+      "name": "Laser Groove",
+      "moods": [
+        "Happy",
+        "Energetic",
+        "Relaxed"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 140,
+      "duration": 168.1,
+      "filesize": 3166277,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Laser Groove by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-laser-groove.mp3"
+    },
+    {
+      "id": "inc-getting-it-done",
+      "name": "Getting it Done",
+      "moods": [
+        "Happy",
+        "Energetic",
+        "Relaxed"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 135,
+      "duration": 209.87,
+      "filesize": 4599686,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Getting it Done by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-getting-it-done.mp3"
+    },
+    {
+      "id": "inc-voice-over-under",
+      "name": "Voice Over Under",
       "moods": [
         "Happy",
         "Playful"
       ],
       "styles": [
-        "Chiptune",
-        "Retro"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 152.01,
-      "filesize": 3162238,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/talking-cute-chiptune",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-talking-cute-chiptune.mp3"
+      "bpm": 135,
+      "duration": 197.43,
+      "filesize": 4269426,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Voice Over Under by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-voice-over-under.mp3"
     },
     {
-      "id": "oga-the-9th-circle",
-      "name": "The 9th Circle",
+      "id": "inc-bit-shift",
+      "name": "Bit Shift",
       "moods": [
-        "Dark",
-        "Epic"
+        "Happy",
+        "Playful",
+        "Energetic"
       ],
       "styles": [
-        "Orchestral",
-        "Cinematic"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 170.74,
-      "filesize": 3445108,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/the-9th-circle",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-the-9th-circle.mp3"
+      "bpm": 130,
+      "duration": 192.08,
+      "filesize": 3469041,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Bit Shift by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-bit-shift.mp3"
     },
     {
-      "id": "oga-the-rush",
-      "name": "The Rush",
+      "id": "inc-presenterator",
+      "name": "Presenterator",
       "moods": [
-        "Epic",
+        "Happy",
+        "Playful",
         "Intense"
       ],
       "styles": [
-        "Cinematic",
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 130,
+      "duration": 255.69,
+      "filesize": 4837207,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Presenterator by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-presenterator.mp3"
+    },
+    {
+      "id": "inc-laserpack",
+      "name": "Laserpack",
+      "moods": [
+        "Playful",
+        "Energetic",
+        "Intense"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 128,
+      "duration": 185.7,
+      "filesize": 10984677,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Laserpack by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-laserpack.mp3"
+    },
+    {
+      "id": "inc-special-spotlight",
+      "name": "Special Spotlight",
+      "moods": [
+        "Playful",
+        "Energetic",
+        "Intense"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 126,
+      "duration": 192.47,
+      "filesize": 3718762,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Special Spotlight by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-special-spotlight.mp3"
+    },
+    {
+      "id": "inc-digital-lemonade",
+      "name": "Digital Lemonade",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Relaxed"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 120,
+      "duration": 180.09,
+      "filesize": 3826078,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Digital Lemonade by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-digital-lemonade.mp3"
+    },
+    {
+      "id": "inc-delightful-d",
+      "name": "Delightful D",
+      "moods": [
+        "Happy",
+        "Energetic",
+        "Intense"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 120,
+      "duration": 184.08,
+      "filesize": 4006576,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Delightful D by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-delightful-d.mp3"
+    },
+    {
+      "id": "inc-blippy-trance",
+      "name": "Blippy Trance",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 100,
+      "duration": 120.06,
+      "filesize": 2561149,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Blippy Trance by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-blippy-trance.mp3"
+    },
+    {
+      "id": "inc-bit-quest",
+      "name": "Bit Quest",
+      "moods": [
+        "Happy",
+        "Playful"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 100,
+      "duration": 192.08,
+      "filesize": 3285296,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Bit Quest by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-bit-quest.mp3"
+    },
+    {
+      "id": "inc-killing-time",
+      "name": "Killing Time",
+      "moods": [
+        "Happy",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 100,
+      "duration": 204.09,
+      "filesize": 4236662,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Killing Time by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-killing-time.mp3"
+    },
+    {
+      "id": "inc-voxel-revolution",
+      "name": "Voxel Revolution",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 122,
+      "duration": 129.93,
+      "filesize": 2208596,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Voxel Revolution by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-voxel-revolution.mp3"
+    },
+    {
+      "id": "inc-pookatori-and-friends",
+      "name": "Pookatori and Friends",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 124,
+      "duration": 247.82,
+      "filesize": 4089886,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Pookatori and Friends by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-pookatori-and-friends.mp3"
+    },
+    {
+      "id": "inc-new-friendly",
+      "name": "New Friendly",
+      "moods": [
+        "Upbeat",
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 114,
+      "duration": 169.14,
+      "filesize": 4412744,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: New Friendly by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-new-friendly.mp3"
+    },
+    {
+      "id": "inc-pinball-spring",
+      "name": "Pinball Spring",
+      "moods": [
+        "Upbeat",
+        "Happy",
+        "Playful",
+        "Playful"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 116,
+      "duration": 235.96,
+      "filesize": 4757752,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Pinball Spring by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-pinball-spring.mp3"
+    },
+    {
+      "id": "inc-disco-con-tutti",
+      "name": "Disco con Tutti",
+      "moods": [
+        "Upbeat",
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Disco",
         "Electronic"
       ],
-      "duration": 139.7,
-      "filesize": 3874694,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/the-rush",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-the-rush.mp3"
+      "bpm": 115,
+      "duration": 236.38,
+      "filesize": 4175248,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Disco con Tutti by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-disco-con-tutti.mp3"
     },
     {
-      "id": "oga-tower-defense",
-      "name": "Tower Defense Theme",
+      "id": "inc-funky-chunk",
+      "name": "Funky Chunk",
       "moods": [
-        "Epic",
+        "Upbeat",
+        "Happy",
+        "Energetic"
+      ],
+      "styles": [
+        "Funky",
+        "Groove"
+      ],
+      "bpm": 115,
+      "duration": 239.05,
+      "filesize": 5172994,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Funky Chunk by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-funky-chunk.mp3"
+    },
+    {
+      "id": "inc-enter-the-party",
+      "name": "Enter the Party",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic",
         "Intense"
       ],
       "styles": [
-        "Orchestral",
-        "Cinematic"
+        "Funky",
+        "Groove"
       ],
-      "duration": 199.42,
-      "filesize": 4029299,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/tower-defense-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-tower-defense.mp3"
+      "bpm": 120,
+      "duration": 188.08,
+      "filesize": 4227638,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Enter the Party by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-enter-the-party.mp3"
     },
     {
-      "id": "oga-underwater",
-      "name": "Underwater Theme",
+      "id": "inc-loopster",
+      "name": "Loopster",
       "moods": [
-        "Calm",
-        "Mysterious"
-      ],
-      "styles": [
-        "Ambient"
-      ],
-      "duration": 170.21,
-      "filesize": 3473953,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/underwater-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-underwater.mp3"
-    },
-    {
-      "id": "oga-vampires-piano",
-      "name": "Vampire's Piano",
-      "moods": [
-        "Dark",
-        "Mysterious"
-      ],
-      "styles": [
-        "Piano",
-        "Classical"
-      ],
-      "duration": 89.44,
-      "filesize": 1433517,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/vampires-piano",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-vampires-piano.mp3"
-    },
-    {
-      "id": "oga-where-was-i",
-      "name": "Where Was I",
-      "moods": [
-        "Mysterious",
-        "Calm"
-      ],
-      "styles": [
-        "Ambient",
-        "Retro"
-      ],
-      "duration": 68.23,
-      "filesize": 1162528,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/where-was-i",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-where-was-i.mp3"
-    },
-    {
-      "id": "oga-zombies-march",
-      "name": "Zombies March",
-      "moods": [
-        "Dark",
+        "Happy",
+        "Energetic",
         "Intense"
       ],
       "styles": [
-        "Retro",
-        "Horror"
+        "Funky",
+        "Groove"
       ],
-      "duration": 84,
-      "filesize": 1762449,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/zombies-march",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-zombies-march.mp3"
+      "bpm": 108,
+      "duration": 182.31,
+      "filesize": 3265206,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Loopster by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-loopster.mp3"
     },
     {
-      "id": "oga-adventure-time",
-      "name": "Adventure Time",
+      "id": "inc-werq",
+      "name": "Werq",
+      "moods": [
+        "Happy",
+        "Energetic",
+        "Relaxed"
+      ],
+      "styles": [
+        "Pop",
+        "Electronic"
+      ],
+      "bpm": 125,
+      "duration": 162.32,
+      "filesize": 3252816,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Werq by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-werq.mp3"
+    },
+    {
+      "id": "inc-overcast",
+      "name": "Overcast",
+      "moods": [
+        "Happy",
+        "Playful",
+        "Energetic"
+      ],
+      "styles": [
+        "Disco",
+        "Electronic"
+      ],
+      "bpm": 120,
+      "duration": 228.1,
+      "filesize": 4485985,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Overcast by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-overcast.mp3"
+    },
+    {
+      "id": "inc-mega-hyper-ultrastorm",
+      "name": "Mega Hyper Ultrastorm",
+      "moods": [
+        "Energetic",
+        "Upbeat"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 220,
+      "duration": 193.18,
+      "filesize": 4185717,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Mega Hyper Ultrastorm by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-mega-hyper-ultrastorm.mp3"
+    },
+    {
+      "id": "inc-cloud-dancer",
+      "name": "Cloud Dancer",
       "moods": [
         "Happy",
         "Upbeat"
       ],
       "styles": [
-        "Retro",
-        "Acoustic"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 86.07,
-      "filesize": 1449919,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/adventure-time",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-adventure-time.mp3"
+      "bpm": 214,
+      "duration": 219.9,
+      "filesize": 4610958,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Cloud Dancer by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-cloud-dancer.mp3"
     },
     {
-      "id": "oga-desert-theme",
-      "name": "Desert Theme",
+      "id": "inc-blown-away",
+      "name": "Blown Away",
       "moods": [
-        "Mysterious",
-        "Calm"
+        "Energetic"
       ],
       "styles": [
-        "Ambient",
-        "Acoustic"
+        "Pop",
+        "Electronic"
       ],
-      "duration": 98.4,
-      "filesize": 1278451,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/desert-theme",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-desert-theme.mp3"
+      "bpm": 170,
+      "duration": 225.99,
+      "filesize": 5367711,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Blown Away by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-blown-away.mp3"
     },
     {
-      "id": "oga-dungeon-ambience",
-      "name": "Dungeon Ambience",
+      "id": "inc-furious-freak",
+      "name": "Furious Freak",
       "moods": [
-        "Dark",
-        "Mysterious"
+        "Energetic"
       ],
       "styles": [
-        "Ambient"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 206,
-      "filesize": 2480846,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/dungeon-ambience",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-dungeon-ambience.mp3"
+      "bpm": 160,
+      "duration": 187.17,
+      "filesize": 3163851,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Furious Freak by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-furious-freak.mp3"
     },
     {
-      "id": "oga-breves-dies-hominis",
-      "name": "Breves Dies Hominis",
+      "id": "inc-cyborg-ninja",
+      "name": "Cyborg Ninja",
       "moods": [
-        "Sad",
-        "Epic"
+        "Energetic"
       ],
       "styles": [
-        "Orchestral",
-        "Choral"
+        "Electronic",
+        "Synth"
       ],
-      "duration": 175.52,
-      "filesize": 2524206,
-      "license": "CC0",
-      "source": "https://opengameart.org/content/breves-dies-hominis",
-      "attribution": "OpenGameArt",
-      "url": "audio/music/oga-breves-dies-hominis.mp3"
+      "bpm": 160,
+      "duration": 180.09,
+      "filesize": 2380288,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Cyborg Ninja by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-cyborg-ninja.mp3"
+    },
+    {
+      "id": "inc-pinball-spring-160",
+      "name": "Pinball Spring 160",
+      "moods": [
+        "Happy"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 160,
+      "duration": 171.1,
+      "filesize": 3475888,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Pinball Spring 160 by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-pinball-spring-160.mp3"
+    },
+    {
+      "id": "inc-cruising-for-goblins",
+      "name": "Cruising for Goblins",
+      "moods": [
+        "Energetic",
+        "Upbeat"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 155,
+      "duration": 148.74,
+      "filesize": 2169685,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Cruising for Goblins by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-cruising-for-goblins.mp3"
+    },
+    {
+      "id": "inc-quirky-dog",
+      "name": "Quirky Dog",
+      "moods": [
+        "Happy"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 155,
+      "duration": 148.56,
+      "filesize": 3048998,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Quirky Dog by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-quirky-dog.mp3"
+    },
+    {
+      "id": "inc-blip-stream",
+      "name": "Blip Stream",
+      "moods": [
+        "Happy"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 150,
+      "duration": 284.89,
+      "filesize": 5396723,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Blip Stream by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-blip-stream.mp3"
+    },
+    {
+      "id": "inc-cipher",
+      "name": "Cipher",
+      "moods": [
+        "Happy",
+        "Upbeat"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 150,
+      "duration": 231.29,
+      "filesize": 4300911,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Cipher by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-cipher.mp3"
+    },
+    {
+      "id": "inc-trips-it",
+      "name": "Trips It",
+      "moods": [
+        "Energetic"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 148,
+      "duration": 260.23,
+      "filesize": 5339246,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Trips It by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-trips-it.mp3"
+    },
+    {
+      "id": "inc-reformat",
+      "name": "Reformat",
+      "moods": [
+        "Energetic",
+        "Happy"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 140,
+      "duration": 219.51,
+      "filesize": 4140132,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Reformat by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-reformat.mp3"
+    },
+    {
+      "id": "inc-future-cha-cha",
+      "name": "Future Cha Cha",
+      "moods": [
+        "Energetic",
+        "Happy"
+      ],
+      "styles": [
+        "Electronic",
+        "Synth"
+      ],
+      "bpm": 140,
+      "duration": 277.81,
+      "filesize": 5789406,
+      "license": "CC BY 4.0",
+      "source": "https://incompetech.com/music/royalty-free/full_list.php",
+      "attribution": "Music: Future Cha Cha by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+      "url": "audio/music/inc-future-cha-cha.mp3"
     }
   ],
   "sfx": [
