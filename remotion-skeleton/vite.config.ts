@@ -59,6 +59,7 @@ export default defineConfig({
         preview: path.join(workspace, "index.html"),
         compositionGraph: path.join(workspace, "composition-graph.html"),
         splineLike: path.join(workspace, "spline-like.html"),
+        splineMaterial: path.join(workspace, "spline-material.html"),
       },
     },
   },

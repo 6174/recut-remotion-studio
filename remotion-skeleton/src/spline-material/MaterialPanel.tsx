@@ -1,0 +1,291 @@
+/**
+ * [INPUT]: React、本目录 types.ts / controls.tsx / popups.tsx / icons.tsx
+ * [OUTPUT]: 对外提供 MaterialPanel：Spline 风格右侧属性面板（Material 图层栈 + Modifiers + Visibility + Collision）
+ * [POS]: spline-material 的核心 UI；图层行、弹窗锚点与所有受控编辑都从这里发起
+ * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
+ */
+import { useState, type FC } from "react";
+import { anchorRect, Dropdown, NumberInput, Segmented } from "./controls";
+import { IconBlend, IconChevron, IconDrag, IconEye, IconEyeOff, IconLibrary, IconPlus, IconX, LAYER_ICONS } from "./icons";
+import { BlendMenu, SettingsPopup, TypeMenu, AssetsBrowser } from "./popups";
+import type { MaterialPreset } from "./presets";
+import { BLEND_LABEL, LAYER_KIND_META, LIGHTING_FIELDS, type LayerKind, type LayerState, type MaterialState } from "./types";
+
+type PopupState =
+  | { kind: "none" }
+  | { kind: "settings"; layerId: string; anchor: { top: number; left: number } }
+  | { kind: "lighting"; anchor: { top: number; left: number } }
+  | { kind: "type"; layerId: string | null; anchor: { top: number; left: number } }
+  | { kind: "blend"; layerId: string; anchor: { top: number; left: number } }
+  | { kind: "assets"; anchor: { top: number; left: number } };
+
+export type PanelActions = {
+  updateMaterial: (patch: Partial<MaterialState>) => void;
+  updateLayer: (id: string, patch: Partial<LayerState>) => void;
+  updateLayerParam: (id: string, key: string, value: string | number | number[]) => void;
+  addLayer: (kind: LayerKind) => void;
+  setLayerKind: (id: string, kind: LayerKind) => void;
+  removeLayer: (id: string) => void;
+  updateLighting: (patch: Partial<MaterialState["lighting"]>) => void;
+};
+
+export const MaterialPanel: FC<{
+  material: MaterialState;
+  actions: PanelActions;
+  myMaterials: MaterialPreset[];
+  appliedPresetId: string | null;
+  onApplyPreset: (preset: MaterialPreset) => void;
+  onSavePreset: () => void;
+  onDeletePreset: (id: string) => void;
+}> = ({ material, actions, myMaterials, appliedPresetId, onApplyPreset, onSavePreset, onDeletePreset }) => {
+  const [popup, setPopup] = useState<PopupState>({ kind: "none" });
+  const close = () => setPopup({ kind: "none" });
+
+  const layerRow = (layer: LayerState) => {
+    const meta = LAYER_KIND_META[layer.kind];
+    const Icon = LAYER_ICONS[layer.kind];
+    const hexKey = meta.hexKey;
+    return (
+      <div key={layer.id} className={`layer-row ${layer.visible ? "" : "hidden"}`}>
+        <button className="row-main" onClick={(event) => setPopup({ kind: "settings", layerId: layer.id, anchor: anchorRect(event.currentTarget) })}>
+          <IconChevron size={13} className="row-chevron" />
+          <span className="row-name">{layer.name}</span>
+        </button>
+        <button
+          className="row-swatch"
+          title="Switch layer type"
+          onClick={(event) => {
+            event.stopPropagation();
+            setPopup({ kind: "type", layerId: layer.id, anchor: anchorRect(event.currentTarget) });
+          }}
+        >
+          {hexKey ? <span className="swatch-color" style={{ background: String(layer.params[hexKey] ?? "#888") }} /> : <Icon size={17} />}
+        </button>
+        {hexKey ? (
+          <span className="ninput hex">
+            <input
+              value={String(layer.params[hexKey] ?? "").replace("#", "").toUpperCase()}
+              onChange={(event) => actions.updateLayerParam(layer.id, hexKey, `#${event.target.value.replace(/[^0-9a-fA-F]/g, "").slice(0, 6)}`)}
+              spellCheck={false}
+            />
+          </span>
+        ) : null}
+        <span className="ninput opa">
+          <NumberInput value={layer.opacity} onChange={(next) => actions.updateLayer(layer.id, { opacity: Math.min(Math.max(next, 0), 100) }) } />
+          <button
+            className="blend-dot"
+            title={`Blend: ${BLEND_LABEL[layer.mode]}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              setPopup({ kind: "blend", layerId: layer.id, anchor: anchorRect(event.currentTarget) });
+            }}
+          >
+            <IconBlend size={13} />
+          </button>
+        </span>
+        <button className="iconbtn" onClick={() => actions.updateLayer(layer.id, { visible: !layer.visible })}>
+          {layer.visible ? <IconEye size={16} /> : <IconEyeOff size={16} />}
+        </button>
+        <button className="iconbtn remove" onClick={() => actions.removeLayer(layer.id)}>
+          <IconX size={14} />
+        </button>
+      </div>
+    );
+  };
+
+  const lightingRow = () => (
+    <div className={`layer-row ${material.lighting.enabled ? "" : "hidden"}`}>
+      <button className="row-main" onClick={(event) => setPopup({ kind: "lighting", anchor: anchorRect(event.currentTarget) })}>
+        <span className="row-chevron" />
+        <span className="row-name">Lighting</span>
+      </button>
+      <button className="row-swatch" onClick={(event) => setPopup({ kind: "lighting", anchor: anchorRect(event.currentTarget) })}>
+        <span className="swatch-sphere" style={{ background: "radial-gradient(circle at 34% 30%, #ffffff 0%, #c9c9c9 55%, #7c7c7c 100%)" }} />
+      </button>
+      <span className="ninput opa">
+        <NumberInput value={material.lighting.strength} onChange={(next) => actions.updateLighting({ strength: Math.min(Math.max(next, 0), 100) })} />
+        <span className="blend-dot static">
+          <IconBlend size={13} />
+        </span>
+      </span>
+      <button className="iconbtn" onClick={() => actions.updateLighting({ enabled: !material.lighting.enabled })}>
+        {material.lighting.enabled ? <IconEye size={16} /> : <IconEyeOff size={16} />}
+      </button>
+      <span className="iconbtn placeholder" />
+    </div>
+  );
+
+  return (
+    <aside className="spanel">
+      <div className="spanel-scroll">
+        <section className="spanel-section">
+          <header className="section-head">
+            <h2>
+              Material <IconDrag size={15} className="drag" />
+            </h2>
+            <span className="section-tools">
+              <NumberInput value={material.opacity} width={64} onChange={(next) => actions.updateMaterial({ opacity: Math.min(Math.max(next, 0), 100) })} />
+              <button
+                className="iconbtn"
+                title="Material Assets"
+                onClick={(event) => setPopup({ kind: "assets", anchor: anchorRect(event.currentTarget) })}
+              >
+                <IconLibrary size={16} />
+              </button>
+              <button
+                className="iconbtn"
+                title="Add layer"
+                onClick={(event) => setPopup({ kind: "type", layerId: null, anchor: anchorRect(event.currentTarget) })}
+              >
+                <IconPlus size={17} />
+              </button>
+            </span>
+          </header>
+          <div className="layer-list">
+            {material.layers.map(layerRow)}
+            {lightingRow()}
+          </div>
+        </section>
+
+        <section className="spanel-section">
+          <header className="section-head">
+            <h2>Modifiers</h2>
+            <button className="iconbtn" title="Add modifier (decorative)">
+              <IconPlus size={17} />
+            </button>
+          </header>
+        </section>
+
+        <section className="spanel-section">
+          <h2 className="section-title">Visibility</h2>
+          <div className="prow">
+            <span className="prow-label">Wireframe</span>
+            <span className="prow-control">
+              <Segmented value={material.wireframe ? "show" : "hide"} options={["show", "hide"]} onChange={(next) => actions.updateMaterial({ wireframe: next === "show" })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Shading</span>
+            <span className="prow-control">
+              <Segmented value={material.shading} options={["normal", "flat"]} onChange={(next) => actions.updateMaterial({ shading: next as MaterialState["shading"] })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Sides</span>
+            <span className="prow-control">
+              <Segmented value={material.sides} options={["both", "front", "back"]} onChange={(next) => actions.updateMaterial({ sides: next as MaterialState["sides"] })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Shadows</span>
+            <span className="prow-control">
+              <Dropdown
+                value={material.shadows}
+                options={[
+                  { value: "castreceive", label: "Cast & Receive" },
+                  { value: "cast", label: "Cast" },
+                  { value: "receive", label: "Receive" },
+                  { value: "off", label: "Off" },
+                ]}
+                onChange={(next) => actions.updateMaterial({ shadows: next as MaterialState["shadows"] })}
+                style={{ width: 172 }}
+              />
+            </span>
+          </div>
+        </section>
+
+        <section className="spanel-section">
+          <h2 className="section-title">Collision</h2>
+          <div className="prow">
+            <span className="prow-label">Enabled</span>
+            <span className="prow-control">
+              <Dropdown
+                value={material.collision}
+                options={[
+                  { value: "visibility", label: "Based on Visibility" },
+                  { value: "on", label: "On" },
+                  { value: "off", label: "Off" },
+                ]}
+                onChange={(next) => actions.updateMaterial({ collision: next as MaterialState["collision"] })}
+                style={{ width: 172 }}
+              />
+            </span>
+          </div>
+        </section>
+      </div>
+
+      {popup.kind === "settings" ? (
+        <SettingsPopup
+          title={LAYER_KIND_META[material.layers.find((layer) => layer.id === popup.layerId)?.kind ?? "color"].label}
+          fields={LAYER_KIND_META[material.layers.find((layer) => layer.id === popup.layerId)?.kind ?? "color"].fields}
+          params={material.layers.find((layer) => layer.id === popup.layerId)?.params ?? {}}
+          anchor={popup.anchor}
+          onChange={(key, value) => actions.updateLayerParam(popup.layerId, key, value)}
+          onClose={close}
+        />
+      ) : null}
+
+      {popup.kind === "lighting" ? (
+        <SettingsPopup
+          title="Lighting"
+          fields={LIGHTING_FIELDS}
+          params={{
+            type: material.lighting.type,
+            color: material.lighting.color,
+            shining: material.lighting.shining,
+            bumpMap: material.lighting.bumpMap,
+            occlusion: material.lighting.occlusion ? "on" : "off",
+          }}
+          anchor={popup.anchor}
+          onChange={(key, value) => {
+            if (key === "occlusion") actions.updateLighting({ occlusion: value === "on" });
+            else if (key === "type") actions.updateLighting({ type: value as MaterialState["lighting"]["type"] });
+            else if (key === "bumpMap") actions.updateLighting({ bumpMap: value as MaterialState["lighting"]["bumpMap"] });
+            else actions.updateLighting({ [key]: value } as Partial<MaterialState["lighting"]>);
+          }}
+          onClose={close}
+        />
+      ) : null}
+
+      {popup.kind === "type" ? (
+        <TypeMenu
+          current={popup.layerId ? material.layers.find((layer) => layer.id === popup.layerId)?.kind : undefined}
+          anchor={popup.anchor}
+          onPick={(kind) => {
+            if (popup.layerId) actions.setLayerKind(popup.layerId, kind);
+            else actions.addLayer(kind);
+            close();
+          }}
+          onClose={close}
+        />
+      ) : null}
+
+      {popup.kind === "blend" ? (
+        <BlendMenu
+          current={material.layers.find((layer) => layer.id === popup.layerId)?.mode ?? "normal"}
+          anchor={popup.anchor}
+          onPick={(mode) => {
+            actions.updateLayer(popup.layerId, { mode: mode as LayerState["mode"] });
+            close();
+          }}
+          onClose={close}
+        />
+      ) : null}
+
+      {popup.kind === "assets" ? (
+        <AssetsBrowser
+          myMaterials={myMaterials}
+          appliedId={appliedPresetId}
+          anchor={popup.anchor}
+          onApply={(preset) => {
+            onApplyPreset(preset);
+            close();
+          }}
+          onSaveCurrent={onSavePreset}
+          onDeleteMine={onDeletePreset}
+          onClose={close}
+        />
+      ) : null}
+    </aside>
+  );
+};
