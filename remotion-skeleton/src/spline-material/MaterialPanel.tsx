@@ -9,7 +9,7 @@ import { anchorRect, Dropdown, NumberInput, Segmented } from "./controls";
 import { IconBlend, IconChevron, IconDrag, IconEye, IconEyeOff, IconLibrary, IconPlus, IconX, LAYER_ICONS } from "./icons";
 import { BlendMenu, SettingsPopup, TypeMenu, AssetsBrowser } from "./popups";
 import type { MaterialPreset } from "./presets";
-import { BLEND_LABEL, LAYER_KIND_META, LIGHTING_FIELDS, type LayerKind, type LayerState, type MaterialState } from "./types";
+import { BLEND_LABEL, LAYER_DESC, LAYER_HINTS, LAYER_KIND_META, LAYER_MENU_ORDER, LIGHTING_FIELDS, type LayerKind, type LayerState, type MaterialState } from "./types";
 
 type PopupState =
   | { kind: "none" }
@@ -27,6 +27,7 @@ export type PanelActions = {
   setLayerKind: (id: string, kind: LayerKind) => void;
   removeLayer: (id: string) => void;
   updateLighting: (patch: Partial<MaterialState["lighting"]>) => void;
+  updateEnv: (patch: Partial<MaterialState["env"]>) => void;
 };
 
 export const MaterialPanel: FC<{
@@ -45,6 +46,8 @@ export const MaterialPanel: FC<{
     const meta = LAYER_KIND_META[layer.kind];
     const Icon = LAYER_ICONS[layer.kind];
     const hexKey = meta.hexKey;
+    const mapKey = meta.fields.find((field) => field.type === "texture")?.key;
+    const mapValue = mapKey && typeof layer.params[mapKey] === "string" ? (layer.params[mapKey] as string) : "";
     return (
       <div key={layer.id} className={`layer-row ${layer.visible ? "" : "hidden"}`}>
         <button className="row-main" onClick={(event) => setPopup({ kind: "settings", layerId: layer.id, anchor: anchorRect(event.currentTarget) })}>
@@ -59,7 +62,7 @@ export const MaterialPanel: FC<{
             setPopup({ kind: "type", layerId: layer.id, anchor: anchorRect(event.currentTarget) });
           }}
         >
-          {hexKey ? <span className="swatch-color" style={{ background: String(layer.params[hexKey] ?? "#888") }} /> : <Icon size={17} />}
+          {mapValue ? <img className="swatch-img" src={mapValue} alt="" /> : hexKey ? <span className="swatch-color" style={{ background: String(layer.params[hexKey] ?? "#888") }} /> : <Icon size={17} />}
         </button>
         {hexKey ? (
           <span className="ninput hex">
@@ -149,6 +152,46 @@ export const MaterialPanel: FC<{
 
         <section className="spanel-section">
           <header className="section-head">
+            <h2>
+              Environment Map
+              <button className="iconbtn" onClick={() => actions.updateEnv({ enabled: !material.env.enabled })}>
+                {material.env.enabled ? <IconEye size={15} /> : <IconEyeOff size={15} />}
+              </button>
+            </h2>
+          </header>
+          <div className="prow">
+            <span className="prow-label">Image</span>
+            <span className="prow-control">
+              <Dropdown
+                value={material.env.preset}
+                options={[
+                  { value: "studio", label: "Studio Procedural" },
+                  { value: "bright", label: "Bright Room" },
+                  { value: "warm", label: "Warm Sunset" },
+                  { value: "sunset", label: "Sunset Field" },
+                  { value: "night", label: "Cold Night" },
+                ]}
+                onChange={(next) => actions.updateEnv({ preset: next as MaterialState["env"]["preset"] })}
+                style={{ width: 172 }}
+              />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Exposure</span>
+            <span className="prow-control">
+              <NumberInput value={material.env.exposure} onChange={(next) => actions.updateEnv({ exposure: Math.min(Math.max(next, 0), 3) })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Rotation</span>
+            <span className="prow-control">
+              <NumberInput value={material.env.rotation} step={0.05} onChange={(next) => actions.updateEnv({ rotation: next })} />
+            </span>
+          </div>
+        </section>
+
+        <section className="spanel-section">
+          <header className="section-head">
             <h2>Modifiers</h2>
             <button className="iconbtn" title="Add modifier (decorative)">
               <IconPlus size={17} />
@@ -222,6 +265,9 @@ export const MaterialPanel: FC<{
           anchor={popup.anchor}
           onChange={(key, value) => actions.updateLayerParam(popup.layerId, key, value)}
           onClose={close}
+          hints={LAYER_HINTS}
+          kindId={material.layers.find((layer) => layer.id === popup.layerId)?.kind}
+          description={LAYER_DESC[material.layers.find((layer) => layer.id === popup.layerId)?.kind ?? "color"]}
         />
       ) : null}
 
@@ -233,6 +279,14 @@ export const MaterialPanel: FC<{
             type: material.lighting.type,
             color: material.lighting.color,
             shining: material.lighting.shining,
+            roughness: material.lighting.roughness,
+            metalness: material.lighting.metalness,
+            reflectivity: material.lighting.reflectivity,
+            glass: material.lighting.glass,
+            aberration: material.lighting.aberration,
+            thickness: material.lighting.thickness,
+            refraction: material.lighting.refraction,
+            blur: material.lighting.blur,
             bumpMap: material.lighting.bumpMap,
             occlusion: material.lighting.occlusion ? "on" : "off",
           }}
@@ -244,16 +298,24 @@ export const MaterialPanel: FC<{
             else actions.updateLighting({ [key]: value } as Partial<MaterialState["lighting"]>);
           }}
           onClose={close}
+          hints={LAYER_HINTS}
+          kindId="lighting"
+          description={LAYER_DESC.lighting}
         />
       ) : null}
 
       {popup.kind === "type" ? (
         <TypeMenu
           current={popup.layerId ? material.layers.find((layer) => layer.id === popup.layerId)?.kind : undefined}
+          order={LAYER_MENU_ORDER}
+          meta={LAYER_KIND_META}
+          iconMap={LAYER_ICONS}
+          boltFirst
+          descMap={LAYER_DESC}
           anchor={popup.anchor}
           onPick={(kind) => {
-            if (popup.layerId) actions.setLayerKind(popup.layerId, kind);
-            else actions.addLayer(kind);
+            if (popup.layerId) actions.setLayerKind(popup.layerId, kind as LayerKind);
+            else actions.addLayer(kind as LayerKind);
             close();
           }}
           onClose={close}

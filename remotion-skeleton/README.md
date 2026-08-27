@@ -8,6 +8,7 @@
 - `index.html` 预览页入口（`@remotion/player`，经 `/src/player.tsx`）
 - `composition-graph.html` 独立实验入口（**dev fixture**，不读取 Recut SDK/项目状态）；Vite 直接提供 `Composition Graph` 实验台，使用 Remotion 帧时钟驱动 R3F/Three GPU 合成。生产路径已统一到 `@recut/remotion-kit/three` + `@recut/remotion-kit/materials`（Three-first GPU 合成）
 - `spline-like.html` 独立玻璃形状实验入口；`src/spline-like/` 保存参数化形状、确定性循环场景与本轮稳定性结论，不进入首页或正式项目 Composition
+- `spline-material.html` 独立 Spline Material 面板模拟实验（dev fixture）；`src/spline-material/` 以 lamina（pmndrs，MIT）思路移植图层化 ShaderMaterial 引擎（20 种图层 + blend mode + 自研 Lambert/Phong/Physical/Toon 光照），配 Spline 风格面板/类型菜单/Noise/Lighting 弹窗与 Material Assets 预设库（My Materials 存 localStorage）
 - `vite.config.ts` 用 ESM 路径解析设置 root=workspace、publicDir=preview/（props.json）；`@tailwindcss/vite` 处理 Tailwind；`@recut/remotion-kit/materials` / `@recut/remotion-kit/three` 别名指向冻结副本
 - `vite-server.js` 以 ESM config runner 启动 Vite dev server，端口写 `serve/status.json`（预览 = HMR）
 - `render.js` 服务端导出：先用 `postcss + @tailwindcss/postcss` 预编译 `src/index.css`，再 bundle（入口经临时 composition.entry.ts 引入编译后 CSS）；Three 合成默认走 ANGLE，可用 `RECUT_REMOTION_GL=swangle` 诊断无 GPU 环境。

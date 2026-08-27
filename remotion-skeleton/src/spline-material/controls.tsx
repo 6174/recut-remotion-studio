@@ -4,8 +4,7 @@
  * [POS]: spline-material 面板与弹窗的受控控件层；全部为纯受控组件，状态由上层持有
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
-import { useEffect, useRef, useState, type CSSProperties, type FC, type ReactNode } from "react";
-import { IconChevron, IconX } from "./icons";
+import { useEffect, useRef, useState, type CSSProperties, type FC, type ReactNode } from "react";import { IconChevron, IconX } from "./icons";
 
 export function useClickOutside<T extends HTMLElement>(onOutside: () => void) {
   const ref = useRef<T | null>(null);
@@ -90,6 +89,46 @@ export const ColorInput: FC<{ value: string; onChange: (value: string) => void; 
     {percent ? <span className="ninput pct"><input value="100%" readOnly /></span> : null}
   </span>
 );
+
+/** 贴图上传：点击方块选本地图片 → dataURL；有图时显示缩略图与清除按钮 */
+export const TextureInput: FC<{ value: string; onChange: (value: string) => void }> = ({ value, onChange }) => {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <span className="texture-input">
+      <span
+        className={`swatch texture ${value ? "has" : ""}`}
+        onClick={() => fileRef.current?.click()}
+        title={value ? "更换图片" : "上传图片"}
+      >
+        {value ? (
+          <span className="texture-thumb">
+            <img src={value} alt="" />
+          </span>
+        ) : (
+          <span className="texture-plus">+</span>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => onChange(String(reader.result ?? ""));
+            reader.readAsDataURL(file);
+            event.target.value = "";
+          }}
+        />
+      </span>
+      {value ? (
+        <button className="iconbtn" title="清除贴图" onClick={() => onChange("")}>
+          ✕
+        </button>
+      ) : null}
+    </span>
+  );
+};
 
 export const Segmented: FC<{ value: string; options: string[]; onChange: (value: string) => void }> = ({ value, options, onChange }) => (
   <span className="segmented">

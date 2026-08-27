@@ -8,6 +8,8 @@
 import * as THREE from "three";
 import { BlendMode, LayerState, LightingState, MaterialState, LAYER_KIND_META } from "./types";
 import { BLEND_CHUNK, HELPERS_CHUNK, LIGHTING_CHUNK, NOISE_CHUNK } from "./glsl";
+import { getTexture, placeholderTexture } from "./textures";
+import { ObjectEffectState, OBJECT_EFFECT_META } from "./object-effects";
 
 const NOISE_FN: Record<string, string> = {
   perlin: "lamina_noise_perlin",
@@ -39,27 +41,33 @@ type Template = { uniforms: string; body: string; vertex?: { uniforms: string; b
 /** 每种图层的 GLSL 模板：__ID__ 替换为图层 id，%NOISE%/%AXIS%/%PAT% 在构建期烘焙 */
 const FRAG: Record<string, Template> = {
   aiTexture: {
-    uniforms: "uniform vec3 u___ID___tint;",
+    uniforms: `uniform sampler2D u___ID___map;
+uniform vec3 u___ID___tint;
+uniform float u___ID___scale;`,
     body: `{
-  vec2 f_g___ID__ = floor(v_lamina_uv * 12.0);
-  float f_c___ID__ = mod(f_g___ID__.x + f_g___ID__.y, 2.0) * 0.12 + 0.55;
-  f_lc___ID__ = vec4(u___ID___tint * f_c___ID__, u___ID___alpha);
+  vec2 f_uv___ID__ = fract(v_lamina_uv * max(u___ID___scale, 0.001));
+  vec3 f_c___ID__ = texture(u___ID___map, f_uv___ID__).rgb * u___ID___tint;
+  f_lc___ID__ = vec4(f_c___ID__, u___ID___alpha);
 }`,
   },
   image: {
-    uniforms: "uniform vec3 u___ID___tint;",
+    uniforms: `uniform sampler2D u___ID___map;
+uniform vec3 u___ID___tint;
+uniform float u___ID___scale;`,
     body: `{
-  vec2 f_g___ID__ = floor(v_lamina_uv * 12.0);
-  float f_c___ID__ = mod(f_g___ID__.x + f_g___ID__.y, 2.0) * 0.12 + 0.55;
-  f_lc___ID__ = vec4(u___ID___tint * f_c___ID__, u___ID___alpha);
+  vec2 f_uv___ID__ = fract(v_lamina_uv * max(u___ID___scale, 0.001));
+  vec3 f_c___ID__ = texture(u___ID___map, f_uv___ID__).rgb * u___ID___tint;
+  f_lc___ID__ = vec4(f_c___ID__, u___ID___alpha);
 }`,
   },
   video: {
-    uniforms: "uniform vec3 u___ID___tint;",
+    uniforms: `uniform sampler2D u___ID___map;
+uniform vec3 u___ID___tint;
+uniform float u___ID___scale;`,
     body: `{
-  vec2 f_g___ID__ = floor(v_lamina_uv * 12.0);
-  float f_c___ID__ = mod(f_g___ID__.x + f_g___ID__.y, 2.0) * 0.12 + 0.55;
-  f_lc___ID__ = vec4(u___ID___tint * f_c___ID__, u___ID___alpha);
+  vec2 f_uv___ID__ = fract(v_lamina_uv * max(u___ID___scale, 0.001));
+  vec3 f_c___ID__ = texture(u___ID___map, f_uv___ID__).rgb * u___ID___tint;
+  f_lc___ID__ = vec4(f_c___ID__, u___ID___alpha);
 }`,
   },
   color: {
@@ -196,11 +204,29 @@ uniform float u___ID___threshold;`,
   },
   glass: {
     uniforms: `uniform vec3 u___ID___color;
-uniform float u___ID___edge;`,
+uniform float u___ID___transmission;
+uniform float u___ID___refraction;
+uniform float u___ID___thickness;
+uniform float u___ID___aberration;
+uniform float u___ID___roughness;`,
     body: `{
-  float f_f___ID__ = pow(1.0 - abs(dot(normalize(v_lamina_viewDir), normalize(v_lamina_normal))), 2.0);
-  vec3 f_c___ID__ = mix(u___ID___color, vec3(1.0), f_f___ID__ * u___ID___edge);
-  f_lc___ID__ = vec4(f_c___ID__, u___ID___alpha);
+  vec3 f_N___ID__ = normalize(v_lamina_normal);
+  vec3 f_V___ID__ = normalize(v_lamina_viewDir);
+  float f_ndv___ID__ = max(dot(f_N___ID__, f_V___ID__), 0.0);
+  float f_rough___ID__ = clamp(u___ID___roughness, 0.02, 1.0);
+  float f_ior___ID__ = max(u___ID___refraction, 1.01);
+  vec3 f_rd___ID__ = refract(-f_V___ID__, f_N___ID__, 1.0 / f_ior___ID__);
+  if (dot(f_rd___ID__, f_rd___ID__) < 0.001) f_rd___ID__ = reflect(-f_V___ID__, f_N___ID__);
+  float f_ab___ID__ = u___ID___aberration * 0.08;
+  vec3 f_refr___ID__ = vec3(
+    lamina_env(normalize(f_rd___ID__ + f_N___ID__ * f_ab___ID__), f_rough___ID__ * 2.0).r,
+    lamina_env(f_rd___ID__, f_rough___ID__ * 2.0).g,
+    lamina_env(normalize(f_rd___ID__ - f_N___ID__ * f_ab___ID__), f_rough___ID__ * 2.0).b);
+  vec3 f_refl___ID__ = lamina_env(reflect(-f_V___ID__, f_N___ID__), f_rough___ID__ * 2.0);
+  float f_F___ID__ = pow(1.0 - f_ndv___ID__, 5.0);
+  vec3 f_c___ID__ = mix(u___ID___color * f_refr___ID__, f_refl___ID__, clamp(f_F___ID__ * 1.7 + 0.05, 0.0, 1.0));
+  f_c___ID__ *= mix(vec3(1.0), u___ID___color, clamp(u___ID___thickness * (1.0 - f_ndv___ID__) * 0.85, 0.0, 1.0));
+  f_lc___ID__ = vec4(f_c___ID__, clamp(u___ID___transmission + f_F___ID__ * 0.4, 0.0, 1.0));
 }`,
   },
   reflection: {
@@ -247,8 +273,7 @@ uniform vec3 u___ID___colorB;`,
 };
 
 /** Displace 是唯一的 vertex 图层：移植 lamina Displace 的位移 + 邻域重算法线 */
-const DISPLACE_VERTEX: NonNullable<Template["vertex"]> = {
-  uniforms: `uniform float u___ID___strength;
+const DISPLACE_VERTEX: NonNullable<Template["vertex"]> = {  uniforms: `uniform float u___ID___strength;
 uniform float u___ID___scale;
 uniform vec3 u___ID___offset;
 vec3 lamina_displace___ID__(vec3 p) {
@@ -268,6 +293,41 @@ vec3 lamina_orthogonal___ID__(vec3 v) {
   lamina_finalNormal = normalize(cross(f_n1___ID__ - f_newPos___ID__, f_n2___ID__ - f_newPos___ID__));
   lamina_finalPosition = f_newPos___ID__;
 }`,
+};
+
+/** 物体级 Effects 的 fragment 片段：pre = 光照前（改 albedo），post = 光照后（改最终明暗/透明） */
+const OBJECT_EFFECT_FRAG: Record<string, { uniforms: string; body: string; stage: "pre" | "post"; noise?: boolean }> = {
+  layerNoise: {
+    stage: "pre",
+    noise: true,
+    uniforms: `uniform vec3 u___ID___colorA;
+uniform vec3 u___ID___colorB;
+uniform float u___ID___scale;`,
+    body: `{
+  float f_oe___ID__ = lamina_normalize(%NOISE%(v_lamina_position * max(u___ID___scale, 0.001)));
+  vec3 f_oeC___ID__ = mix(u___ID___colorA, u___ID___colorB, f_oe___ID__);
+  lamina_finalColor.rgb = mix(lamina_finalColor.rgb, f_oeC___ID__, u___ID___opacity * 0.85);
+}`,
+  },
+  innerShadow: {
+    stage: "post",
+    uniforms: `uniform float u___ID___strength;
+uniform float u___ID___power;`,
+    body: `{
+  float f_oe___ID__ = pow(1.0 - lamina_ndv, max(u___ID___power, 0.01));
+  lamina_lit *= 1.0 - clamp(u___ID___strength * f_oe___ID__, 0.0, 1.0);
+}`,
+  },
+  layerBlur: {
+    stage: "post",
+    uniforms: `uniform float u___ID___amount;`,
+    body: `{
+  float f_oe___ID__ = clamp(u___ID___amount, 0.0, 1.0);
+  vec3 f_oeB___ID__ = lamina_env(normalize(v_lamina_normal), 3.0);
+  lamina_lit = mix(lamina_lit, f_oeB___ID__, f_oe___ID__ * 0.8);
+  lamina_finalColor.a *= 1.0 - f_oe___ID__ * 0.22 * pow(1.0 - lamina_ndv, 1.5);
+}`,
+  },
 };
 
 const linear = (hex: string) => new THREE.Color(hex).convertSRGBToLinear();
@@ -305,7 +365,7 @@ varying vec3 v_lamina_viewDir;
 varying vec2 v_lamina_uv;
 `;
 
-export function buildMaterial(state: MaterialState): BuiltMaterial {
+export function buildMaterial(state: MaterialState, objectEffects: ObjectEffectState[] = []): BuiltMaterial {
   const uniforms: Record<string, THREE.IUniform> = {
     u_lamina_time: { value: 0 },
     u_lamina_opacity: { value: state.opacity / 100 },
@@ -313,9 +373,29 @@ export function buildMaterial(state: MaterialState): BuiltMaterial {
     u_lamina_lightStrength: { value: state.lighting.strength / 100 },
     u_lamina_lightColor: { value: linear(state.lighting.color) },
     u_lamina_shininess: { value: state.lighting.shining },
+    u_lamina_roughness: { value: state.lighting.roughness },
+    u_lamina_metalness: { value: state.lighting.metalness },
+    u_lamina_reflectivity: { value: state.lighting.reflectivity },
+    u_lamina_glass: { value: state.lighting.glass },
+    u_lamina_aberration: { value: state.lighting.aberration },
+    u_lamina_thickness: { value: state.lighting.thickness },
+    u_lamina_refraction: { value: state.lighting.refraction },
+    u_lamina_blur: { value: state.lighting.blur },
+    u_lamina_envEnabled: { value: state.env.enabled ? 1 : 0 },
+    u_lamina_envExposure: { value: state.env.exposure },
+    u_lamina_envRotation: { value: state.env.rotation },
+    u_lamina_envPreset: { value: { studio: 0, warm: 1, night: 2, bright: 3, sunset: 4 }[state.env.preset] ?? 0 },
+    u_lamina_lightIntensity: { value: 1 },
+    u_lamina_ambient: { value: 0.75 },
+    u_lamina_tonemapping: { value: 0 },
     u_lamina_bump: { value: state.lighting.bumpMap === "noise" ? 1 : 0 },
     u_lamina_occlusion: { value: state.lighting.occlusion ? 1 : 0 },
     u_lamina_flat: { value: state.shading === "flat" ? 1 : 0 },
+    u_lamina_selected: { value: 0 },
+    u_lamina_fx_liquid: { value: 0 },
+    u_lamina_fx_liquidAmount: { value: 0.5 },
+    u_lamina_fx_ngScale: { value: 6 },
+    u_lamina_fx_ngOpacity: { value: 0 },
     u_lamina_base: { value: linear("#ffffff") },
   };
 
@@ -339,6 +419,11 @@ export function buildMaterial(state: MaterialState): BuiltMaterial {
         case "color":
           uniforms[name] = { value: linear(typeof value === "string" ? value : "#ffffff") };
           break;
+        case "texture": {
+          const url = String(value ?? "");
+          uniforms[name] = { value: url ? getTexture(url) : placeholderTexture() };
+          break;
+        }
         case "vec2":
           uniforms[name] = { value: asVec2(value, [1, 1]) };
           break;
@@ -376,6 +461,45 @@ export function buildMaterial(state: MaterialState): BuiltMaterial {
     if (layer.kind === "displace" && template !== undefined) {
       vertChunks.push(fill(DISPLACE_VERTEX.uniforms));
       vertBodies.push(fill(DISPLACE_VERTEX.body));
+    }
+  }
+
+  /* ---------- 物体级 Effects（只作用于该物体的 shader） ---------- */
+  const oePreBodies: string[] = [];
+  const oePostBodies: string[] = [];
+  for (const fx of objectEffects) {
+    if (!fx.visible) continue;
+    const meta = OBJECT_EFFECT_META[fx.kind];
+    const template = OBJECT_EFFECT_FRAG[fx.kind];
+    uniforms[`u_${fx.id}_opacity`] = { value: fx.opacity / 100 };
+    if (template) {
+      for (const field of meta.fields) {
+        const value = fx.params[field.key];
+        const name = `u_${fx.id}_${field.key}`;
+        if (field.type === "color") uniforms[name] = { value: linear(typeof value === "string" ? value : "#ffffff") };
+        else if (field.type === "select") uniforms[name] = { value: Math.max(field.options?.indexOf(String(value)) ?? 0, 0) };
+        else uniforms[name] = { value: typeof value === "number" ? value : 0 };
+      }
+      const noiseFn = NOISE_FN[String(fx.params.type)] ?? NOISE_FN.simplex;
+      const source = template.uniforms.replaceAll("__ID__", fx.id).replaceAll("%NOISE%", noiseFn);
+      fragChunks.push(source);
+      const body = template.body.replaceAll("__ID__", fx.id).replaceAll("%NOISE%", noiseFn);
+      (template.stage === "pre" ? oePreBodies : oePostBodies).push(body);
+    }
+    if (fx.kind === "liquidGlass") {
+      uniforms.u_lamina_fx_liquid.value = 1;
+      uniforms.u_lamina_fx_liquidAmount.value = typeof fx.params.distortion === "number" ? fx.params.distortion : 0.5;
+      // Liquid Glass = 玻璃套件的流动变体：非破坏地覆盖 lighting 玻璃参数
+      uniforms.u_lamina_roughness.value = Math.max(uniforms.u_lamina_roughness.value as number, 0.04);
+      uniforms.u_lamina_glass.value = 1;
+      uniforms.u_lamina_refraction.value = typeof fx.params.refraction === "number" ? fx.params.refraction : 1.18;
+      uniforms.u_lamina_blur.value = typeof fx.params.blur === "number" ? fx.params.blur : 0.06;
+    }
+    if (fx.kind === "noiseGlass") {
+      uniforms.u_lamina_glass.value = 1;
+      uniforms.u_lamina_blur.value = typeof fx.params.blur === "number" ? fx.params.blur : 0.08;
+      uniforms.u_lamina_fx_ngScale.value = typeof fx.params.scale === "number" ? fx.params.scale : 6;
+      uniforms.u_lamina_fx_ngOpacity.value = typeof fx.params.grain === "number" ? fx.params.grain : 0.55;
     }
   }
 
@@ -421,10 +545,25 @@ void main() {
     N = normalize(N - (lamina_T * (lamina_noise_simplex(lamina_bp + vec3(lamina_e, 0.0, 0.0)) - lamina_h0) + lamina_B * (lamina_noise_simplex(lamina_bp + vec3(0.0, lamina_e, 0.0)) - lamina_h0)) * 2.2);
   }
   vec4 lamina_finalColor = vec4(u_lamina_base, u_lamina_opacity);
+  ${/* physical + glass>0 时物体半透明（对齐 Spline 的 Glass 连续参数） */
+  ""}
+  if (u_lamina_lighting > 2.5 && u_lamina_lighting < 3.5) {
+    lamina_finalColor.a = mix(lamina_finalColor.a, lamina_finalColor.a * (1.0 - u_lamina_glass * 0.45), step(0.001, u_lamina_glass));
+  }
 ${fragBodies.join("\n")}
+${oePreBodies.join("\n")}
   vec3 lamina_lit = lamina_shade(lamina_finalColor.rgb, N, V);
   float lamina_ndv = max(dot(N, V), 0.0);
   lamina_lit *= mix(1.0, 0.5 + 0.5 * smoothstep(0.0, 1.0, lamina_ndv), u_lamina_occlusion);
+${oePostBodies.join("\n")}
+  lamina_lit += vec3(0.25, 0.55, 1.0) * pow(1.0 - lamina_ndv, 2.5) * u_lamina_selected * 1.1;
+  if (u_lamina_fx_ngOpacity > 0.001) {
+    float lamina_ng = lamina_normalize(lamina_noise_simplex(v_lamina_position * max(u_lamina_fx_ngScale, 0.001) + u_lamina_time * 0.15));
+    lamina_lit = mix(lamina_lit, lamina_lit * (0.45 + 0.55 * lamina_ng), clamp(u_lamina_fx_ngOpacity, 0.0, 1.0));
+  }
+  if (u_lamina_tonemapping > 0.5) {
+    lamina_lit = (lamina_lit * (2.51 * lamina_lit + 0.03)) / (lamina_lit * (2.43 * lamina_lit + 0.59) + 0.14);
+  }
   gl_FragColor = vec4(pow(max(lamina_lit, vec3(0.0)), vec3(0.4545)), lamina_finalColor.a);
 }
 `;
@@ -433,8 +572,8 @@ ${fragBodies.join("\n")}
   return { vertexShader, fragmentShader, uniforms, side };
 }
 
-export function buildShaderMaterial(state: MaterialState): THREE.ShaderMaterial {
-  const built = buildMaterial(state);
+export function buildShaderMaterial(state: MaterialState, objectEffects: ObjectEffectState[] = []): THREE.ShaderMaterial {
+  const built = buildMaterial(state, objectEffects);
   return new THREE.ShaderMaterial({
     vertexShader: built.vertexShader,
     fragmentShader: built.fragmentShader,

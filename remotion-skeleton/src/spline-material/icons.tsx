@@ -6,6 +6,7 @@
  */
 import type { FC, SVGProps } from "react";
 import type { LayerKind } from "./types";
+import type { EffectKind } from "./effects-config";
 
 type P = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -304,6 +305,124 @@ const IconAiTexture: FC<P> = (p) => (
     <path d="M12 7l1.3 3.7L17 12l-3.7 1.3L12 17l-1.3-3.7L7 12l3.7-1.3L12 7Z" fill="currentColor" />
   </Svg>
 );
+
+/* ---------- Effects 类型图标 ---------- */
+
+const IconBloom: FC<P> = (p) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="4" fill="currentColor" />
+    <circle cx="12" cy="12" r="7.4" stroke="currentColor" strokeWidth="1.6" opacity="0.45" />
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.2" opacity="0.2" />
+  </Svg>
+);
+
+const IconBlur: FC<P> = (p) => (
+  <Svg {...p}>
+    <circle cx="9" cy="12" r="6.2" fill="currentColor" opacity="0.85" />
+    <circle cx="14" cy="12" r="6.2" fill="currentColor" opacity="0.4" />
+  </Svg>
+);
+
+const IconChromatic: FC<P> = (p) => (
+  <Svg {...p}>
+    <circle cx="9.4" cy="12" r="6.4" fill="#ff5f6d" opacity="0.65" />
+    <circle cx="12" cy="12" r="6.4" fill="#5fd08a" opacity="0.5" />
+    <circle cx="14.6" cy="12" r="6.4" fill="#5b8cff" opacity="0.65" />
+  </Svg>
+);
+
+const IconVignette: FC<P> = (p) => (
+  <Svg {...p}>
+    <defs>
+      <radialGradient id="sm-vignette" cx="0.5" cy="0.5" r="0.55">
+        <stop offset="0" stopColor="currentColor" stopOpacity="0" />
+        <stop offset="1" stopColor="currentColor" stopOpacity="0.95" />
+      </radialGradient>
+    </defs>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="4" fill="url(#sm-vignette)" />
+  </Svg>
+);
+
+const IconGrain: FC<P> = (p) => (
+  <Svg {...p}>
+    {[
+      [6, 7],
+      [11, 5.5],
+      [16, 8],
+      [8, 12],
+      [13, 11],
+      [18, 13],
+      [6, 17],
+      [11, 16],
+      [16, 18],
+    ].map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r={i % 3 === 0 ? 1.4 : 0.95} fill="currentColor" opacity={0.5 + (i % 3) * 0.2} />
+    ))}
+  </Svg>
+);
+
+const IconNoiseFx: FC<P> = (p) => (
+  <Svg {...p}>
+    {Array.from({ length: 18 }, (_, i) => (
+      <rect key={i} x={4 + (i % 6) * 3} y={4 + Math.floor(i / 6) * 5 + (i % 2)} width="2.1" height="2.1" fill="currentColor" opacity={0.25 + (i % 4) * 0.2} />
+    ))}
+  </Svg>
+);
+
+const IconPixelate: FC<P> = (p) => (
+  <Svg {...p}>
+    {[
+      [0, 0, 0.9],
+      [1, 0, 0.5],
+      [2, 0, 0.3],
+      [0, 1, 0.5],
+      [1, 1, 0.95],
+      [2, 1, 0.45],
+      [0, 2, 0.3],
+      [1, 2, 0.5],
+      [2, 2, 0.85],
+    ].map(([gx, gy, o], i) => (
+      <rect key={i} x={4.5 + (gx as number) * 5} y={4.5 + (gy as number) * 5} width="4.4" height="4.4" fill="currentColor" opacity={o as number} />
+    ))}
+  </Svg>
+);
+
+const IconColorAdjust: FC<P> = (p) => (
+  <Svg {...p}>
+    {[12, 8, 16].map((y, i) => (
+      <path key={y} d={`M4 ${y}h16`} stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" opacity={0.4 + i * 0.25} />
+    ))}
+    <circle cx="14" cy="8" r="2.5" fill="currentColor" />
+    <circle cx="9" cy="12" r="2.5" fill="currentColor" />
+    <circle cx="15" cy="16" r="2.5" fill="currentColor" />
+  </Svg>
+);
+
+const IconOutlineFx: FC<P> = (p) => (
+  <Svg {...p}>
+    <rect x="4.5" y="4.5" width="15" height="15" rx="4" stroke="currentColor" strokeWidth="2.6" />
+  </Svg>
+);
+
+const IconGlitch: FC<P> = (p) => (
+  <Svg {...p}>
+    <path d="M5 8.2h9l-2.4 3H19l-3.4 3.6H4.6L7 11.8H3.2L5 8.2Z" fill="currentColor" opacity="0.9" />
+    <path d="M8 18h8M10.5 4.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+  </Svg>
+);
+
+export const EFFECT_ICONS: Record<EffectKind, FC<P>> = {
+  bloom: IconBloom,
+  blur: IconBlur,
+  chromatic: IconChromatic,
+  vignette: IconVignette,
+  grain: IconGrain,
+  noise: IconNoiseFx,
+  pixelate: IconPixelate,
+  colorAdjust: IconColorAdjust,
+  outline: IconOutlineFx,
+  glitch: IconGlitch,
+};
 
 export const LAYER_ICONS: Record<LayerKind, FC<P>> = {
   aiTexture: IconAiTexture,

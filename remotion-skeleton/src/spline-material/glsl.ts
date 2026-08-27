@@ -409,7 +409,7 @@ vec4 lamina_blend_negation(const in vec4 x, const in vec4 y, const in float opac
 }
 `;
 
-/** 自研光照近似：Lambert / Phong / Physical / Toon + bump 与 occlusion 钩子（对应 Lighting 图层弹窗） */
+/** 自研光照近似：Lambert / Phong / Physical(IBL) / Toon + 程序化摄影棚环境 + bump/occlusion 钩子 */
 export const LIGHTING_CHUNK = /* glsl */ `
 uniform float u_lamina_time;
 uniform float u_lamina_opacity;
@@ -417,32 +417,123 @@ uniform float u_lamina_lighting;
 uniform float u_lamina_lightStrength;
 uniform vec3 u_lamina_lightColor;
 uniform float u_lamina_shininess;
+uniform float u_lamina_roughness;
+uniform float u_lamina_metalness;
+uniform float u_lamina_reflectivity;
+uniform float u_lamina_glass;
+uniform float u_lamina_aberration;
+uniform float u_lamina_thickness;
+uniform float u_lamina_refraction;
+uniform float u_lamina_blur;
+uniform float u_lamina_fx_liquid;
+uniform float u_lamina_fx_liquidAmount;
+uniform float u_lamina_fx_ngScale;
+uniform float u_lamina_fx_ngOpacity;
+uniform float u_lamina_envEnabled;
+uniform float u_lamina_envExposure;
+uniform float u_lamina_envRotation;
+uniform float u_lamina_envPreset;
 uniform float u_lamina_bump;
 uniform float u_lamina_occlusion;
 uniform float u_lamina_flat;
+uniform float u_lamina_selected;
+uniform float u_lamina_lightIntensity;
+uniform float u_lamina_ambient;
+uniform float u_lamina_tonemapping;
 uniform vec3 u_lamina_base;
 
 const vec3 LAMINA_KEY = vec3(0.44462, 0.60634, 0.52599);
 const vec3 LAMINA_FILL = vec3(-0.66248, -0.14210, 0.47368);
 
+/** 程序化摄影棚环境：底色渐变 + 顶灯柔光箱 + 左右灯条 + 背面轮廓光 + 地面反弹（lod 模拟粗糙度模糊） */
+vec3 lamina_env(vec3 dir, float lod) {
+  vec3 r = normalize(dir);
+  float c = cos(u_lamina_envRotation);
+  float s = sin(u_lamina_envRotation);
+  r = vec3(c * r.x + s * r.z, r.y, -s * r.x + c * r.z);
+  float up = r.y;
+  float p = u_lamina_envPreset;
+  vec3 base;
+  vec3 keyTint;
+  if (p < 0.5) {
+    base = mix(vec3(0.05, 0.05, 0.06), vec3(0.34, 0.36, 0.40), smoothstep(-0.7, 1.0, up));
+    keyTint = vec3(1.0);
+  } else if (p < 1.5) {
+    base = mix(vec3(0.10, 0.055, 0.03), vec3(0.52, 0.34, 0.20), smoothstep(-0.7, 1.0, up));
+    keyTint = vec3(1.0, 0.86, 0.68);
+  } else if (p < 2.5) {
+    base = mix(vec3(0.012, 0.016, 0.03), vec3(0.10, 0.12, 0.20), smoothstep(-0.7, 1.0, up));
+    keyTint = vec3(0.75, 0.82, 1.0);
+  } else if (p < 3.5) {
+    base = mix(vec3(0.30, 0.31, 0.33), vec3(0.72, 0.73, 0.76), smoothstep(-0.8, 1.0, up));
+    keyTint = vec3(1.0);
+  } else {
+    base = mix(vec3(0.16, 0.07, 0.05), vec3(0.98, 0.52, 0.26), smoothstep(-0.6, 0.9, up));
+    keyTint = vec3(1.0, 0.62, 0.36);
+  }
+  float bright = (p > 2.5 && p < 3.5) ? 1.0 : 0.0;
+  float soft = 0.05 + lod * 0.2;
+  vec3 e = base * mix(0.6, 1.0, u_lamina_envEnabled);
+  e += keyTint * smoothstep(0.94 - soft, 0.995 - lod * 0.05, dot(r, normalize(vec3(0.25, 1.0, 0.5)))) * mix(2.5, 2.2, bright) * u_lamina_envEnabled;
+  e += keyTint * smoothstep(0.958 - soft, 0.997, dot(r, normalize(vec3(-1.0, 0.32, 0.38)))) * mix(1.55, 1.35, bright) * u_lamina_envEnabled;
+  e += vec3(1.0, 0.84, 0.66) * smoothstep(0.964 - soft, 0.998, dot(r, normalize(vec3(1.0, 0.22, 0.28)))) * mix(1.15, 1.0, bright) * u_lamina_envEnabled;
+  e += vec3(0.8, 0.86, 1.0) * smoothstep(0.968 - soft * 0.5, 0.999, dot(r, normalize(vec3(0.0, 0.12, -1.0)))) * mix(1.0, 0.9, bright) * u_lamina_envEnabled;
+  e += vec3(0.30, 0.27, 0.24) * smoothstep(-0.15, -1.0, up) * 0.5 * u_lamina_envEnabled;
+  return e * u_lamina_envExposure;
+}
+
 vec3 lamina_shade(vec3 albedo, vec3 N, vec3 V) {
   if (u_lamina_lighting < 0.5) return albedo;
-  float ndl = max(dot(N, LAMINA_KEY), 0.0);
-  float ndlF = max(dot(N, LAMINA_FILL), 0.0);
+  float ndl = max(dot(N, LAMINA_KEY), 0.0) * u_lamina_lightIntensity;
+  float ndlF = max(dot(N, LAMINA_FILL), 0.0) * u_lamina_lightIntensity;
   float ndv = max(dot(N, V), 0.0);
   vec3 lit = albedo;
   if (u_lamina_lighting < 1.5) {
-    lit = albedo * (0.34 + 0.78 * ndl + 0.22 * ndlF);
+    vec3 amb = mix(vec3(0.34), lamina_env(N, 2.6), 0.65);
+    lit = albedo * (amb + 0.72 * ndl + 0.2 * ndlF);
   } else if (u_lamina_lighting < 2.5) {
     vec3 R = reflect(-LAMINA_KEY, N);
     float spec = pow(max(dot(R, V), 0.0), max(u_lamina_shininess, 1.0)) * 0.85;
-    lit = albedo * (0.3 + 0.78 * ndl + 0.2 * ndlF) + u_lamina_lightColor * spec;
+    vec3 amb = mix(vec3(0.30), lamina_env(N, 2.6), 0.55) * mix(1.0, u_lamina_ambient * 1.33, 0.8);
+    lit = albedo * (amb + 0.72 * ndl + 0.18 * ndlF) + u_lamina_lightColor * spec;
   } else if (u_lamina_lighting < 3.5) {
-    float rough = clamp(1.0 - u_lamina_shininess / 256.0, 0.04, 1.0);
+    float rough = clamp(u_lamina_roughness, 0.03, 1.0);
+    float metal = clamp(u_lamina_metalness, 0.0, 1.0);
+    float glassAmt = clamp(u_lamina_glass, 0.0, 1.0);
+    float glassRough = clamp(max(u_lamina_roughness, u_lamina_blur), 0.03, 1.0);
+    vec3 R = reflect(-V, N);
+    float lod = rough * 2.4;
+    vec3 env = lamina_env(R, lod) * 0.55;
+    env += lamina_env(normalize(R + vec3(rough * 0.38, -rough * 0.22, rough * 0.3)), lod) * 0.24;
+    env += lamina_env(normalize(R + vec3(-rough * 0.3, rough * 0.26, -rough * 0.32)), lod) * 0.21;
+    vec3 F0 = mix(vec3(0.05) * u_lamina_reflectivity, albedo, metal);
+    vec3 F = F0 + (1.0 - F0) * pow(1.0 - ndv, 5.0);
+    vec3 amb = mix(vec3(0.42), lamina_env(N, 2.8), 0.6) * mix(1.0, u_lamina_ambient * 1.33, 0.8);
+    vec3 col = albedo * (1.0 - metal) * (amb + vec3(0.95, 0.96, 1.0) * (0.36 + 0.66 * ndl));
+    col += env * F * (0.65 + 0.5 * metal);
     vec3 H = normalize(LAMINA_KEY + V);
-    float spec = pow(max(dot(N, H), 0.0), mix(512.0, 16.0, rough)) * (1.0 - rough) * 1.15;
-    float fres = pow(1.0 - ndv, 3.0) * 0.3;
-    lit = albedo * (0.26 + 0.82 * ndl + 0.22 * ndlF) + u_lamina_lightColor * spec + albedo * fres;
+    float s = pow(max(dot(N, H), 0.0), mix(10.0, 520.0, pow(1.0 - rough, 2.0)));
+    col += u_lamina_lightColor * s * (1.0 - rough) * mix(vec3(0.6), F0 + 0.25, 0.5) * 1.6;
+    if (glassAmt > 0.001) {
+      float gLod = glassRough * 2.2;
+      float ior = max(u_lamina_refraction, 1.01);
+      vec3 fN = N;
+      if (u_lamina_fx_liquid > 0.5) {
+        vec3 fwp = v_lamina_position * 2.6 + u_lamina_time * 0.4;
+        fN = normalize(N + (vec3(lamina_noise_simplex(fwp), lamina_noise_simplex(fwp + 17.1), lamina_noise_simplex(fwp + 43.7)) - 0.5) * (u_lamina_fx_liquidAmount * 0.35));
+      }
+      vec3 rd = refract(-V, fN, 1.0 / ior);
+      if (dot(rd, rd) < 0.001) rd = R;
+      float ab = u_lamina_aberration * 0.06;
+      vec3 refr = vec3(
+        lamina_env(normalize(rd + N * ab), gLod).r,
+        lamina_env(rd, gLod).g,
+        lamina_env(normalize(rd - N * ab), gLod).b);
+      vec3 glassCol = mix(vec3(0.88) * refr, env * 1.3, clamp(F * 1.7 + 0.05, 0.0, 1.0));
+      glassCol *= mix(vec3(1.0), albedo * 0.9, clamp(u_lamina_thickness * (1.0 - ndv) * 1.15, 0.0, 1.0));
+      col = mix(col, glassCol, glassAmt);
+    }
+    lit = col;
   } else {
     float cel = floor(ndl * 3.0) / 3.0;
     lit = albedo * (0.34 + 0.66 * cel);
