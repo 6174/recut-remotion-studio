@@ -4,7 +4,9 @@
 
 Spline Material 设置面板模拟实验（`spline-material.html`）。参考 pmndrs/lamina（MIT）的「图层化 ShaderMaterial」思路移植实现：图层 = 静态 uniform + GLSL main 体，按 blend mode 合成 `lamina_finalColor`；用 `__ID__` 字符串模板替代 lamina 的 glsl-tokenizer/descope，不引入 three-custom-shader-material，光照（Lambert/Phong/Physical/Toon）为自研近似。
 
-多物体场景（`scene-model.ts` 默认三件套：Pink Card / Pearl / Chrome Card）：**点击选择**（R3F raycast，Objects 列表同样可选）→ 选中后面板切为该物体的 **Material / Effects** 标签 + 顶部 Move/Rotate/Scale gizmo（drei TransformControls，onMouseUp 提交回 SceneObject 变换）；未选中 = **Scene**（Background 五格 / 场景级 Light：Intensity·Color·Ambient·Tonemapping / Objects 列表）+ 全局 **Effects**。
+多物体场景（`scene-model.ts` 默认三件套对齐 Spline 首页 hero：Pink Card（粉色光面 + 粉色 Drop Shadow 光晕）/ Pearl（玻璃套件奶白珠 + christmas 暖 env）/ Dark Card（黑色亮面），White 白底俯视机位）：**点击选择**（R3F raycast，Objects 列表同样可选）→ 选中后面板切为该物体的 **Material / Effects** 标签 + 顶部 Move/Rotate/Scale gizmo（drei TransformControls，onMouseUp 提交回 SceneObject 变换）；未选中 = **Scene**（Background 五格 / 场景级 Light：Intensity·Color·Shadow Color Auto-Custom·Ambient·Tonemapping / Objects 列表）+ 全局 **Effects**。选中物体的 Material 面板同样含 Environment Map（真实全景库 + Upload + Exposure + Rotation XYZ）与 Light 区（编辑共享的场景光）。
+
+**Effects 双层语义**（对齐 Spline）：全局 Effects（EffectsPanel，Bloom/Vignette 等 10 种全屏 post）作用于整帧；**物体级 Effects**（`object-effects.ts` + ObjectEffectsPanel）只作用于单个物体，参数对齐 Spline 的 Edit Effect 面板——Drop Shadow（Offset X/Y + Blur 多环剪影 + Color/Strength，剪影用物体几何扁平化贴地）、Inner Shadow、Layer Blur、Noise（Simplex/Fbm/Voronoi/Sine + Blur/Uniform-Progressive/Amplitude/Scale/Stretch/Offset/Movement/Seed）、Glass（Offset/Distortion/Depth/Blur/Aberration/Edge-Fill/Profile/Magnification，JS 侧非破坏覆盖玻璃套件 + `u_lamina_fx_*` 扰动）、Projection（Type/Radius/Blur/Offset 光斑盘）、Noise Glass。渲染时 PostFX 仅合成全局栈，物体效果互不影响他物。
 
 对齐 Spline 的属性结构：**Material 区连续 PBR 参数**（Roughness/Metalness/Reflectivity + **Glass 套件**：Glass/Aberration/Thickness/Refraction/Blur——玻璃是参数而非独立图层，physical 光照内做折射/色散/厚度染色混合）+ **Fresnel/图层栈** + **Environment Map**（Studio/Bright Room/Warm/Sunset/Night 五套程序化全景，Exposure/Rotation）+ **Light 区**（Intensity/Color/Ambient）+ **Tonemapping**（ACES 近似 Yes/No）。质感核心 `lamina_env()` 见上文；选中高亮用 shader rim（`u_lamina_selected`），避免几何壳在透明材质上的排序穿帮。
 
@@ -13,7 +15,8 @@ Spline Material 设置面板模拟实验（`spline-material.html`）。参考 pm
 - types.ts: 单一事实来源——图层/材质状态类型、20 种图层（Image 2 菜单）的参数 schema 与默认值、面板默认状态（Image 1）、LAYER_DESC/LAYER_HINTS 通俗注释表
 - glsl.ts: GLSL 原料层；noise/blend chunks 逐字移植自 lamina，lighting 为自研近似（含 bump/occlusion 钩子）
 - layers.ts: 引擎核心；buildMaterial 把 MaterialState 编译成 ShaderMaterial（vertex 含 Displace 位移与重算法线，fragment 含图层栈 + 光照）；Image/Video/AI Texture 采样上传贴图（dataURL），未上传时回退棋盘占位
-- textures.ts: dataURL → THREE.Texture 同步缓存 + 异步填充；placeholderTexture 共享棋盘占位
+- env-presets.ts: 真实环境贴图库（Spline CDN 的 22 张 equirect 全景：Studio 系列/Dusk/Sunset/Neon/Fantasy 等，CORS *）+ 上传（image/*, .hdr → dataURL）+ 旧程序化 id 迁移表
+- textures.ts: dataURL/URL → THREE.Texture 同步缓存 + 异步填充；getEnvTexture（equirect env）与 placeholderTexture 共享棋盘占位
 - effects-config.ts: Effects 的 10 种类型（Bloom/Blur/Chromatic/Vignette/Grain/Noise/Pixelate/Color Adjust/Outline/Glitch）schema 与默认状态、EFFECT_DESC/EFFECT_HINTS 通俗注释表
 - effects.ts: 全屏后处理引擎；buildEffectMaterial 把 EffectState[] 编译成采样 tDiffuse 的合成 shader，与 layers.ts 同构（__ID__ 模板 + 顺序合成）
 - PostFX.tsx: R3F 后处理管线（priority=1 接管渲染循环）：场景 → WebGLRenderTarget → 全屏效果合成；无效果时直渲

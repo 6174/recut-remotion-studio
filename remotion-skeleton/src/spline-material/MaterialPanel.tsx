@@ -4,10 +4,12 @@
  * [POS]: spline-material 的核心 UI；图层行、弹窗锚点与所有受控编辑都从这里发起
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
-import { useState, type FC } from "react";
-import { anchorRect, Dropdown, NumberInput, Segmented } from "./controls";
+import { useState, useRef, type FC } from "react";
+import { anchorRect, ColorInput, Dropdown, NumberInput, Segmented, VecInput, useClickOutside } from "./controls";
 import { IconBlend, IconChevron, IconDrag, IconEye, IconEyeOff, IconLibrary, IconPlus, IconX, LAYER_ICONS } from "./icons";
 import { BlendMenu, SettingsPopup, TypeMenu, AssetsBrowser } from "./popups";
+import { ENV_LEGACY_MAP, ENV_PRESETS, envName } from "./env-presets";
+import type { SceneLightState } from "./types";
 import type { MaterialPreset } from "./presets";
 import { BLEND_LABEL, LAYER_DESC, LAYER_HINTS, LAYER_KIND_META, LAYER_MENU_ORDER, LIGHTING_FIELDS, type LayerKind, type LayerState, type MaterialState } from "./types";
 
@@ -30,15 +32,71 @@ export type PanelActions = {
   updateEnv: (patch: Partial<MaterialState["env"]>) => void;
 };
 
+/** Environment Map 选择器：缩略图网格（Spline env 库）+ Upload（图片/HDR → dataURL），对齐 Spline 的 ImageInput popover */
+const EnvPicker: FC<{ value: string; onChange: (map: string) => void }> = ({ value, onChange }) => {
+  const [open, setOpen] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const ref = useClickOutside<HTMLDivElement>(() => setOpen(false));
+  const current = ENV_PRESETS.find((entry) => entry.id === value) ?? ENV_PRESETS.find((entry) => entry.id === ENV_LEGACY_MAP[value]);
+  return (
+    <div className="envpick" ref={ref}>
+      <button className="envpick-btn" onClick={() => setOpen((state) => !state)} title={envName(value)}>
+        {value.startsWith("data:") ? (
+          <img src={value} alt="" />
+        ) : current ? (
+          <img src={current.url} alt="" />
+        ) : (
+          <span className="envpick-empty">None</span>
+        )}
+        <span className="envpick-name">{envName(value)}</span>
+        <IconChevron size={13} />
+      </button>
+      {open ? (
+        <div className="envpick-pop">
+          <label className="envpick-upload">
+            <IconPlus size={14} />
+            <span>Upload</span>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,.hdr,image/vnd.radiance"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  onChange(String(reader.result ?? ""));
+                  setOpen(false);
+                };
+                reader.readAsDataURL(file);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {ENV_PRESETS.map((entry) => (
+            <button key={entry.id} className={`envpick-cell ${value === entry.id ? "on" : ""}`} title={entry.name} onClick={() => { onChange(entry.id); setOpen(false); }}>
+              <img src={entry.url} alt={entry.name} loading="lazy" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
 export const MaterialPanel: FC<{
   material: MaterialState;
   actions: PanelActions;
+  sceneLight: SceneLightState;
+  tonemapping: boolean;
+  onChangeLight: (patch: Partial<SceneLightState>) => void;
+  onToggleTonemapping: (value: boolean) => void;
   myMaterials: MaterialPreset[];
   appliedPresetId: string | null;
   onApplyPreset: (preset: MaterialPreset) => void;
   onSavePreset: () => void;
   onDeletePreset: (id: string) => void;
-}> = ({ material, actions, myMaterials, appliedPresetId, onApplyPreset, onSavePreset, onDeletePreset }) => {
+}> = ({ material, actions, sceneLight, tonemapping, onChangeLight, onToggleTonemapping, myMaterials, appliedPresetId, onApplyPreset, onSavePreset, onDeletePreset }) => {
   const [popup, setPopup] = useState<PopupState>({ kind: "none" });
   const close = () => setPopup({ kind: "none" });
 
@@ -162,18 +220,7 @@ export const MaterialPanel: FC<{
           <div className="prow">
             <span className="prow-label">Image</span>
             <span className="prow-control">
-              <Dropdown
-                value={material.env.preset}
-                options={[
-                  { value: "studio", label: "Studio Procedural" },
-                  { value: "bright", label: "Bright Room" },
-                  { value: "warm", label: "Warm Sunset" },
-                  { value: "sunset", label: "Sunset Field" },
-                  { value: "night", label: "Cold Night" },
-                ]}
-                onChange={(next) => actions.updateEnv({ preset: next as MaterialState["env"]["preset"] })}
-                style={{ width: 172 }}
-              />
+              <EnvPicker value={material.env.map} onChange={(next) => actions.updateEnv({ map: next })} />
             </span>
           </div>
           <div className="prow">
@@ -185,7 +232,70 @@ export const MaterialPanel: FC<{
           <div className="prow">
             <span className="prow-label">Rotation</span>
             <span className="prow-control">
-              <NumberInput value={material.env.rotation} step={0.05} onChange={(next) => actions.updateEnv({ rotation: next })} />
+              <VecInput
+                value={material.env.rotation}
+                prefixes={["X", "Y", "Z"]}
+                step={0.05}
+                onChange={(next) => actions.updateEnv({ rotation: [next[0] ?? 0, next[1] ?? 0, next[2] ?? 0] })}
+              />
+            </span>
+          </div>
+        </section>
+
+        <section className="spanel-section">
+          <header className="section-head">
+            <h2>
+              Light
+              <button className="iconbtn" onClick={() => onChangeLight({ enabled: !sceneLight.enabled })}>
+                {sceneLight.enabled ? <IconEye size={15} /> : <IconEyeOff size={15} />}
+              </button>
+            </h2>
+          </header>
+          <div className="prow">
+            <span className="prow-label">Intensity</span>
+            <span className="prow-control">
+              <NumberInput value={sceneLight.intensity} onChange={(next) => onChangeLight({ intensity: Math.min(Math.max(next, 0), 4) })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Color</span>
+            <span className="prow-control">
+              <Dropdown
+                value={sceneLight.color}
+                options={[
+                  { value: "#ffffff", label: "White" },
+                  { value: "#fff2e0", label: "Warm" },
+                  { value: "#e8f0ff", label: "Cool" },
+                ]}
+                onChange={(next) => onChangeLight({ color: next })}
+                style={{ width: 172 }}
+              />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Shadow C…</span>
+            <span className="prow-control">
+              <Segmented value={sceneLight.shadowMode} options={["auto", "custom"]} onChange={(next) => onChangeLight({ shadowMode: next as SceneLightState["shadowMode"] })} />
+            </span>
+          </div>
+          {sceneLight.shadowMode === "custom" ? (
+            <div className="prow">
+              <span className="prow-label">Color</span>
+              <span className="prow-control">
+                <ColorInput value={sceneLight.shadowColor} onChange={(next) => onChangeLight({ shadowColor: next })} />
+              </span>
+            </div>
+          ) : null}
+          <div className="prow">
+            <span className="prow-label">Ambient In…</span>
+            <span className="prow-control">
+              <NumberInput value={sceneLight.ambient} onChange={(next) => onChangeLight({ ambient: Math.min(Math.max(next, 0), 2) })} />
+            </span>
+          </div>
+          <div className="prow">
+            <span className="prow-label">Tonemappi…</span>
+            <span className="prow-control">
+              <Segmented value={tonemapping ? "yes" : "no"} options={["yes", "no"]} onChange={(next) => onToggleTonemapping(next === "yes")} />
             </span>
           </div>
         </section>

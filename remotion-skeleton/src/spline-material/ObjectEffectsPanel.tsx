@@ -23,8 +23,8 @@ const EFFECT_GLYPH: Record<ObjectEffectKind, FC<{ size?: number }>> = {
   dropShadow: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><ellipse cx="12" cy="17" rx="8" ry="3.2" fill="currentColor" opacity="0.55" /></svg>,
   innerShadow: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="2.4" opacity="0.75" fill="none" /><circle cx="12" cy="12" r="4.4" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.4" /></svg>,
   layerBlur: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><circle cx="9" cy="12" r="6" fill="currentColor" opacity="0.75" /><circle cx="15" cy="12" r="6" fill="currentColor" opacity="0.35" /></svg>,
-  layerNoise: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24">{Array.from({ length: 12 }, (_, i) => (<rect key={i} x={5 + (i % 4) * 4} y={5 + Math.floor(i / 4) * 5} width="2.4" height="2.4" fill="currentColor" opacity={0.3 + (i % 3) * 0.25} />))}</svg>,
-  liquidGlass: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><path d="M6 14c2-4 4.5-6 6-6s4 2 6 6c-2 3-4.5 4-6 4s-4-1-6-4Z" stroke="currentColor" strokeWidth="1.8" fill="none" /><path d="M9 12c1-1.6 2-2.4 3-2.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7" /></svg>,
+  noise: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24">{Array.from({ length: 12 }, (_, i) => (<rect key={i} x={5 + (i % 4) * 4} y={5 + Math.floor(i / 4) * 5} width="2.4" height="2.4" fill="currentColor" opacity={0.3 + (i % 3) * 0.25} />))}</svg>,
+  glass: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><path d="M6 14c2-4 4.5-6 6-6s4 2 6 6c-2 3-4.5 4-6 4s-4-1-6-4Z" stroke="currentColor" strokeWidth="1.8" fill="none" /><path d="M9 12c1-1.6 2-2.4 3-2.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.7" /></svg>,
   projection: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><ellipse cx="14.5" cy="16.5" rx="7" ry="3" fill="currentColor" opacity="0.4" /><path d="M8 5v9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>,
   noiseGlass: (p) => <svg width={p.size ?? 18} height={p.size ?? 18} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" fill="none" opacity="0.8" />{Array.from({ length: 6 }, (_, i) => (<circle key={i} cx={9 + (i % 3) * 3} cy={9 + Math.floor(i / 3) * 4} r="0.9" fill="currentColor" />))}</svg>,
 };
@@ -45,7 +45,7 @@ export const ObjectEffectsPanel: FC<{
   const close = () => setPopup({ kind: "none" });
 
   const effectRow = (effect: ObjectEffectState) => {
-    const Glyph = EFFECT_GLYPH[effect.kind];
+    const Glyph = EFFECT_GLYPH[effect.kind] ?? EFFECT_GLYPH.layerBlur;
     return (
       <div key={effect.id} className={`layer-row ${effect.visible ? "" : "hidden"}`}>
         <button className="row-main" onClick={(event) => setPopup({ kind: "settings", effectId: effect.id, anchor: anchorRect(event.currentTarget) })}>

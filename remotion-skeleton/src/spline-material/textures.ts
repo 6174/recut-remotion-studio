@@ -44,6 +44,43 @@ export const clearTextureCache = () => {
   cache.clear();
 };
 
+const envCache = new Map<string, THREE.Texture>();
+
+let envPlaceholder: THREE.Texture | null = null;
+const envPlaceholderTexture = () => {
+  if (envPlaceholder) return envPlaceholder;
+  const data = new Uint8Array([128, 132, 138, 255]);
+  envPlaceholder = new THREE.DataTexture(data, 1, 1);
+  envPlaceholder.colorSpace = THREE.SRGBColorSpace;
+  envPlaceholder.needsUpdate = true;
+  return envPlaceholder;
+};
+
+/** equirect 环境贴图：异步加载后原地填充；失败（含 CORS）时缓存删除，shader 回退程序化环境 */
+export const getEnvTexture = (url: string): THREE.Texture => {
+  if (!url) return envPlaceholderTexture();
+  const hit = envCache.get(url);
+  if (hit) return hit;
+  const texture = new THREE.Texture();
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.name = "pending";
+  envCache.set(url, texture);
+  loader.setCrossOrigin("anonymous");
+  loader.load(
+    url,
+    (loaded) => {
+      texture.image = loaded.image;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      envCache.delete(url);
+    },
+  );
+  return texture;
+};
+
 let placeholder: THREE.Texture | null = null;
 
 /** 未上传图片时的占位棋盘，替代旧的内嵌棋盘 shader 分支 */

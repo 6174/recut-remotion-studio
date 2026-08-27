@@ -1,4 +1,4 @@
-import{j as u,r as Tr,c as Mr}from"./client-DOSV_kvz.js";import{d as Wr,c as Gr,r as qr,u as ot,a as lt,b as Zr,A as Xr,P as Yr}from"./index-C8avbcVU.js";import{r as j}from"./index-DzXGc9LX.js";import{T as Kr}from"./index-DT7QWFx8.js";import{V as te,U as R,C as Xn,D as Jr,u as Qn,a as er,S as tr,b as Qr,L as wr}from"./react-three-fiber.esm-DVnjAo8Q.js";const Yn=24,kr=18,eo=`
+import{j as u,r as Tr,c as Mr}from"./client-DOSV_kvz.js";import{d as Wr,c as Gr,r as qr,u as ot,a as lt,b as Zr,A as Xr,P as Yr}from"./index-C8avbcVU.js";import{r as j}from"./index-DzXGc9LX.js";import{T as Kr}from"./index-C7ml8guX.js";import{V as te,U as R,C as Xn,D as Jr,u as Qn,a as er,S as tr,b as Qr,L as wr}from"./react-three-fiber.esm-VQIokl-U.js";const Yn=24,kr=18,eo=`
   varying vec2 vUv;
   void main() {
     vUv = uv;

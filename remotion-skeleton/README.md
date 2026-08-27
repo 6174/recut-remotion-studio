@@ -4,7 +4,10 @@
 
 ## 结构
 
-- `Makefile` install/start/restart/stop/status/clean（内部处理依赖与端口冲突）
+- `Makefile` install/start/restart/stop/status/clean（内部调用 `node-check.js` 做依赖安装前后自检，并处理端口冲突）
+- `package.json` 项目预览、导出与实验依赖清单；`@remotion/player`、`@remotion/media`、`@remotion/transitions` 与 `@remotion/*` 版本锁定一致，避免 Vite 预览入口解析漂移
+- `pnpm-lock.yaml` 渲染工作区锁文件；首次预览 bootstrap 使用 frozen lockfile 安装，保证新项目依赖树确定
+- `node-check.js` 渲染环境安装自检脚本；集中识别 Vite、Remotion Player/Renderer/Bundler/Media/Transitions/Three、React 与 Three 依赖是否存在，是 Makefile 与 render.setup 的依赖探针单一真相源
 - `index.html` 预览页入口（`@remotion/player`，经 `/src/player.tsx`）
 - `composition-graph.html` 独立实验入口（**dev fixture**，不读取 Recut SDK/项目状态）；Vite 直接提供 `Composition Graph` 实验台，使用 Remotion 帧时钟驱动 R3F/Three GPU 合成。生产路径已统一到 `@recut/remotion-kit/three` + `@recut/remotion-kit/materials`（Three-first GPU 合成）
 - `spline-like.html` 独立玻璃形状实验入口；`src/spline-like/` 保存参数化形状、确定性循环场景与本轮稳定性结论，不进入首页或正式项目 Composition

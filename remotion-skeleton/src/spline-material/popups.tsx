@@ -112,6 +112,7 @@ export const TypeMenu: FC<{
       {boltFirst ? <hr /> : null}
       {order.slice(start).map((kind) => {
         const Icon = iconMap[kind];
+        if (!Icon || !meta[kind]) return null;
         return (
           <button key={kind} className={`tmenu-item ${current === kind ? "on" : ""}`} onClick={() => onPick(kind)} title={descMap?.[kind] ?? meta[kind].label}>
             <span className="tmenu-icon">

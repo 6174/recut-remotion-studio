@@ -48,7 +48,7 @@ export const MaterialLab: FC = () => {
   const [objects, setObjects] = useState<SceneObject[]>(defaultObjects);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [globalEffects, setGlobalEffects] = useState<EffectState[]>(initialEffects);
-  const [scene, setScene] = useState<SceneKind>("dark");
+  const [scene, setScene] = useState<SceneKind>("white");
   const [sceneLight, setSceneLight] = useState<SceneLightState>({ ...SCENE_LIGHT_DEFAULT });
   const [tonemapping, setTonemapping] = useState<boolean>(true);
   const [tab, setTab] = useState<Tab>("scene");
@@ -225,7 +225,7 @@ export const MaterialLab: FC = () => {
     [appliedPresetId, myMaterials, persistMine],
   );
 
-  const effectsCount = activeEffects.length;
+  const effectsCount = selected ? selected.effects.length : globalEffects.length;
 
   return (
     <div className="lab">
@@ -294,6 +294,10 @@ export const MaterialLab: FC = () => {
           <MaterialPanel
             material={selected.material}
             actions={objectActions(selected.id)}
+            sceneLight={sceneLight}
+            tonemapping={tonemapping}
+            onChangeLight={(patch) => setSceneLight((state) => ({ ...state, ...patch }))}
+            onToggleTonemapping={setTonemapping}
             myMaterials={myMaterials}
             appliedPresetId={appliedPresetId}
             onApplyPreset={applyPreset}
@@ -318,9 +322,18 @@ export const MaterialLab: FC = () => {
             onAddObject={addObject}
           />
         ) : null}
-        {tab === "effects" ? (
+        {tab === "effects" && selected ? (
+          <ObjectEffectsPanel
+            effects={selected.effects}
+            onUpdate={updateObjectEffect}
+            onUpdateParam={updateObjectEffectParam}
+            onAdd={addObjectEffect}
+            onRemove={removeObjectEffect}
+          />
+        ) : null}
+        {tab === "effects" && !selected ? (
           <EffectsPanel
-            effects={activeEffects}
+            effects={globalEffects}
             onUpdate={updateEffect}
             onUpdateParam={updateEffectParam}
             onAdd={addEffect}

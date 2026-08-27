@@ -5,7 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 README.md
  */
 import type { FC } from "react";
-import { Dropdown, NumberInput, Segmented } from "./controls";
+import { ColorInput, Dropdown, NumberInput, Segmented } from "./controls";
 import { GEOMETRIES, VIEW_SCENES, type SceneKind } from "./MaterialPreview";
 import { GEOMETRY_LABEL, type SceneObject } from "./scene-model";
 import type { SceneLightState } from "./types";
@@ -71,6 +71,20 @@ export const ScenePanel: FC<{
             />
           </span>
         </div>
+        <div className="prow">
+          <span className="prow-label">Shadow C…</span>
+          <span className="prow-control">
+            <Segmented value={sceneLight.shadowMode} options={["auto", "custom"]} onChange={(next) => onChangeLight({ shadowMode: next as SceneLightState["shadowMode"] })} />
+          </span>
+        </div>
+        {sceneLight.shadowMode === "custom" ? (
+          <div className="prow">
+            <span className="prow-label">Color</span>
+            <span className="prow-control">
+              <ColorInput value={sceneLight.shadowColor} onChange={(next) => onChangeLight({ shadowColor: next })} />
+            </span>
+          </div>
+        ) : null}
         <div className="prow">
           <span className="prow-label">Ambient In…</span>
           <span className="prow-control">

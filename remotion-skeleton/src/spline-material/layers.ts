@@ -8,7 +8,8 @@
 import * as THREE from "three";
 import { BlendMode, LayerState, LightingState, MaterialState, LAYER_KIND_META } from "./types";
 import { BLEND_CHUNK, HELPERS_CHUNK, LIGHTING_CHUNK, NOISE_CHUNK } from "./glsl";
-import { getTexture, placeholderTexture } from "./textures";
+import { getEnvTexture, getTexture, placeholderTexture } from "./textures";
+import { envUrl } from "./env-presets";
 import { ObjectEffectState, OBJECT_EFFECT_META } from "./object-effects";
 
 const NOISE_FN: Record<string, string> = {
@@ -297,16 +298,26 @@ vec3 lamina_orthogonal___ID__(vec3 v) {
 
 /** 物体级 Effects 的 fragment 片段：pre = 光照前（改 albedo），post = 光照后（改最终明暗/透明） */
 const OBJECT_EFFECT_FRAG: Record<string, { uniforms: string; body: string; stage: "pre" | "post"; noise?: boolean }> = {
-  layerNoise: {
+  noise: {
     stage: "pre",
     noise: true,
-    uniforms: `uniform vec3 u___ID___colorA;
-uniform vec3 u___ID___colorB;
-uniform float u___ID___scale;`,
+    uniforms: `uniform float u___ID___blur;
+uniform float u___ID___type;
+uniform float u___ID___amplitude;
+uniform float u___ID___scale;
+uniform vec2 u___ID___stretch;
+uniform vec2 u___ID___offset;
+uniform float u___ID___movement;
+uniform float u___ID___seed;`,
     body: `{
-  float f_oe___ID__ = lamina_normalize(%NOISE%(v_lamina_position * max(u___ID___scale, 0.001)));
-  vec3 f_oeC___ID__ = mix(u___ID___colorA, u___ID___colorB, f_oe___ID__);
-  lamina_finalColor.rgb = mix(lamina_finalColor.rgb, f_oeC___ID__, u___ID___opacity * 0.85);
+  vec3 f_p___ID__ = v_lamina_position * max(u___ID___scale, 0.001) * vec3(max(u___ID___stretch.x, 0.001), 1.0, max(u___ID___stretch.y, 0.001));
+  f_p___ID__ += vec3(u___ID___offset.x, u___ID___seed * 17.31, u___ID___offset.y);
+  f_p___ID__ += u_lamina_time * u___ID___movement * 0.25;
+  float f_oe___ID__ = lamina_normalize(%NOISE%(f_p___ID__));
+  f_oe___ID__ = mix(f_oe___ID__, 0.5, clamp(u___ID___blur, 0.0, 1.0));
+  float f_k___ID__ = 1.0 - u___ID___amplitude * 0.1 + f_oe___ID__ * u___ID___amplitude * 0.2;
+  float f_fade___ID__ = u___ID___type > 0.5 ? clamp(v_lamina_position.y * 0.5 + 0.5, 0.0, 1.0) : 1.0;
+  lamina_finalColor.rgb *= mix(1.0, f_k___ID__, clamp(u___ID___opacity * f_fade___ID__, 0.0, 1.0));
 }`,
   },
   innerShadow: {
@@ -383,8 +394,9 @@ export function buildMaterial(state: MaterialState, objectEffects: ObjectEffectS
     u_lamina_blur: { value: state.lighting.blur },
     u_lamina_envEnabled: { value: state.env.enabled ? 1 : 0 },
     u_lamina_envExposure: { value: state.env.exposure },
-    u_lamina_envRotation: { value: state.env.rotation },
-    u_lamina_envPreset: { value: { studio: 0, warm: 1, night: 2, bright: 3, sunset: 4 }[state.env.preset] ?? 0 },
+    u_lamina_envRotation: { value: asVec3(state.env.rotation, [0, 0, 0]) },
+    u_lamina_envHasMap: { value: state.env.map ? 1 : 0 },
+    u_lamina_envMap: { value: getEnvTexture(envUrl(state.env.map)) },
     u_lamina_lightIntensity: { value: 1 },
     u_lamina_ambient: { value: 0.75 },
     u_lamina_tonemapping: { value: 0 },
@@ -396,6 +408,10 @@ export function buildMaterial(state: MaterialState, objectEffects: ObjectEffectS
     u_lamina_fx_liquidAmount: { value: 0.5 },
     u_lamina_fx_ngScale: { value: 6 },
     u_lamina_fx_ngOpacity: { value: 0 },
+    u_lamina_fx_glassOffset: { value: new THREE.Vector2(0, 0) },
+    u_lamina_fx_glassMode: { value: 0 },
+    u_lamina_fx_glassProfile: { value: 0 },
+    u_lamina_fx_glassMag: { value: 0 },
     u_lamina_base: { value: linear("#ffffff") },
   };
 
@@ -478,22 +494,37 @@ export function buildMaterial(state: MaterialState, objectEffects: ObjectEffectS
         const name = `u_${fx.id}_${field.key}`;
         if (field.type === "color") uniforms[name] = { value: linear(typeof value === "string" ? value : "#ffffff") };
         else if (field.type === "select") uniforms[name] = { value: Math.max(field.options?.indexOf(String(value)) ?? 0, 0) };
+        else if (field.type === "vec2") uniforms[name] = { value: asVec2(value, [0, 0]) };
         else uniforms[name] = { value: typeof value === "number" ? value : 0 };
       }
-      const noiseFn = NOISE_FN[String(fx.params.type)] ?? NOISE_FN.simplex;
-      const source = template.uniforms.replaceAll("__ID__", fx.id).replaceAll("%NOISE%", noiseFn);
+      let extraFns = "";
+      let noiseFn = NOISE_FN[String(fx.params.noiseType)] ?? NOISE_FN.simplex;
+      if (fx.params.noiseType === "fbm") extraFns = `float lamina_noise_fbm(vec3 p) { return lamina_noise_perlin(p) * 0.6 + lamina_noise_perlin(p * 2.7) * 0.4; }`;
+      if (fx.params.noiseType === "sine") extraFns = `float lamina_noise_sine(vec3 p) { return sin(p.x) * sin(p.y) * sin(p.z) * 0.55 + sin((p.x + p.y + p.z) * 0.7) * 0.45; }`;
+      if (fx.params.noiseType === "sine") noiseFn = "lamina_noise_sine";
+      if (fx.params.noiseType === "fbm") noiseFn = "lamina_noise_fbm";
+      if (extraFns) fragChunks.push(extraFns);
+      const source = `uniform float u_${fx.id}_opacity;\n${template.uniforms.replaceAll("__ID__", fx.id).replaceAll("%NOISE%", noiseFn)}`;
       fragChunks.push(source);
       const body = template.body.replaceAll("__ID__", fx.id).replaceAll("%NOISE%", noiseFn);
       (template.stage === "pre" ? oePreBodies : oePostBodies).push(body);
     }
-    if (fx.kind === "liquidGlass") {
-      uniforms.u_lamina_fx_liquid.value = 1;
-      uniforms.u_lamina_fx_liquidAmount.value = typeof fx.params.distortion === "number" ? fx.params.distortion : 0.5;
-      // Liquid Glass = 玻璃套件的流动变体：非破坏地覆盖 lighting 玻璃参数
-      uniforms.u_lamina_roughness.value = Math.max(uniforms.u_lamina_roughness.value as number, 0.04);
+    if (fx.kind === "glass") {
+      // Glass 效果 = 玻璃套件的非破坏变体（覆盖 lighting 玻璃参数 + fx uniforms）
+      const vec = (key: string, fallback: [number, number]) => (Array.isArray(fx.params[key]) ? (fx.params[key] as number[]) : fallback);
+      const num = (key: string, fallback: number) => (typeof fx.params[key] === "number" ? (fx.params[key] as number) : fallback);
       uniforms.u_lamina_glass.value = 1;
-      uniforms.u_lamina_refraction.value = typeof fx.params.refraction === "number" ? fx.params.refraction : 1.18;
-      uniforms.u_lamina_blur.value = typeof fx.params.blur === "number" ? fx.params.blur : 0.06;
+      uniforms.u_lamina_roughness.value = Math.max(uniforms.u_lamina_roughness.value as number, 0.04);
+      uniforms.u_lamina_blur.value = num("blur", 0.1);
+      uniforms.u_lamina_aberration.value = num("aberration", 0.05);
+      uniforms.u_lamina_thickness.value = num("depth", 10) * 0.05;
+      uniforms.u_lamina_refraction.value = 1.12 * (1 + num("magnification", 0) * 0.35);
+      uniforms.u_lamina_fx_liquid.value = num("distortion", 0.15) > 0.001 ? 1 : 0;
+      uniforms.u_lamina_fx_liquidAmount.value = num("distortion", 0.15);
+      uniforms.u_lamina_fx_glassOffset.value = asVec2(vec("offset", [0, 0]), [0, 0]);
+      uniforms.u_lamina_fx_glassMode.value = String(fx.params.edgeFill) === "fill" ? 1 : 0;
+      uniforms.u_lamina_fx_glassProfile.value = num("profile", 0);
+      uniforms.u_lamina_fx_glassMag.value = num("magnification", 0);
     }
     if (fx.kind === "noiseGlass") {
       uniforms.u_lamina_glass.value = 1;

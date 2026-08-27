@@ -18,24 +18,6 @@ import type { SceneObject } from "./scene-model";
 import type { MaterialState, SceneLightState } from "./types";
 import { OBJECT_EFFECT_META, type ObjectEffectState } from "./object-effects";
 
-/** 地面投影板共享的径向渐变贴图（确定性生成） */
-let shadowBlobTexture: THREE.Texture | null = null;
-const groundShadowTexture = () => {
-  if (shadowBlobTexture) return shadowBlobTexture;
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  const paint = ctx.createRadialGradient(64, 64, 8, 64, 64, 64);
-  paint.addColorStop(0, "rgba(0,0,0,0.9)");
-  paint.addColorStop(0.55, "rgba(0,0,0,0.42)");
-  paint.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = paint;
-  ctx.fillRect(0, 0, 128, 128);
-  shadowBlobTexture = new THREE.CanvasTexture(canvas);
-  shadowBlobTexture.colorSpace = THREE.SRGBColorSpace;
-  return shadowBlobTexture;
-};
-
 export type GeometryKind = SceneObject["geometry"];
 
 export const GEOMETRIES: Record<GeometryKind, () => THREE.BufferGeometry> = {
@@ -127,6 +109,40 @@ const WireframeOverlay: FC<{ geometry: THREE.BufferGeometry }> = ({ geometry }) 
   </mesh>
 );
 
+/** Drop Shadow 层：物体剪影压成面向相机的柔光板，悬浮在物体正后方（屏幕空间 offset），不随透视漂移 */
+const DropShadowLayer: FC<{
+  geometry: THREE.BufferGeometry;
+  object: SceneObject;
+  ring: number;
+  blur: number;
+  color: string;
+  strength: number;
+  offsetX: number;
+  offsetY: number;
+}> = ({ geometry, object, ring, blur, color, strength, offsetX, offsetY }) => {
+  const ref = useRef<THREE.Mesh>(null);
+  const tmp = useMemo(() => ({ right: new THREE.Vector3(), up: new THREE.Vector3(), viewDir: new THREE.Vector3() }), []);
+  useFrame(({ camera }) => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    mesh.quaternion.copy(camera.quaternion);
+    tmp.right.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    tmp.up.set(0, 1, 0).applyQuaternion(camera.quaternion);
+    tmp.viewDir.set(object.position[0] - camera.position.x, object.position[1] - camera.position.y, object.position[2] - camera.position.z).normalize();
+    const depth = 0.18 + ring * blur * 0.2;
+    const px = object.position[0] + tmp.right.x * offsetX - tmp.up.x * offsetY + tmp.viewDir.x * depth;
+    const py = object.position[1] + tmp.right.y * offsetX - tmp.up.y * offsetY + tmp.viewDir.y * depth;
+    const pz = object.position[2] + tmp.right.z * offsetX - tmp.up.z * offsetY + tmp.viewDir.z * depth;
+    mesh.position.set(px, py, pz);
+  });
+  const spread = 1 + ring * blur * 0.26;
+  return (
+    <mesh ref={ref} geometry={geometry} scale={[object.scale * spread, object.scale * spread, 0.02]} raycast={() => null}>
+      <meshBasicMaterial color={color} transparent opacity={strength} depthWrite={false} />
+    </mesh>
+  );
+};
+
 const ObjectMesh: FC<{
   object: SceneObject;
   selected: boolean;
@@ -141,7 +157,9 @@ const ObjectMesh: FC<{
   useEffect(() => () => geo.dispose(), [geo]);
   const shader = useShader(object.material, selected, sceneLight, tonemapping, object.effects);
   const ref = useRef<THREE.Mesh>(null);
-  const groundFx = object.effects.find((effect) => effect.visible && (effect.kind === "dropShadow" || effect.kind === "projection"));
+  const dropFx = object.effects.find((effect) => effect.visible && effect.kind === "dropShadow");
+  const projFx = object.effects.find((effect) => effect.visible && effect.kind === "projection");
+  const floorY = -1.546;
 
   const commit = () => {
     if (!ref.current) return;
@@ -165,20 +183,45 @@ const ObjectMesh: FC<{
       >
         <primitive object={shader} attach="material" />
       </mesh>
-      {groundFx && object.visible ? (
-        <mesh
-          rotation-x={-Math.PI / 2}
-          position={[
-            object.position[0] + Number(groundFx.params.offsetX ?? 0),
-            -1.545,
-            object.position[2] + Number(groundFx.params.offsetZ ?? 0),
-          ]}
-          raycast={() => null}
-        >
-          <planeGeometry args={[2.4 * object.scale * Number(groundFx.params.size ?? 1), 2.4 * object.scale * Number(groundFx.params.size ?? 1)]} />
-          <meshBasicMaterial map={groundShadowTexture()} transparent opacity={groundFx.opacity * 0.01 * Number(groundFx.params.strength ?? 0.5)} depthWrite={false} />
-        </mesh>
-      ) : null}
+      {/* Drop Shadow：物体剪影的相机朝向柔光板（屏幕空间背后，跟随物体），Blur 多环 + 颜色/浓度（对齐 Spline） */}
+      {dropFx && object.visible
+        ? [0, 1, 2].map((ring) => (
+            <DropShadowLayer
+              key={ring}
+              geometry={geo}
+              object={object}
+              ring={ring}
+              blur={Number(dropFx.params.blur ?? 0.35)}
+              color={String(dropFx.params.color ?? "#000000")}
+              strength={(Number(dropFx.params.strength ?? 55) / 100) * [0.42, 0.2, 0.09][ring]}
+              offsetX={Number(dropFx.params.offsetX ?? 0)}
+              offsetY={Number(dropFx.params.offsetY ?? 0)}
+            />
+          ))
+        : null}
+      {/* Projection：可调半径/形状/模糊的环境光斑 */}
+      {projFx && object.visible
+        ? [0, 1, 2].map((ring) => {
+            const blur = Number(projFx.params.blur ?? 0.35);
+            const radius = Math.max(Number(projFx.params.radius ?? 3) * 0.5, 0.2) * (1 + ring * blur * 0.4);
+            const opacity = (Number(projFx.params.strength ?? 30) / 100) * [1, 0.45, 0.22][ring];
+            return (
+              <mesh
+                key={ring}
+                rotation-x={-Math.PI / 2}
+                position={[
+                  object.position[0] + Number(projFx.params.offsetX ?? 0),
+                  floorY + 0.002 + ring * 0.001,
+                  object.position[2] + Number(projFx.params.offsetZ ?? 0),
+                ]}
+                raycast={() => null}
+              >
+                {String(projFx.params.type) === "disc" ? <planeGeometry args={[radius * 2, radius * 2]} /> : <circleGeometry args={[radius, 48]} />}
+                <meshBasicMaterial color="#9aa7b8" transparent opacity={opacity} depthWrite={false} />
+              </mesh>
+            );
+          })
+        : null}
       {selected && object.visible ? (
         <TransformControls object={ref as unknown as React.MutableRefObject<THREE.Object3D>} mode={transformMode} onMouseUp={commit} size={0.8} />
       ) : null}
@@ -187,7 +230,7 @@ const ObjectMesh: FC<{
   );
 };
 
-const SceneBackdrop: FC<{ config: SceneConfig }> = ({ config }) => {
+const SceneBackdrop: FC<{ config: SceneConfig; shadowColor: string }> = ({ config, shadowColor }) => {
   const bgTexture = useMemo(() => (config.gradient ? gradientTexture(config.gradient) : null), [config]);
   const floorTexture = useMemo(() => (config.checker ? checkerTexture() : null), [config]);
   useEffect(() => () => bgTexture?.dispose(), [bgTexture]);
@@ -195,7 +238,7 @@ const SceneBackdrop: FC<{ config: SceneConfig }> = ({ config }) => {
   return (
     <>
       {bgTexture ? <primitive object={bgTexture} attach="background" /> : <color attach="background" args={[config.background]} />}
-      <ContactShadows position={[0, config.checker ? -1.549 : -1.548, 0]} opacity={config.shadowOpacity} scale={16} blur={2.6} far={3.2} resolution={512} color={config.light ? "#5a5550" : "#000000"} />
+      <ContactShadows position={[0, config.checker ? -1.549 : -1.548, 0]} opacity={config.shadowOpacity} scale={16} blur={2.6} far={3.2} resolution={512} color={shadowColor} />
       {floorTexture ? (
         <mesh rotation-x={-Math.PI / 2} position={[0, -1.551, 0]} raycast={() => null}>
           <planeGeometry args={[90, 90]} />
@@ -235,8 +278,8 @@ export const MaterialPreview: FC<{
   const config = VIEW_SCENES[scene];
   const activeEffects = useMemo(() => globalEffects.filter((effect) => effect.visible && effect.opacity > 0), [globalEffects]);
   return (
-    <Canvas camera={{ fov: 40, position: [4.6, 2.3, 5.4] }} dpr={[1, 2]} gl={{ antialias: true }} onPointerMissed={() => onSelect(null)}>
-      <SceneBackdrop config={config} />
+    <Canvas camera={{ fov: 36, position: [1.7, 5.5, 5.1] }} dpr={[1, 2]} gl={{ antialias: true }} onPointerMissed={() => onSelect(null)}>
+      <SceneBackdrop config={config} shadowColor={sceneLight.shadowMode === "custom" ? sceneLight.shadowColor : config.light ? "#5a5550" : "#000000"} />
       {objects.map((object) => (
         <ObjectMesh
           key={object.id}
@@ -249,7 +292,7 @@ export const MaterialPreview: FC<{
           onTransform={onTransform}
         />
       ))}
-      <OrbitControls makeDefault enablePan={false} minDistance={2.6} maxDistance={12} target={[0, 0.1, 0]} />
+      <OrbitControls makeDefault enablePan={false} minDistance={2.6} maxDistance={12} target={[0.35, 0, 0.15]} />
       {activeEffects.length ? <PostFX effects={activeEffects} /> : null}
     </Canvas>
   );

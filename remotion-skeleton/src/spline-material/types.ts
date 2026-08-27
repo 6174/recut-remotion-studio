@@ -422,25 +422,27 @@ export const LIGHTING_FIELDS: Field[] = [
   { key: "occlusion", label: "Occlusion", type: "segment", options: ["on", "off"], group: 3 },
 ];
 
-/** 程序化环境贴图（对应 Spline 的 Environment Map 区） */
+/** 环境贴图（对应 Spline 的 Environment Map 区）：map 为 ENV_PRESETS 的 id 或上传的 dataURL */
 export type EnvState = {
   enabled: boolean;
-  preset: "studio" | "bright" | "warm" | "night" | "sunset";
+  map: string;
   exposure: number;
-  rotation: number;
+  rotation: [number, number, number];
 };
 
-export const ENV_DEFAULT: EnvState = { enabled: true, preset: "studio", exposure: 1, rotation: 0 };
+export const ENV_DEFAULT: EnvState = { enabled: true, map: "studio_white", exposure: 1, rotation: [0, 0, 0] };
 
-/** 场景级 Light 区（对齐 Spline：Intensity/Color/Ambient Intensity） */
+/** 场景级 Light 区（对齐 Spline：Intensity/Color/Shadow Color Auto-Custom/Ambient Intensity） */
 export type SceneLightState = {
   enabled: boolean;
   intensity: number;
   color: string;
   ambient: number;
+  shadowMode: "auto" | "custom";
+  shadowColor: string;
 };
 
-export const SCENE_LIGHT_DEFAULT: SceneLightState = { enabled: true, intensity: 1, color: "#ffffff", ambient: 0.75 };
+export const SCENE_LIGHT_DEFAULT: SceneLightState = { enabled: true, intensity: 1, color: "#ffffff", ambient: 0.75, shadowMode: "auto", shadowColor: "#000000" };
 
 export type MaterialState = {
   /** 面板头部 Material 的 0-100 整体不透明度 */
