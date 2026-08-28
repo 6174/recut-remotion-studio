@@ -1,81 +1,108 @@
-# Recut Remotion Studio
+<div align="center">
 
-> `type: project` App —— 把成片模板、选题和素材编排成 Remotion 程序化视频。**每个项目拥有自己的 Remotion 工程**（`remotion-skeleton` 骨架的独立副本）：AI 直接改写 composition 代码，Vite dev server 热更新预览，本地渲染导出。
+<img src="./assets/logo.jpg" alt="Recut logo" width="112" />
 
-## 能力
+# Remotion 视频 · Remotion Studio
 
-- **Brief 表单**：新建项目时直接预览并选择成片模板，再填写选题、可选详细描述、优先从素材库选择的 SRT 和一次支持多选的素材；素材库没有 SRT 时可上传本地文件，未提供 SRT 时所选视频成为叙事来源，一键交给 AI 设计。
-- **代码驱动的创作台**：AI 用原生文件工具直接读写项目私有 `workspace/`（绝对路径由 `workflow.context` 的 `paths` 提供）里的 composition 代码（复用内置表达特效与字幕主题），不再用结构化的设计契约。
-- **Vite 热更新预览**：每个项目一个 Vite dev server，iframe 嵌入其预览页（`@remotion/player`，播放/暂停/进度条）；AI 改代码即热更新。
-- **左右工作台**：左侧 iframe 嵌入每项目 Vite dev server 的预览页（`@remotion/player`，播放/暂停/进度条）；右侧上半以「模板 → 参数选择 → Prompt → Agent」组织创作，模板是唯一的视觉与叙事选择；字幕主题、画布、内置动态组件与素材库仅作为局部编辑工具。SRT 或视频叙事来源在 Brief 创建阶段作为可选输入，不在工作台重复出现。导出配置放进模态框，打开项目文件夹、构建/重启/重置降为维护工具；下半是「终端 / 日志」两个 tab。
-- **配乐与字体微调**：fine-tune 面板新增「音乐」「字体」两张卡。「音乐」从 Recut CDN 音频目录（`https://cdn.recut.video/audio/catalog.json`，与 apps/editor 同一份 catalog）试听与选择。选择后 UI 立即持久化当前曲目的 `trackId/url/track`，让预览先可用；随后异步调用 `music.import` 下载并导入为平台 Asset，完成后补充 `assetId`。导出只接受已物化的 Asset：导入未完成或失败时明确要求等待/重试，绝不悄悄漏掉 BGM 或在渲染期回源。与此同时生成携带下载指令的 Prompt（曲目 CDN url、workspace 目标路径 `audio/music/<trackId>.mp3` 与 license/attribution），Agent 创作时把 mp3 下载到 workspace 并以静态相对引用接入成片，由 Vite/Remotion 打包，导出含确定性的 BGM 音轨（旁白自动 duck、片头淡入片尾淡出）。预览和导出共享同一份 selected music metadata。「字体」从 Recut CDN 字体目录（`https://cdn.recut.video/fonts/google/catalog.json`，37 家族含 CJK，与编辑器同一份二进制）按名称/脚本筛选，选择后字体经**物化到本地**加载（预览用 CDN css、渲染把 css+woff2 物化到渲染 public 目录并重写为本地 /fonts/{id}.css，经 `@recut/remotion-kit/fonts` 注入并阻塞到就绪），统一应用到标题、正文与字幕（`palette.font` + CaptionTheme 覆盖）。预览播放器始终允许音量，是否出声完全由成片代码里的 `<Audio>` 决定。
-- **重置项目**：一键把 workspace 重置回骨架（丢失 AI 改写，仅测试/回退用）。
-- **打开项目文件夹**：从右上角在 Finder、Windows 资源管理器或 Linux 默认文件管理器中直接打开当前项目的 `workspace/`。
-- **本地导出**：`render.js` 使用 `@remotion/bundler` + `@remotion/renderer` 在本地 headless Chrome 中把项目 workspace 的 composition 渲染为 MP4，并归档为 Recut 媒体素材；每次完成导出自动将该 MP4 设为 Project 封面。
+**把选题、文案与素材写成 Remotion 程序化视频 — 代码即设计，预览即热更新**
 
-## 结构
+每项目独立 Remotion 工程，AI 直接改写 composition 代码并本地渲染导出
 
-```text
-manifest.json   App 契约与发布白名单（operations、permissions、onboarding、distribution.builtin.include）
-background.js   Goja 沙箱业务后端：Brief、workspace seed/reset/open、组件目录（catalog.list）、素材登记、预览服务（启动时同步系统拥有的无声 player.tsx）、终端、日志、渲染任务编排
-seed.js         骨架 remotion-skeleton → 项目私有 workspace/（含 node_modules 符号链接）
-skills/
-  remotion-studio/  代码驱动主技能；场景技能与模板代码封装在 @recut/remotion-kit/src/scenarios/
-dev/                不参与运行时的 Remotion Studio 设计记录；HTML-in-Canvas 表达镜头组件计划与后续决策沉淀于此
-remotion-skeleton/   每个项目工作区的骨架（seed 时整体复制，AI 改的是项目副本）
-  Makefile      install / start / restart / stop / status / clean（内部处理依赖与端口冲突）
-  index.html    预览页入口（@remotion/player）
-  vite.config.ts  root=workspace，publicDir=preview/（props.json），@tailwindcss/vite
-  vite-server.js 启动 Vite dev server，端口写 serve/status.json
-  render.js      服务端导出：postcss 预编译 Tailwind 后 bundle + renderMedia（入口 src/index.ts）
-  node-check.js  依赖自检
-  src/
-    index.css             Tailwind v4 入口 + Recut 设计系统 token（预览/导出同源）
-    player.tsx            预览页组件（fetch props.json + <Player>）
-    index.ts / Root.tsx   registerRoot 入口 + ProjectVideo 注册
-    compositions/ProjectVideo.tsx  成片模板：改 SCENES 与渲染层（主编辑对象）
-    effects/              表达特效封装：BackgroundFX、TextFX、useImageMotion
-    captions/             字幕主题（remotion-captions-themes 13 套）
-    components/ui/        本地 shadcn 原子（Button/Card/Badge/Input/Textarea）+ lib/utils 的 cn
-    components/  remotion-templates 全部 81 个单文件组件 + README 目录
-    components/  内置动态组件（PageCam/Caption/DigitRoll/… 与 helpers）
-    runtime/media.ts       resolveMediaUrl(assetId, media)——预览与导出统一走 props
-ui/             Vite React 项目页（Brief 表单 + 左预览 + 右侧操作与终端/日志分栏）
+[中文](./README.md) · [English](./README.en.md)
+
+</div>
+
+![Remotion 视频](./assets/remotion.jpg)
+
+## 这是什么
+
+Remotion 视频是 Recut 的**程序化视频 App**（`project` 类型）。每个项目拥有 `remotion-skeleton` 的独立副本：AI 用原生文件工具直接改写 `workspace/src/compositions/ProjectVideo.tsx` 等 composition 代码，Vite dev server 热更新预览，本地 `@remotion/renderer` 确定性导出为 MP4。
+
+- **模板是单一真相源**：`faceless-explainer` / `product-launch` / `doodle-explainer` 三选一，视觉与叙事由 `@recut/remotion-kit` 提供。
+- **设计就是写代码**：复用内置表达特效与字幕主题，媒体用 `resolveMediaUrl(assetId)` 引用真实素材并 `composition.assets` 登记。
+- **预览与导出同源**：预览走 `@remotion/player`，导出走同一 composition，无随机性逐帧一致。
+
+> 随 Recut 安装使用。发布于 [6174/recut-remotion-studio](https://github.com/6174/recut-remotion-studio)。
+
+## 为什么用它
+
+### 代码级可控
+
+动效、节拍与版式都在代码里可审阅、可复用、可版本化；不再是不可解释的黑盒生成。
+
+### 每项目一工程
+
+首次 `workspace.ensure` 复制骨架并链接 `node_modules`，项目间互不干扰，新项目不受旧改写影响。
+
+### 热更新预览，本地导出
+
+改代码即热更新；导出在本地 headless Chrome 中渲染并归档为媒体 Asset，自动设为项目封面。
+
+## 从想法到成片
+
+1. **创建 Brief**（`project.create`）：选择模板，填写选题与可选素材/`@` 上下文。
+2. **确保工程**（`workspace.ensure`）与 **启动预览**（`preview.serve.start`）：Vite dev server 监听 workspace 热更新。
+3. **改写 composition**：AI 读写 `workspace/src/compositions/ProjectVideo.tsx`，用真实 `assetId` 引用素材，`composition.assets` 登记。
+4. **预览确认**：在 iframe 预览中播放/拖动进度条，必要时微调配乐与字体。
+5. **本地导出**（`render.export`）：物化素材与配乐，渲染为 MP4 并入库。
+
+## 核心能力
+
+| 能力 | 你能做什么 | 关键操作 |
+| --- | --- | --- |
+| **Brief 与工程** | 选模板建 Brief，初始化每项目 Remotion 工程 | `project.create` · `workspace.ensure` · `workflow.context` |
+| **预览** | 启动/查询/停止 Vite 预览，写入 props | `preview.serve.start/status/stop` · `preview.props` |
+| **素材与登记** | 引用真实素材并登记，导出时物化 | `resolveMediaUrl(assetId)` · `composition.assets` |
+| **配乐与字体** | 从 CDN 目录选配乐/字体，预览即时可用，导出物化 | `music.import` · `music.selected` · `fonts.select` |
+| **导出** | 本地渲染为 MP4，归档并设为封面 | `render.export` · `render.status` · `export.list` |
+| **诊断** | 终端执行、日志查看、kit 版本对比 | `terminal.exec` · `logs.read/list` · `workspace.kit-state` |
+
+> 完整操作契约见 `manifest.json` 的 `operations` 列表；动效与字幕目录见 Skill references。
+
+## 快速开始
+
+### 在 Recut 中打开
+
+1. 安装并启动 Recut（见主仓库 [README](../../README.md#安装-recut)）。
+2. 新建项目时选择 **Remotion 视频**，完成 Brief（模板为唯一视觉与叙事选择）。
+3. 启动预览，改写 composition 后热更新预览，确认后导出。
+
+### 让 Agent 帮你做
+
+在 Claude Code / OpenCode / Codex Cli 中说：
+
+> “我想用 Remotion 做一支程序化视频，主题是【填写选题】。先完成 Brief，再读 `recut.skills.read` 的 remotion-studio skill，确认特效与字幕主题后改写 `workspace/src/compositions/ProjectVideo.tsx`，用 `composition.assets` 登记素材，保存后等我预览确认再导出。”
+
+## 界面导览
+
+- **左侧预览**：iframe 嵌入 Vite 预览页（`@remotion/player`，播放/暂停/进度条）。
+- **右侧上半**：模板 → 参数 → Prompt → Agent；配乐与字体微调。
+- **右侧下半**：终端 / 日志双 tab。
+- **导出与维护**：导出配置模态框；打开项目文件夹、重启/重置为维护操作。
+
+![Remotion 工作台](./assets/remotion.jpg)
+<sub>从模板和 Brief 开始，把代码、素材与预览连接起来。</sub>
+
+## 常见问题
+
+**预览不更新？** 确认 `preview.serve.status` 为 running，composition 保存后 Vite 会热更新；必要时 `preview.serve.start` 重启。
+
+**导出没有声音？** 配乐需先 `music.import` 物化为 Asset；导入未完成时会拒绝导出，需等待或重试。
+
+**想重置项目？** 使用 `workspace.reset` 回到骨架（会丢失 AI 改写，仅测试/回退用）。
+
+## 面向开发者
+
+每项目 workspace 为独立 Remotion 工程，依赖通过 pnpm content-addressed store 复用。
+
+```sh
+make app-link APP=apps/remotion-studio
+make dev
+cd apps/remotion-studio/ui && npm ci && npm run build
+cd apps/remotion-studio/remotion-skeleton && corepack pnpm@8.15.0 install
 ```
 
-## 设计决策
+- 运行时入口：`ui/dist/index.html`；workspace 位于项目私有目录。
+- 契约：`manifest.json` · `background.js` · `skills/remotion-studio/SKILL.md`。
 
-- **模板是单一真相源**：`brief.template` 存成片模板 id；模板代码、视觉原语、场景技能和建议组件都在 `@recut/remotion-kit` 的 `src/scenarios/<id>/`。不再维护独立的设计系统选择。
-- **每项目一个 Remotion 工程**：首次 `workspace.ensure` 把 `remotion-skeleton/` 整体复制到项目私有目录，AI 直接改写项目代码；项目间互不干扰，骨架改动只影响新项目。
-- **预览 = 每项目 Vite dev server**：`make start`（内部处理依赖安装与端口冲突）启动 `vite-server.js`，UI iframe 嵌入其预览页；Vite 原生 HMR，AI 改代码即时热更新。预览页 props 从 `workspace/preview/props.json` 读取（`preview.props` 由 UI 写入；配乐在导入完成前使用当前选择的 `music.url`，完成后切换为 `music.assetId`，composition 统一从 props 消费）。
-- **创作走右侧列**：右侧上半先显示面向交付目标的成片模板；选择模板后，模态框将模板 skill、参考代码和执行步骤一起写入可审阅 Prompt。下方保留字幕、组件、画布和素材重剪等局部编辑工具；SRT 或视频叙事来源由 Brief 作为首版成片输入持久化。打开项目文件夹、导出、构建预览、重启与重置为次级操作。
-- **场景计划先于成片代码**：无真人解说和产品发布片先由 workspace 内的 `remotion-kit/scripts/validate-scene-plan.mjs` 校验 `SCENE_PLAN.md`；它直接改编 HyperFrames 两个场景共用的 storyboard parser，计划通过后才落成 `SCENES`，避免 Prompt 直接跳到散乱代码。
-- **日志与终端**：右侧下半分栏。日志以 iframe 本次加载时间划定当前 session：`logs.list` 只回填该时刻之后当前预览服务与最近两个任务的片段（服务端最多 300 行，界面首屏最多 120 行），项目事件流重放的历史日志会被丢弃；其后由 `shell.job.log` 实时追加，界面总量封顶 300 行。列表用 `@tanstack/react-virtual` 虚拟滚动，长日志不拖垮布局/resize；终端用 xterm 组件连接 Service PTY，在项目 `workspace/` 启动用户本机的交互式 zsh，原样转发输入、输出与窗口尺寸，因此补全、`cd`、历史和作业控制均由 shell 自己完成。服务统一注入登录 shell 环境与 `xterm-256color` 终端能力。
-- **导出由后台 shell 任务执行**：`render.export` 物化 Brief ∪ `composition.assets` 登记的素材、写 props、`ctx.shell.start(node workspace/render.js …)`；进度写入 `exports/{renderId}/progress.json`，UI 轮询 `render.status`，完成后 `ctx.media.importFile` 归档为新 video Asset，并以 `ctx.project.setCover` 设为项目封面。
-- **确定性渲染**：composition 与字幕时间轴全部由 frame 派生，无 `Math.random`/`Date.now`，预览与成片逐帧一致。
-- **HTML-in-Canvas 平台契约**：Cursor、Magnifier、Glitch、Bubble 等读取 live DOM texture 的镜头层依赖 `CanvasDrawElement`。CanvasUI 通过仅对 `canvasui.dev` 有效的 Origin Trial 启用它；Recut 的动态项目预览必须由桌面/渲染宿主统一启用该 feature，不能复用第三方 token 或让用户手动改 flag。完整契约见 `dev/2026-08-09-html-in-canvas-platform-contract.md`。
-
-## 本地开发
-
-```bash
-cd remotion-skeleton && corepack pnpm@8.15.0 install   # 首次；生产上由首次预览的 bootstrap 自动准备
-cd ui && npm install && npm run build   # 产出 ui/dist（提交到仓库，作为 projectView）
-make app-link APP=apps/remotion-studio   # 链接到 ~/.recut/apps
-```
-
-导出与预览需要本机带 Corepack 的 `node`（18+）；首次启动预览会启动可见的 Shell Job，用锁定版本的 pnpm 安装 Remotion/Vite 依赖，并将实时 stdout/stderr 写进工作台「日志」标签。依赖写入 App 包外的 pnpm content-addressed store；以后新项目和 App 代码更新优先离线复用它，只有新增 lockfile 依赖才联网。调试看项目页底部「日志/终端」，或直接 `make dev` 起服务后查看。
-
-## 内置发布
-
-`distribution.builtin.include` 默认覆盖整个 App，`exclude` 只列 App 自己的生成物。因此新增源码会自动随 binary 发布，不会因漏维护白名单而丢失；`node_modules`、Git 元数据和缓存由通用打包器强制拒绝。App 更新会替换包目录，但 pnpm store 位于包外，锁文件未变时依赖可离线恢复。
-
-## 复用来源与授权
-
-参考库以 `@recut/remotion-kit`（`packages/remotion-kit/`）为规范源，seed 时**整包拷贝模式**冻结进每个项目 workspace 的 `remotion-kit/`，AI 直接 `import { ... } from "@recut/remotion-kit"` 复用、按需升级，不自己重写。组件目录（成片模板/字幕主题/画幅/内置组件）维护在 `packages/remotion-kit/catalog.json`，版本在 `manifest.json`；Agent 用 `catalog.list` 读目录、`workspace.kit-state` 看项目冻结版本，读最新源码用原生文件工具读 app 包 `paths.appKitPath/src/`。
-
-- **remotion-templates**（reactvideoeditor.com，免费）：全部 81 个单文件模板组件拷贝到 `remotion-skeleton/src/components/`（含 README 目录表），背景特效已封装进 `src/effects/registry.tsx`、文字特效封装进 `src/effects/text.tsx`；目录见 `skills/remotion-studio/references/effects.md`。
-- **remotion-captions-themes**（vshukla7，MIT）：字幕主题源码整体拷贝到 `remotion-skeleton/src/captions/vendor/`（保持原结构），目录见 `references/captions.md`。
-- **Recut CDN 资源共享**：配乐目录/文件（`cdn/buckets/audio`）与自托管字体（`cdn/buckets/fonts/google`）与 apps/editor 是同一份数据、同一份二进制——本 App 只复用 CDN 与 catalog-first 架构，不做代码复用。音乐资源按 CC0/署名许可使用，Prompt 与成片遵守 attribution。
-- **创作参考资料**：镜头配方、制作流程、审美、声音、共同创作与终检资料均直接位于 `skills/remotion-studio/references/`；它们由唯一的 `remotion-studio` skill 按需读取，组件实现统一由 `@recut/remotion-kit` 提供。
-
-[PROTOCOL]: 变更时更新此头部，然后检查 README.md
+[返回主 README](../../README.md) · [应用地图](../../README.md#应用地图)
