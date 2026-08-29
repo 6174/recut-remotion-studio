@@ -77,7 +77,7 @@
     {
       "name": "workflow.context",
       "surfaces": ["api", "mcp"],
-      "description": "任何创作或导出动作之前先调用。返回当前阶段、Brief、workspace 状态、绝对路径 paths（workspacePath/appKitPath）、预览 dev server 状态、已登记素材与可用操作。返回值覆盖聊天记忆。",
+      "description": "进入创作会话时调用一次。返回当前阶段、Brief、workspace 状态、绝对路径 paths（workspacePath/appKitPath）、预览 dev server 状态、已登记素材与可用操作。同一会话（含 resume 续跑）复用快照，不因新消息重复调用；仅在写入报阶段/版本不符、用户说在 UI 改过、或切换 Project 时回读。",
       "inputSchema": { "type": "object", "properties": {} }
     },
     {

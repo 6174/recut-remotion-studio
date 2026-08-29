@@ -84,8 +84,8 @@ description: 把选题、真实素材和成片模板做成可审阅、可实时�
 `Brief → 读三件参考 → 编辑代码 → 预览确认 → 导出`
 
 1. **Brief**：`project.create` 保存成片模板、选题与素材 assetId 列表。没有 Brief 时先让用户用表单提交，不要凭空开篇。
-2. **World 上下文**：每次开始创作前先读 `workflow.context`。若它返回 `creationContext`（非 null），该世界 Canon 是权威：遵守 `constraints` 的 always/never，优先使用 `references` 里登记的参考 Asset（以真实 `assetId` 经 `resolveMediaUrl` 引用并登记到 `composition.assets`），`entities.characters/styles` 中的不可变设定不得擅自改写；Canon 之外的创作新设定标记为“提议”，经用户确认后才写回 World，绝不自动把生成结果变为 Canon。未绑定的项目返回 `creationContext: null`，完全按现有无 World 流程工作。
-3. **编辑代码**：先调用 `workflow.context` 看阶段、`workspace` 状态与绝对路径 `paths.workspacePath`，再 `workspace.ensure` 确保工程就绪。然后读上述四件参考，用**原生文件工具**（Read/Write/Edit/Glob）直接读写 `${paths.workspacePath}` 下的 `src/compositions/ProjectVideo.tsx` 与 `src/Root.tsx`。**设计就是写代码**：不存在 `code.read`/`code.write`/`composition.save` 之类的结构契约，也不要执行 `render.export`。
+2. **World 上下文**：会话开始时读一次 `workflow.context`，同一会话复用。若它返回 `creationContext`（非 null），该世界 Canon 是权威：遵守 `constraints` 的 always/never，优先使用 `references` 里登记的参考 Asset（以真实 `assetId` 经 `resolveMediaUrl` 引用并登记到 `composition.assets`），`entities.characters/styles` 中的不可变设定不得擅自改写；Canon 之外的创作新设定标记为“提议”，经用户确认后才写回 World，绝不自动把生成结果变为 Canon。未绑定的项目返回 `creationContext: null`，完全按现有无 World 流程工作。
+3. **编辑代码**：本会话尚未读过 `workflow.context` 时先调用它看阶段、`workspace` 状态与绝对路径 `paths.workspacePath`（已读过则直接复用），再 `workspace.ensure` 确保工程就绪。然后读上述四件参考，用**原生文件工具**（Read/Write/Edit/Glob）直接读写 `${paths.workspacePath}` 下的 `src/compositions/ProjectVideo.tsx` 与 `src/Root.tsx`。**设计就是写代码**：不存在 `code.read`/`code.write`/`composition.save` 之类的结构契约，也不要执行 `render.export`。
 4. **预览**：每次改完代码**保存即生效**，Vite dev server 会自动热更新，UI 内嵌 `@remotion/player`（播放/暂停/进度条）自动刷新；用户会按帧评审。局部修改只动对应代码块，用原生文件工具原位更新。
 5. **导出**：用户在界面触发 `render.export`，由 App 本地渲染并归档为媒体素材。AI 不直接调用渲染操作。
 
@@ -142,7 +142,7 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 ## 媒体边界
 
 - 画面与音乐一律引用**真实素材 assetId**。设计前用 `recut.media.list_assets` 查看素材库；用 `resolveMediaUrl(assetId, media)` 引用，绝不编造 assetId 或把对话里的预览 URL 当素材。
-- 每次改写代码后调用 `composition.assets({assetIds})` 登记代码里用到的所有 assetId，导出才能物化；漏登记的画面在导出里会是空。
+- 代码引用的 assetId 集合变化时调用 `composition.assets({assetIds})` 登记全部引用，导出才能物化；集合未变时不重复调用。漏登记的画面在导出里会是空。
 - 用户没有现成素材时，scene 的 `imageAssetId` 可留空，并说明哪些画面建议后续生成或上传。
 
 ## 确定性渲染铁律
