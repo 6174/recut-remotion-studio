@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: paper-craft-moves
 一句话: 纸艺两式——masking-tape-slap 纸胶带拍定（悬浮微晃被"啪啪"按死）与 popup-book-rise 立体书立起（卡片沿底边错峰立墙）

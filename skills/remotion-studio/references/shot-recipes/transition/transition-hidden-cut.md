@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: transition-hidden-cut
 一句话: 藏切点转场三式——前景遮挡隐形切、对撞开屏、暖色漏光，硬切藏进遮挡/撞击/光峰的 1-3 帧里，观众看不见剪刀

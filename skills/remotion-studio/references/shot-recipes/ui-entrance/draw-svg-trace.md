@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: draw-svg-trace
 一句话: 描边生长圈注——一条带笔头的墨线沿元素轮廓跑一圈把它"画"出来，闭合瞬间闪黑交棒、内容淡入；同套路可给标题画下划线

@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: card-flock-tumble
 一句话: 三张 UI 页卡从侧棱薄边 3D 翻飞成阶梯站定（全程清晰、样条连续丝滑），站定后保持慢转不停，快速收束吸入中心，炸出单个湍流烟雾环扩散，巨字横贯收场

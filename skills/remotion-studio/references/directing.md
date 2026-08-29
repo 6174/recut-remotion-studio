@@ -1,62 +1,58 @@
-# 导演语言与提示词模板
+# directing — remotion-studio 介质映射（薄适配层）
 
-> 本文件是全片动效取舍的速查。完整资料直接位于本目录：制作流程见 `production-workflow.md`，镜头配方见 `shot-recipes/`，桥段见 `sequence-patterns/`，审美与声音见 `aesthetic-rules.md`、`sound-design.md` 和 `music-beat-sync.md`，共同创作与终检分别见 `collaborative-creation.md`、`final-review.md`。
+> 决策规则权威来源：`service/skills/recut-directing-*`；本文件仅保留 remotion-studio 介质映射
+>
+> 本文件是 remotion-studio 对全局导演技能的薄适配层。动效嗓音、节拍、镜头语法、呼吸与审美的**决策规则**以全局技能为准；本文件只回答"如何在 Remotion/composition 代码中实现这些决策"。
 
-## 一、先定“动效嗓音”：品牌 → 动效参数
+## 权威来源路由表
 
-不凭手感挑 easing/时长，先判断品牌在哪两根轴上，再从预设起步，tokens 写进每个 scene 的实现：
+| 决策问题 | 权威来源 | 本文件保留内容 |
+|---|---|---|
+| 元素怎么动（嗓音两轴、入场时长/过冲/squash、落定呼吸） | `service/skills/recut-directing-motion/SKILL.md` + `references/aesthetic-rules.md` | 嗓音 tokens → Remotion interpolate/spring 映射（见 §1） |
+| 片子怎么剪、5 秒节拍、卡点 | `service/skills/recut-directing-editing/SKILL.md` + `references/music-beat-sync.md` | 节拍 → `SHOTS` / `beatF` 帧边界（见 §2，详见 `music-beat-sync.md` 薄适配层） |
+| 一个镜头怎么拍（景别/运动/调度/连续性） | `service/skills/recut-directing-shot/SKILL.md` + `references/*` | 镜头意图 → `ShotDescriptor` / `catalog.json` preset 选择（见 §3） |
+| 字怎么上屏、声音怎么设计 | `service/skills/recut-directing-captions/SKILL.md`、`recut-directing-sound/SKILL.md` | 主题/色板 → `palette.captionTheme` / `buildCaptionsData`；SFX 钉帧见 `sound-design.md` |
 
-- **能量轴**：低（沉稳/premium）↔ 高（运动/startup/娱乐）——决定时长、过冲、squash 幅度；
-- **调性轴**：严肃（金融/医疗/enterprise）↔ 活泼（消费/社交/儿童）——决定路径曲直、次级动作多寡。
+通用镜头语法与配方细节请读 `service/skills/recut-directing-shot/SKILL.md`；本目录 `shot-recipes/` 每个配方文件仅保留"意图 + Remotion 实现要点"。
 
-| 预设（品类） | 主时长@30fps | 入场 easing | 过冲 | squash |
-|---|---|---|---|---|
-| 专业信赖（fintech/enterprise/B2B） | ~21f | bezier(0,0,0.2,1) | 1.0 不弹 | 0 |
-| 精致高端（奢侈品/时尚） | ~48f | bezier(0.4,0,0.6,1) | ≤1.02 | 0 |
-| 活力大胆（体育/游戏/startup） | ~18f | bezier(0.16,1,0.3,1) | 1.12 | 0.25 |
-| 活泼愉悦（消费/社交） | ~27f | bezier(0.34,1.56,0.64,1) | 1.08 | 0.18 |
-| 平静关怀（健康/教育） | ~42f | ease-in-out 对称 | 1.0 | ≤0.04 |
-| 亲和友好（小微/社区） | ~26f | bezier(0.25,0.46,0.45,0.94) | 1.04 | 0.08 |
+## 1. Remotion 动效嗓音映射（全局 tokens → 代码）
 
-用法：定预设 → 按两轴微调 → 一套 tokens 同时管入场/转场/hold 节奏。一个品牌一种动效嗓音，混用两套读作拼盘。判例：落地要弹的场合 y1 必须 >1；“专业信赖不弹”指无落地隐喻的淡入/推移类动作。
+全局嗓音 tokens（能量×调性两轴、入场时长、曲线手感、过冲、squash）落到 Remotion 代码的固定映射：
 
-## 二、结构：5 秒一个节拍，一镜一动作
+- **时长**：全局"入场时长"直接取作 `durationInFrames`（如专业信赖 ~21f、精致高端 ~48f）；局部动作默认 24–32f 完成，后续 hold 见全局"落定呼吸"。
+- **缓动**：全局预设的 `bezier` 值映射为 `interpolate(..., {easing})` 的 easing；对称 ease-in-out 用 Remotion `Easing.inOut`；需要回弹时 `y1>1` 的 bezier 必须可见。
+- **弹簧**：拟物理落位用 `spring({frame, fps, config:{damping, stiffness}})`；damping/stiffness 由嗓音"过冲/squash"推导，不凭手感重调。
+- **用法**：一套嗓音 tokens 同时管入场/转场/hold 节奏，全片统一；混用两套读作拼盘（见全局 motion S1）。
 
-- **5 秒是默认节拍单位**：一个 scene 只承载约 5 秒和一个信息变化；长视频增加 scene，绝不让一个 scene 覆盖 10 秒以上。
-- 开场三秒内给钩子（结果承诺 / 反常识 / 直接问题 / 痛点警示），绝不从背景介绍开场。
-- 前一段提出的问题必须由后续段落回应；结尾回收核心论点。
-- **每个 scene 只讲一个主要动效**；一种动画手法（飞入/堆叠/翻页）全片只当一次主角。
-- **落定后必须呼吸**：品牌字标落定 hold ≥ 1s（30f），批量动效收尾 ≥ 0.5s 静止；动效排满每一帧必返工，放慢从未被否。
+## 2. 结构：节拍到帧边界的唯一写法
 
-## 三、镜头表达：景别沿信息推进变化
+全局"5 秒节拍、一镜一动作、落定呼吸"的节拍决策归 editing；Remotion 侧的唯一合法表达是帧边界与可读 hold：
 
-- 需要 Three、3D 视角、页面/设备入镜、曲面、焦点或透镜时，先读 `shot-recipes/camera/README.md` 的 Shot Language v3。先写意图和空间基底，再选 `catalog.json` 的 `three-camera` preset；不要从 CSS transform 或 shader 名称开始设计。
-- 一个镜头用 `shell → pose → geometry → surface → attention → grade` 组合：camera 是观看者，surface 是被拍物。单张页面也可借由真实 PerspectiveCamera、斜入/翻转/落位、bend 或 corner curl 呈现空间感；不需要虚构多层才能“有 3D 感”。
-- 每镜只选一个主 camera 动词（locked/drift/push-in/pull-out/truck/crane/orbit/dolly-zoom）和一个强光学主角；`magnify`、`glass`、`bubble` 互斥，`flip`/`peel`/`cross-zoom` 是两镜头的 A/B 转场。
-- 相邻 scene 不要重复同一种镜头语法。先建立关系 → 解释主体 → 近景/特写落在论点、证据或结果。默认约 24--32f 完成空间动作，之后留可读 hold；需要解释的信息不使用 orbit、dolly-zoom 或持续 cloth。
-- 标题、说明、HUD 是否留在 screen layer，由镜头意图决定；机制同时提供 world surface 与 screen layer，不能默认替叙事做决定。字幕始终最高层。
+```ts
+// 卡点片用 beatF，非卡点片用固定帧；无论哪种，边界必须落在整数帧
+export const SHOTS = {
+  s0_open: { from: 0, to: 90 }, // ~3s @30fps
+  s1_main: { from: 90, to: 240 },
+};
+```
+- 每个 scene 只承载约 5 秒和一个主导运动；长视频增加 scene，不让单 scene >10s。
+- 品牌字标 hold ≥1s（30f）、批量收尾 ≥0.5s；实现时在 `SHOTS` 后显式留 hold 帧，动效排满每一帧必返工。
 
-## 四、提示词模板（改写代码时的自检清单）
+## 3. 镜头表达：意图 → ShotDescriptor
 
-设计每个 scene 时，在心里按以下提示词段落过一遍：
+镜头决策归全局 shot；Remotion 侧只保留"如何把意图写成 descriptor"：
 
-1. **目标**：这个 scene 要让观众看见什么、理解什么、感受到什么情绪。
-2. **镜头**：只选一个连续镜头运动，不塞多个。
-3. **元素运动**：元素如何进入/移动/落定；低振幅、缓慢、连续、ease-in-out 是默认。
-4. **稳定锚点**：关键信息/标题安全区不重绘、不漂移；有用户提供的人脸、产品或标签时，必须保持其形状稳定，只重构周围世界。
-5. **镜头收束**：非循环镜头必须说明最后如何稳定落位；复杂节奏用多个短 scene 剪辑，不塞进一个视频。
+- 需要 Three/3D/页面入镜/曲面/焦点/透镜时，先读 `shot-recipes/camera/README.md` 的 Shot Language v3，先写"意图→空间基底→camera→surface→主体→attention→节奏→排他项"，再选 `catalog.json` 中 `engine="three-camera"` 的 preset。
+- `surface` 是被拍物（`shell`/`position`/`rotation`/`scale`/`bend`/`cornerCurl`），`camera` 是观看者；单平面可借真实 `PerspectiveCamera` 与 bend/curl 呈现空间感。
+- 单镜头只选一个主 camera 动词与一个强光学主角（`magnify`/`glass`/`bubble` 互斥）；`flip`/`peel`/`cross-zoom` 是 A/B transition，消费前后两纹理。
+- 主体用归一化 `Subject.anchor`，同时派生 `lookAt`/`focus`/`magnify` center；Y 轴转换由运行时统一处理。
 
-## 五、确定性渲染（硬性）
+## 4. 确定性渲染（硬性，Remotion 专属）
 
-- 禁 `Math.random()` / `Date.now()` / 无参 `new Date()`；一切伪随机用固定种子（mulberry32/哈希，seed 从 index 派生）。
-- 字幕时间轴由 frame 派生（`buildCaptionsData` 已保证），预览与成片逐帧一致。
-- 改动只动目标 scene，改完交给用户逐帧评审，不重做未指出的段落。
+- 禁 `Math.random()` / `Date.now()` / 无参 `new Date()`；伪随机用固定种子（`mulberry32`/哈希，seed 从 index 派生）。
+- 字幕时间轴由 `frame` 派生（`buildCaptionsData` 已保证），预览与成片逐帧一致。
+- 改动只动目标 scene，改完交给用户逐帧评审。
 
-## 六、来自流水线的经验（简化版）
+## 5. 流水线入口
 
-- 方向性问题（风格/结构）在写代码前定案；不要写了三层动画才发现叙事方向错。
-- 素材方向必须在 scene 实现前定案：`composition.assets` 登记的画面素材若缺失，导出会是空画面。
-- 装饰性 glint/泛光群发 = 廉价；批量元素入场靠运动本身，单点高质量光效可做。
-- 手搓 UI 只用于非复刻场景，且质量与表达明确性是硬门槛；本项目以 `resolveMediaUrl` 引用的真实素材为主。
-
-完整镜头卡、桥段与制作流程均随本 skill 分发；实现时以 `@recut/remotion-kit` 的实际源码和 `catalog.json` 为唯一组件真相源。
+完整制作流程见 `production-workflow.md`，桥段见 `sequence-patterns/`，审美与声音的全局决策见 `service/skills/recut-directing-motion|editing|shot|captions|sound`，本文件不重复其散文规则。

@@ -1,125 +1,53 @@
-# music-beat-sync — BGM 节奏分析与卡点方法论
+# music-beat-sync — remotion-studio 介质映射（薄适配层）
 
-强节奏 BGM 的片子，**所有转场和关键动效必须落在拍上**。本文档给出从
-"拿到一首曲子"到"成片切点误差 ≤3 帧"的完整可复现流程。实测：一支
-70s、18 镜、131.97 BPM 的强鼓点宣传片按此法制作，渲后回测全部切点
-误差 ≤2.2f（感知阈值约 3f）。
+> 决策规则权威来源：`service/skills/recut-directing-editing`；本文件仅保留 remotion-studio 介质映射
+>
+> 本文件是 remotion-studio 对全局 `recut-directing-editing` 的薄适配层。卡点纪律、节拍网格、鼓点定位、渲后回测的**决策规则**以全局为准；本文件只保留"如何在 Remotion/composition 代码中落拍"的介质映射。
 
-## 目录
+## 权威来源
 
-- 何时启用
-- 节拍网格测定
-- 鼓点与重音定位
-- 用拍号编排时间线
-- 渲后回测
-- 工具备忘
+- **决策规则**：`service/skills/recut-directing-editing/SKILL.md` §3（卡点纪律）+ `service/skills/recut-directing-editing/references/music-beat-sync.md`（合并版，含 editor/remotion 双介质分层、节拍网格拟合、鼓点定位、渲后回测）。
+- **本文件**：仅保留 Remotion 侧的 `beatF`/`SHOTS` 常量化写法与工具备忘。
 
-## 0. 何时启用
+## 何时启用（转述全局）
 
-阶段 0 先检查用户是否已指定音乐。
-- 已选好 → 走本文档：先分析节奏，再让分镜的每个切点/动效锚到拍号
-- 未选 → BGM 选型放到阶段 6（见 pipeline.md），此时动效时间线按
-  内容节奏排，不强行卡点
+- 已指定强节奏 BGM → 先按全局文档测定节拍网格，再让每个镜头边界锚到拍号。
+- 未指定 BGM → 按内容节奏排，不强行卡点；BGM 选型延后到声音阶段（见 `production-workflow.md` 阶段 6）。
 
-## 1. 节拍网格测定（不要相信 beat_track 的 tempo 标量）
+## Remotion 落拍写法（本介质唯一合法表达）
 
-用 `uv run --with librosa --with scipy --python 3.11` 跑一次性脚本：
-
-```python
-import numpy as np, librosa
-
-y, sr = librosa.load("bgm.mp3", sr=None, mono=True)
-tempo, beats = librosa.beat.beat_track(y=y, sr=sr, tightness=400, units="time")
-
-# 关键一步：对 beat 序列做最小二乘等距网格拟合，求真实 BPM 与相位。
-# beat_track 返回的 tempo 标量可能偏差 2%+（实测 129.2 vs 真值 131.97），
-# 但它输出的 beat 时刻序列本身是好的——用整个序列拟合直线 t_i = t0 + i*T：
-i = np.arange(len(beats))
-A = np.vstack([i, np.ones_like(i)]).T
-(T, t0), *_ = np.linalg.lstsq(A, beats, rcond=None)
-bpm = 60.0 / T
-residual = beats - (t0 + i * T)
-print(f"BPM={bpm:.2f}  t0={t0:.4f}s  T={T:.5f}s  残差±{np.abs(residual).max()*1000:.0f}ms")
-```
-
-验收标准：残差 ≤ ±15ms（半帧内）说明曲子是机器鼓点、网格可信；
-残差大说明有变速段，需要分段拟合。
-
-## 2. 鼓点/重音定位（决定大 slam 钉在哪一拍）
-
-```python
-from scipy.signal import butter, sosfilt
-sos = butter(4, [40, 160], btype="band", fs=sr, output="sos")  # kick 频段
-kick = sosfilt(sos, y)
-env = librosa.onset.onset_strength(y=kick, sr=sr)
-times = librosa.times_like(env, sr=sr)
-# 把每个整数拍位置的 env 能量列出来，排序找最强 hit：
-for n in range(int((times[-1]-t0)/T)):
-    t = t0 + n*T
-    e = env[np.argmin(np.abs(times - t))]
-    # 记录 (拍号 n, 能量 e)，取 top 若干作为"大 slam 候选拍"
-```
-
-产出两样东西进设计 spec：
-- **音乐结构表**：能量从第几拍起满、breakdown/静默段在第几拍——
-  分镜的能量曲线要贴着它排（breakdown 处放品牌呼吸位是天然结构）
-- **最强 hit 拍号清单**：全片 2–3 个最大 slam（开题/高潮/收尾）
-  必须钉在这些拍上
-
-**易错点（实测踩过）**：最大 slam 钉在了 b52.5（两拍之间）而最强
-kick 在整数拍 b52 上，渲后回测偏差 +5.75f。强鼓点曲的重音几乎总在
-整数拍上，半拍钉点必须有 env 数据支持，不能凭听感。
-
-## 3. 时间线用拍号写，不用帧号写
-
-Remotion 项目里把网格常量化，一切镜头边界/动效关键帧用 `beatF()` 表达：
+把节拍网格常量化，一切镜头边界与动效关键帧用 `beatF()` 表达，换曲时只改 `BEAT0`/`BEAT_INT` 两个常量：
 
 ```ts
 export const FPS = 30;
-export const BEAT0 = 0.2244;   // t0，秒
-export const BEAT_INT = 0.45465; // T，秒
+export const BEAT0 = 0.2244;    // t0，秒（拟合得到的拍 0 位置）
+export const BEAT_INT = 0.45465; // T，秒（拍长）
 export const beatT = (n: number) => BEAT0 + n * BEAT_INT;          // 拍→秒
 export const beatF = (n: number) => Math.round(beatT(n) * FPS);    // 拍→帧
 
 export const SHOTS = {
   s0_open:  { from: 0,        to: beatF(8) },
   s1_slam:  { from: beatF(8), to: beatF(16) },
-  // …每个镜头边界都是 beatF(整数拍)；镜头内部动效用局部拍：
+  // …每个镜头边界都是 beatF(整数拍)；内部动效用局部拍：
 };
 export const localBeat = (shot: {from: number}, n: number) => beatF(n) - shot.from;
 ```
 
-好处：换曲/换段落时改两个常量全片重排；SFX 钉帧表也写 `beatF(n)`，
-与画面共用同一事实源，永不错位。
+纪律（与全局一致）：
 
-设计规矩：
-- 镜头时长以拍为单位（4/8 拍一镜），加速段可用半拍/四分之一拍阶梯
-  （如 CUT_BEATS = [48, 49.5, 50.5, 51, 51.25] 的收敛逼近）
-- 每拍一动作的步进类镜头（清单逐项、马赛克逐格）直接 map 拍号
-- BGM 鼓点已密时 SFX 克制：只钉画面独有动作，大 slam 只给 2–3 处，
-  其余让位给 BGM 的鼓
+- 镜头时长以拍为单位（4/8 拍一镜），加速段可用半拍/四分之一拍阶梯（如 `CUT_BEATS = [48, 49.5, 50.5, 51, 51.25]` 的收敛逼近）。
+- 切点必须落整数拍 ±0.03s（约 1 帧）；半拍钉点需有能量数据支撑（见全局鼓点定位）。
+- SFX 钉帧表同样写 `beatF(n)`，与画面共用同一事实源；详见 `sound-design.md` §钉帧。
 
-## 4. 渲后回测（闭环，必做）
+## 节拍网格与鼓点（指引）
 
-```bash
-ffmpeg -i out/promo.mp4 -vn -acodec pcm_s16le /tmp/render-audio.wav
-```
+测定与定位的完整方法、脚本与验算标准见全局 `references/music-beat-sync.md` §1–2（含 librosa 拟合、残差 ≤±15ms 验收、kick 频段能量排序、音乐结构表与最强 hit 清单）。本文件不再重复其散文与代码，仅作路由。
 
-对渲出音轨重跑第 1 步的网格拟合（BGM 从视频里量，不从源文件量——
-这样连音频编码/对齐偏移一起验），然后逐一对比：
-**设计切点帧号 vs 最近测得拍的帧号**，输出误差表。
+## 渲后回测（必做，指引）
 
-| 判定 | 误差 |
-|------|------|
-| 合格 | ≤3f（感知阈值） |
-| 理想 | ≤1.5f |
-| 必修 | >3f 的任何切点 |
+对渲出视频音轨重跑网格拟合，逐一切点对比设计帧号与实测拍的帧号误差；合格 ≤3f、理想 ≤1.5f、>3f 必修。完整步骤与工具见全局 §5。
 
-误差超标的钉点回第 3 步改拍号或帧偏移，重渲再测，直到全表合格。
+## 工具备忘（Remotion 侧）
 
-## 5. 工具备忘
-
-- librosa 不在系统 python：`uv run --with librosa --with scipy --python 3.11 script.py`
-- 只有人声/复杂编曲的曲子 beat_track 会漂：先用 `librosa.effects.hpss`
-  分离打击成分再测
-- 变速曲（DJ 转场、accelerando）：按能量段分段拟合，各段各自 t0/T
+- `librosa` 不在系统 python 时用 `uv run --with librosa --with scipy --python 3.11 script.py`。
+- 只有人声/复杂编曲的曲子 `beat_track` 会漂：先用 `librosa.effects.hpss` 分离打击成分再测；变速曲按能量段分段拟合。

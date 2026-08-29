@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: crash-zoom-punch
 一句话: 全景一拍急推到目标特写（6f），落位二选一——过冲回弹（弹性）或撞停震屏（重量）

@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: light-play-moves
 一句话: 光效三式——spotlight-sweep 聚光扫字、sheen 单点扫光、halation-bloom 撞停晕染

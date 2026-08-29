@@ -136,8 +136,8 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 
 1. **场景技能** —— 用户选择场景后，读 `{paths.appKitPath}/src/scenarios/<id>/SKILL.md`（导演视角）与 `template/ProjectVideo.tsx`（模板代码）。
 2. **`references/effects.md`** —— 表达特效目录（remotion-templates）。用户选择想要的效果（背景 / 文字 / 镜头运动），你把它用进对应 scene；`workspace/remotion-kit/`（seed 时从 `@recut/remotion-kit` 整包拷贝的冻结副本）里有全部 81 个模板，直接 `import X from "@recut/remotion-kit/templates/<name>"` 复用；若用户想用更新版本，对比 `workspace/.recut-workspace` 与 `{paths.appKitPath}/catalog.json` 的版本，用原生文件工具读 `{paths.appKitPath}/src/` 最新源码按需升级。
-3. **`references/captions.md`** —— 字幕主题目录（remotion-captions-themes，13 套）。用户选择主题后，把主题 id 设为 `palette.captionTheme`，或直接用 `<CaptionTheme theme="…">`；旁白用 `buildCaptionsData` 生成逐词字幕。
-4. **创作参考** —— `references/creation-modes.md` 只在需要自主创作、共同创作或单镜头时决定工作方式；随后按任务读取对应资料：`production-workflow.md`（完整制作流程）、`shot-recipes/camera/README.md`（只要使用镜头表达必须先读）与选中配方、`sequence-patterns/`（桥段骨架）、`aesthetic-rules.md`（审美准则）、`sound-design.md` 与 `music-beat-sync.md`（声音和卡点）、`final-review.md`（独立终检）。`paper-ink-product-promo.md` 仅在用户明确要纸墨编辑风产品片时读取。
+3. **`references/captions.md`** —— 字幕主题的 Remotion 介质映射（薄适配层，决策规则见 `service/skills/recut-directing-captions`）。用户选择主题后，把主题 id 设为 `palette.captionTheme`，或直接用 `<CaptionTheme theme="…">`；旁白用 `buildCaptionsData` 生成逐词字幕；字幕层级/安全区/强调词的决策以全局为准。
+4. **创作参考** —— `references/creation-modes.md` 只在需要自主创作、共同创作或单镜头时决定工作方式；随后按任务读取对应资料：`production-workflow.md`（完整制作流程）、`shot-recipes/camera/README.md`（只要使用镜头表达必须先读）与选中配方（`shot-recipes/` 为 `recut-directing-shot` 的薄适配层，意图见全局）、`sequence-patterns/`（桥段骨架）、`aesthetic-rules.md`（薄适配层，决策规则见 `service/skills/recut-directing-motion`，仅保留 Remotion 高清栅格化/有效字高等约束）、`sound-design.md`（薄适配层，决策规则见 `service/skills/recut-directing-sound`，仅保留 SFX 声明式表/相对钉帧/`assets/audio/` 清单）与 `music-beat-sync.md`（薄适配层，决策规则见 `service/skills/recut-directing-editing`，仅保留 `beatF`/`SHOTS` 写法）、`final-review.md`（独立终检）。`paper-ink-product-promo.md` 仅在用户明确要纸墨编辑风产品片时读取。`directing.md` 为全局 `recut-directing-motion|editing|shot` 的薄适配层，仅保留 `interpolate`/`spring`/`ShotDescriptor` 介质映射。
 
 ## 媒体边界
 
@@ -151,4 +151,4 @@ workspace/  （= App 骨架 remotion-skeleton 的拷贝，是一个自包含 Vit
 
 ## 审美底线
 
-画面有主次、有证据、有停顿；字幕清晰可读、与旁白逐词对齐；一个 content 场景只说一个新信息。动效取舍见 `references/directing.md`：一种动画手法全片只当一次主角、关键信息落定后必须呼吸（hold 至少 0.5s）、开场三秒内给钩子、不堆砌装饰性光效。
+画面有主次、有证据、有停顿；字幕清晰可读、与旁白逐词对齐；一个 content 场景只说一个新信息。动效取舍的决策规则见全局 `service/skills/recut-directing-motion`（嗓音/呼吸/高光）与 `recut-directing-editing`（节拍/切点）；Remotion 落法见 `references/directing.md` 薄适配层（`interpolate`/`spring`/`ShotDescriptor`/`hold`）：一种动画手法全片只当一次主角、关键信息落定后必须呼吸（hold 至少 0.5s）、开场三秒内给钩子、不堆砌装饰性光效。

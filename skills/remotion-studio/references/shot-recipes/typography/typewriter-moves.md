@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: typewriter-moves
 一句话: 打字机两式——terminal-typewriter 终端命令敲完即引爆场景切换、error-retype 误删重打的"改口"三幕剧

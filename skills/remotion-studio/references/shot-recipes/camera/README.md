@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 # camera/
 
 > L2 | 父级: /apps/remotion-studio/skills/remotion-studio/references/shot-recipes/README.md

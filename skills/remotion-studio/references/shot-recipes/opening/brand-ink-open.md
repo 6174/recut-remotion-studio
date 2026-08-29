@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: brand-ink-open
 一句话: 墨线十字准星描画→字标逐字压印→打字机副标→满一秒静止再上浮消散

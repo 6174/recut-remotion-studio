@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: row-embed
 一句话: 内容行像卡片一样从空中降下、rotateX 收平、嵌入瞬间底边亮一道强调色的缝

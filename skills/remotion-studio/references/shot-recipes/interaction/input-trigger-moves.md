@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: input-trigger-moves
 一句话: 输入触发两式——cursor-performance 光标表演点击推近、keycap-smash-cut 键帽引信引爆猛切

@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: particle-sand-fill
 一句话: 粒子落斗成柱——柱状图不长高而是"下雨下出来"：方点粒子逐颗坠落堆积成柱，堆满凝成实体+数值弹出

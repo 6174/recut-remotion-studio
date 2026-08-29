@@ -1,3 +1,5 @@
+> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+
 ---
 name: list-stack-press
 一句话: 列表卡从画面底部逐张飞上摞起，每张落地压弹整摞、计数器同步跳一格
