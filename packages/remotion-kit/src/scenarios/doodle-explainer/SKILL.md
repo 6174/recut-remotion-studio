@@ -10,7 +10,7 @@
 
 ## 二、默认视觉：速写本 + 手绘原语（roughjs）
 
-这是高风格化的手绘速写本模板，底色与字体来自**全局 doodle 设计系统**（`recut.design_system.get({ styleId: "doodle" })`），所有图形由 **roughjs** 生成：
+这是高风格化的手绘速写本模板，底色与字体来自**全局 doodle 设计系统**（`recut.skills.reference`（`skillId: recut-design-system`、`path: design-systems/doodle/DESIGN.md`）），所有图形由 **roughjs** 生成：
 
 - **暖纸底色**：`#fff8d7`（速写本纸）+ 点阵网格背景，全片统一；网格只做纸张秩序，绝不承载内容。
 - **墨色与橙色**：墨色 `#1d1836` 是阅读主角；橙色 `#ff6b00`（marker）只圈住一个主张、箭头、标签或数字。
