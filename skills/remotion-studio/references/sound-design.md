@@ -1,12 +1,12 @@
 # sound-design — remotion-studio 介质映射（薄适配层）
 
-> 决策规则权威来源：`service/skills/recut-directing-sound`；本文件仅保留 remotion-studio 介质映射
+> 决策规则权威来源：`service/skills/recut-director/references/sound`；本文件仅保留 remotion-studio 介质映射
 >
-> 本文件是 remotion-studio 对全局 `recut-directing-sound` 的薄适配层。BGM 选型、SFX 词汇、片种气质、版权红线的**决策规则**以全局为准；本文件仅保留"如何在 Remotion/composition 代码与 `assets/audio/` 管线中落声音"的介质映射与实战清单。
+> 本文件是 remotion-studio 对全局 `recut-director（references/sound）` 的薄适配层。BGM 选型、SFX 词汇、片种气质、版权红线的**决策规则**以全局为准；本文件仅保留"如何在 Remotion/composition 代码与 `assets/audio/` 管线中落声音"的介质映射与实战清单。
 
 ## 权威来源
 
-- **决策规则**：`service/skills/recut-directing-sound/SKILL.md` §3–4（BGM 四判据、SFX 五词汇、钉帧纪律、版权红线）+ `service/skills/recut-directing-sound/references/sound-design.md`（模板片 30 轮后进声音的时机教训、BGM 三易其稿、16 类目录与找音路径的权威原文，288 行）。
+- **决策规则**：`service/skills/recut-director/references/sound/SKILL.md` §3–4（BGM 四判据、SFX 五词汇、钉帧纪律、版权红线）+ `service/skills/recut-director/references/sound/references/sound-design.md`（模板片 30 轮后进声音的时机教训、BGM 三易其稿、16 类目录与找音路径的权威原文，288 行）。
 - **本介质落法**：下述 Remotion 写法与清单为本文件的权威增量。
 
 ## 1. Remotion 声音架构（本介质专属）
@@ -62,6 +62,6 @@
 
 ## 4. 与全局的衔接
 
-- BGM 气质、SFX 词汇、片种一耳朵检验、版权红线（安全路径/授权存档/AI 披露）的**判断**以全局 `recut-directing-sound` 为准，本文件不再复制其散文。
-- 卡点落拍的数学纪律与渲后回测以全局 `recut-directing-editing` 的 `music-beat-sync.md` 为准；连发防机枪三招（双样本交替+音量阶梯+间隔加速）与全局一致，Remotion 侧无 `playbackRate` 变调（实测零命中）。
+- BGM 气质、SFX 词汇、片种一耳朵检验、版权红线（安全路径/授权存档/AI 披露）的**判断**以全局 `recut-director（references/sound）` 为准，本文件不再复制其散文。
+- 卡点落拍的数学纪律与渲后回测以全局 `recut-director（references/editing）` 的 `music-beat-sync.md` 为准；连发防机枪三招（双样本交替+音量阶梯+间隔加速）与全局一致，Remotion 侧无 `playbackRate` 变调（实测零命中）。
 - 收束句式 `riser(组装)→impact(落点峰值)→sparkle(余韵)` 的三拍时距（约 35f+25f）与全局一致，Remotion 侧取 `light/` 的 sparkle。

@@ -1,4 +1,4 @@
-> 决策规则权威来源：service/skills/recut-directing-shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-directing-shot/SKILL.md
+> 决策规则权威来源：service/skills/recut-director/references/shot；本文件仅保留 remotion-studio 介质映射（意图 + Remotion 实现要点）；通用镜头语法见 service/skills/recut-director/references/shot/SKILL.md
 
 ---
 name: cel-flash-stomp

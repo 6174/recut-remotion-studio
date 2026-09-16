@@ -1,6 +1,6 @@
 # directing — remotion-studio 介质映射（薄适配层）
 
-> 决策规则权威来源：`service/skills/recut-directing-*`；本文件仅保留 remotion-studio 介质映射
+> 决策规则权威来源：`service/skills/recut-director/references/*`；本文件仅保留 remotion-studio 介质映射
 >
 > 本文件是 remotion-studio 对全局导演技能的薄适配层。动效嗓音、节拍、镜头语法、呼吸与审美的**决策规则**以全局技能为准；本文件只回答"如何在 Remotion/composition 代码中实现这些决策"。
 
@@ -8,12 +8,12 @@
 
 | 决策问题 | 权威来源 | 本文件保留内容 |
 |---|---|---|
-| 元素怎么动（嗓音两轴、入场时长/过冲/squash、落定呼吸） | `service/skills/recut-directing-motion/SKILL.md` + `references/aesthetic-rules.md` | 嗓音 tokens → Remotion interpolate/spring 映射（见 §1） |
-| 片子怎么剪、5 秒节拍、卡点 | `service/skills/recut-directing-editing/SKILL.md` + `references/music-beat-sync.md` | 节拍 → `SHOTS` / `beatF` 帧边界（见 §2，详见 `music-beat-sync.md` 薄适配层） |
-| 一个镜头怎么拍（景别/运动/调度/连续性） | `service/skills/recut-directing-shot/SKILL.md` + `references/*` | 镜头意图 → `ShotDescriptor` / `catalog.json` preset 选择（见 §3） |
-| 字怎么上屏、声音怎么设计 | `service/skills/recut-directing-captions/SKILL.md`、`recut-directing-sound/SKILL.md` | 主题/色板 → `palette.captionTheme` / `buildCaptionsData`；SFX 钉帧见 `sound-design.md` |
+| 元素怎么动（嗓音两轴、入场时长/过冲/squash、落定呼吸） | `service/skills/recut-director/references/motion/SKILL.md` + `references/aesthetic-rules.md` | 嗓音 tokens → Remotion interpolate/spring 映射（见 §1） |
+| 片子怎么剪、5 秒节拍、卡点 | `service/skills/recut-director/references/editing/SKILL.md` + `references/music-beat-sync.md` | 节拍 → `SHOTS` / `beatF` 帧边界（见 §2，详见 `music-beat-sync.md` 薄适配层） |
+| 一个镜头怎么拍（景别/运动/调度/连续性） | `service/skills/recut-director/references/shot/SKILL.md` + `references/*` | 镜头意图 → `ShotDescriptor` / `catalog.json` preset 选择（见 §3） |
+| 字怎么上屏、声音怎么设计 | `service/skills/recut-director/references/captions/SKILL.md`、`recut-director（references/sound）/SKILL.md` | 主题/色板 → `palette.captionTheme` / `buildCaptionsData`；SFX 钉帧见 `sound-design.md` |
 
-通用镜头语法与配方细节请读 `service/skills/recut-directing-shot/SKILL.md`；本目录 `shot-recipes/` 每个配方文件仅保留"意图 + Remotion 实现要点"。
+通用镜头语法与配方细节请读 `service/skills/recut-director/references/shot/SKILL.md`；本目录 `shot-recipes/` 每个配方文件仅保留"意图 + Remotion 实现要点"。
 
 ## 1. Remotion 动效嗓音映射（全局 tokens → 代码）
 
@@ -55,4 +55,4 @@ export const SHOTS = {
 
 ## 5. 流水线入口
 
-完整制作流程见 `production-workflow.md`，桥段见 `sequence-patterns/`，审美与声音的全局决策见 `service/skills/recut-directing-motion|editing|shot|captions|sound`，本文件不重复其散文规则。
+完整制作流程见 `production-workflow.md`，桥段见 `sequence-patterns/`，审美与声音的全局决策见 `service/skills/recut-director/references/motion|editing|shot|captions|sound`，本文件不重复其散文规则。

@@ -1,12 +1,12 @@
 # captions — remotion-studio 介质映射（薄适配层）
 
-> 决策规则权威来源：`service/skills/recut-directing-captions`；本文件仅保留 remotion-studio 介质映射
+> 决策规则权威来源：`service/skills/recut-director/references/captions`；本文件仅保留 remotion-studio 介质映射
 >
-> 本文件是 remotion-studio 对全局 `recut-directing-captions` 的薄适配层。字幕层级、安全区、强调词、平台样式的**决策规则**以全局为准；本文件只保留"如何在 Remotion/composition 代码中落字幕"的介质映射。
+> 本文件是 remotion-studio 对全局 `recut-director（references/captions）` 的薄适配层。字幕层级、安全区、强调词、平台样式的**决策规则**以全局为准；本文件只保留"如何在 Remotion/composition 代码中落字幕"的介质映射。
 
 ## 权威来源
 
-- **决策规则**：`service/skills/recut-directing-captions/SKILL.md`（层级/安全区/强调词/平台速查）+ `references/captions.md`（合并版，含字幕轨纪律与主题选型的权威原文）+ `references/kinetic-captions-zh.md`（动能强调语法）。
+- **决策规则**：`service/skills/recut-director/references/captions/SKILL.md`（层级/安全区/强调词/平台速查）+ `references/captions.md`（合并版，含字幕轨纪律与主题选型的权威原文）+ `references/kinetic-captions-zh.md`（动能强调语法）。
 - **本文件**：仅保留 `palette.captionTheme` / `buildCaptionsData` / `CaptionTheme` 的 Remotion 写法与主题选型表。
 
 ## Remotion 落法（本介质唯一合法表达）

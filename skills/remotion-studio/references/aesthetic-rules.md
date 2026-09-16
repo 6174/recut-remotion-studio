@@ -1,12 +1,12 @@
 # aesthetic-rules — remotion-studio 介质映射（薄适配层）
 
-> 决策规则权威来源：`service/skills/recut-directing-motion`；本文件仅保留 remotion-studio 介质映射
+> 决策规则权威来源：`service/skills/recut-director/references/motion`；本文件仅保留 remotion-studio 介质映射
 >
-> 本文件是 remotion-studio 对全局 `recut-directing-motion` 的薄适配层。节奏 R1–R3、质感 Q1–Q11、文案 C1–C3、流程 P1–P4 的**判例与决策规则**以全局 `service/skills/recut-directing-motion/references/aesthetic-rules.md` 为准；本文件仅保留"如何在 Remotion/composition 代码与素材管线中满足这些规则"的介质约束与技法。
+> 本文件是 remotion-studio 对全局 `recut-director（references/motion）` 的薄适配层。节奏 R1–R3、质感 Q1–Q11、文案 C1–C3、流程 P1–P4 的**判例与决策规则**以全局 `service/skills/recut-director/references/motion/references/aesthetic-rules.md` 为准；本文件仅保留"如何在 Remotion/composition 代码与素材管线中满足这些规则"的介质约束与技法。
 
 ## 权威来源
 
-- **决策规则（R/Q/S/C/P）**：`service/skills/recut-directing-motion/SKILL.md` §3（落定呼吸/高光纪律/可读性门槛）+ `service/skills/recut-directing-motion/references/aesthetic-rules.md`（完整判例式准则，R1–R3/Q1–Q11/S1–S4/C1–C3/P1–P4 的规则+判例+自检三要素）。
+- **决策规则（R/Q/S/C/P）**：`service/skills/recut-director/references/motion/SKILL.md` §3（落定呼吸/高光纪律/可读性门槛）+ `service/skills/recut-director/references/motion/references/aesthetic-rules.md`（完整判例式准则，R1–R3/Q1–Q11/S1–S4/C1–C3/P1–P4 的规则+判例+自检三要素）。
 - **本文件**：仅保留 Remotion 专属约束与实现技法（Q2 高清 rasterize、Q11 有效字高计算、声音 S2/S4 的长样本与轻音处理在 remotion 侧的落法）。
 
 ## Remotion 介质约束（全局规则在本介质的落地）
@@ -39,5 +39,5 @@
 ## 与全局的衔接
 
 - 需要"规则+判例+自检问题"三要素原文时，直接读取全局 `references/aesthetic-rules.md`；本文件不再复制其散文与判例。
-- 声音 S1–S4 的完整词汇与钉帧纪律见全局 `recut-directing-sound` 与本目录 `sound-design.md` 薄适配层；转场与卡点见全局 `recut-directing-editing`。
+- 声音 S1–S4 的完整词汇与钉帧纪律见全局 `recut-director（references/sound）` 与本目录 `sound-design.md` 薄适配层；转场与卡点见全局 `recut-director（references/editing）`。
 - 交付验收时逐条对照全局编号输出 `编号 ✓` / `编号 ✗(位置)`，位置 = 镜头名/帧号（见 `final-review.md`）。

@@ -1,12 +1,12 @@
 # music-beat-sync — remotion-studio 介质映射（薄适配层）
 
-> 决策规则权威来源：`service/skills/recut-directing-editing`；本文件仅保留 remotion-studio 介质映射
+> 决策规则权威来源：`service/skills/recut-director/references/editing`；本文件仅保留 remotion-studio 介质映射
 >
-> 本文件是 remotion-studio 对全局 `recut-directing-editing` 的薄适配层。卡点纪律、节拍网格、鼓点定位、渲后回测的**决策规则**以全局为准；本文件只保留"如何在 Remotion/composition 代码中落拍"的介质映射。
+> 本文件是 remotion-studio 对全局 `recut-director（references/editing）` 的薄适配层。卡点纪律、节拍网格、鼓点定位、渲后回测的**决策规则**以全局为准；本文件只保留"如何在 Remotion/composition 代码中落拍"的介质映射。
 
 ## 权威来源
 
-- **决策规则**：`service/skills/recut-directing-editing/SKILL.md` §3（卡点纪律）+ `service/skills/recut-directing-editing/references/music-beat-sync.md`（合并版，含 editor/remotion 双介质分层、节拍网格拟合、鼓点定位、渲后回测）。
+- **决策规则**：`service/skills/recut-director/references/editing/SKILL.md` §3（卡点纪律）+ `service/skills/recut-director/references/editing/references/music-beat-sync.md`（合并版，含 editor/remotion 双介质分层、节拍网格拟合、鼓点定位、渲后回测）。
 - **本文件**：仅保留 Remotion 侧的 `beatF`/`SHOTS` 常量化写法与工具备忘。
 
 ## 何时启用（转述全局）
