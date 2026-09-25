@@ -29,23 +29,6 @@
   "type": "project",
   "background": "background.js",
   "ui": { "projectView": "ui/dist/index.html" },
-  "distribution": {
-    "builtin": {
-      "include": ["."],
-      "exclude": [
-        "remotion-skeleton/demo-render-out",
-        "remotion-skeleton/output",
-        "remotion-skeleton/dist",
-        "remotion-skeleton/package-lock.json",
-        "ui/node_modules",
-        "ui/src",
-        "ui/package-lock.json",
-        "ui/package.json",
-        "ui/tsconfig.json",
-        "ui/vite.config.ts"
-      ]
-    }
-  },
   "onboarding": [
     {
       "id": "start-video",
