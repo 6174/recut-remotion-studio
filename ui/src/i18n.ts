@@ -9,7 +9,7 @@ export type Translate = (key: string, params?: Record<string, string>) => string
 
 const zh: Record<string, string> = {
   "header.eyebrow": "REMOTION 视频",
-  "header.title": "Remotion 视频",
+  "header.title": "Remotion",
   "header.openFolder": "打开文件夹",
   "header.export": "导出",
   "header.build": "构建",
@@ -39,8 +39,8 @@ const zh: Record<string, string> = {
   "prompt.narrativeVideoItem": "- {name}（assetId：{assetId}）",
   "prompt.unnamedVideo": "未命名视频",
   "prompt.details": "\n- 详细描述：{details}\n",
-  "prompt.startDesign": "我要用 Remotion 视频做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：{template}（{templateLabel}；{templateDescription}）\n- 选题：{topic}{details}{materials}{narrative}\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（{template}）\n\n{skill}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/{template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/{template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from \"@recut/remotion-kit\"，动态组件经 @recut/remotion-kit/components 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。若 Brief 提供 SRT，严格按其时间轴；若提供视频叙事来源，先转录再拆分场景。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。",
-  "prompt.redesign": "请继续在 Remotion 视频中改写这支视频的 composition 代码。\n\n当前 Brief：{topic}\n\n用户的改写要求：{instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context（含绝对路径 paths.workspacePath/appKitPath）与当前 workspace 代码（用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx）。\n3. 用原生文件工具直接改写 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律；字幕主题、效果与模板组件从 @recut/remotion-kit（seed 时整包拷贝进 workspace/remotion-kit/ 的冻结副本，旧项目沿用 workspace/src/captions 等相对引用）复用。若用户选择的组件与项目副本不一致（读 workspace/.recut-workspace 与 {paths.appKitPath}/catalog.json 对比），用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/、按需升级，只动被选组件。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。\n\n{videoConstraint}",
+  "prompt.startDesign": "我要用 Remotion 做一支程序化视频，请直接改写项目里的 Remotion 代码（项目私有 workspace），不要用任何结构化的设计契约。\n\n项目 Brief：\n- 成片模板：{template}（{templateLabel}；{templateDescription}）\n- 选题：{topic}{details}{materials}{narrative}\n该模板是端到端的成片参考：它自带视觉、组件、分镜与导演规划。请先完整阅读下面的 SKILL.md（导演手册），再据此实现。\n\n## 模板导演手册（{template}）\n\n{skill}\n\n开始前先做这些事：\n1. 调用 workflow.context 看阶段、workspace 状态与绝对路径 paths（workspacePath/appKitPath）；必要时 workspace.ensure。\n2. 读 {paths.appKitPath}/src/scenarios/{template}/template/ProjectVideo.tsx（模板代码，含内置 palette、beats 与默认 SCENES）与 {paths.appKitPath}/src/scenarios/{template}/primitives.tsx（模板视觉原语）。\n3. 项目 workspace 的 src/compositions/ProjectVideo.tsx 是一个接近空白的通用标题页（只渲染占位标题），不是长模板的实现，也没有你的选题内容。请把它整体重写为该模板的完整成片：以模板的 palette、beats 与默认 SCENES 为骨架，替换为当前选题的真实内容，并在 src/Root.tsx 保持 ProjectVideo 注册。组件库 @recut/remotion-kit 在 seed 时整包拷贝进 workspace/remotion-kit/（冻结副本）：直接 import { CaptionTheme, buildCaptionsData, BackgroundFX, TextFX } from \"@recut/remotion-kit\"，动态组件经 @recut/remotion-kit/components 引用，模板经 @recut/remotion-kit/templates/<name> 引用。媒体用 resolveMediaUrl(assetId) 引用真实素材，并用 composition.assets 登记代码里用到的所有 assetId。若 Brief 提供 SRT，严格按其时间轴；若提供视频叙事来源，先转录再拆分场景。\n4. 改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认。\n5. 不要调用 render.export。",
+  "prompt.redesign": "请继续在 Remotion 中改写这支视频的 composition 代码。\n\n当前 Brief：{topic}\n\n用户的改写要求：{instruction}\n\n请：\n1. 读 recut.skills.read 的 remotion-studio skill 及其 references，确认表达特效与字幕主题选择。\n2. 读 workflow.context（含绝对路径 paths.workspacePath/appKitPath）与当前 workspace 代码（用原生文件工具读 {paths.workspacePath}/src/compositions/ProjectVideo.tsx）。\n3. 用原生文件工具直接改写 {paths.workspacePath}/src/compositions/ProjectVideo.tsx（SCENES 与渲染层），遵循 directing.md 的导演语言与确定性渲染铁律；字幕主题、效果与模板组件从 @recut/remotion-kit（seed 时整包拷贝进 workspace/remotion-kit/ 的冻结副本，旧项目沿用 workspace/src/captions 等相对引用）复用。若用户选择的组件与项目副本不一致（读 workspace/.recut-workspace 与 {paths.appKitPath}/catalog.json 对比），用原生文件工具读 app 包最新源码 {paths.appKitPath}/src/、按需升级，只动被选组件。\n4. 用 composition.assets 登记代码引用的素材 assetId。\n5. 保存后停下等待预览确认（Vite 预览会自动热更新）；不要调用 render.export。\n\n{videoConstraint}",
   "prompt.supplement": "补充要求：\n{supplement}",
   "prompt.fineTuneSupplementPlaceholder": "补充你对这支视频的要求，如：竖屏 9:16、强调关键词、字幕放大、风格更克制等",
 
@@ -328,8 +328,8 @@ const zh: Record<string, string> = {
   "preview.materialUniformNote": "逐帧只更新 uniform，绝不重建 shader",
 };
 const en: Record<string, string> = {
-  "header.eyebrow": "REMOTION VIDEO",
-  "header.title": "Remotion Video",
+  "header.eyebrow": "REMOTION",
+  "header.title": "Remotion",
   "header.openFolder": "Open folder",
   "header.export": "Export",
   "header.build": "Build",
@@ -364,7 +364,7 @@ const en: Record<string, string> = {
   "prompt.supplement": "Additional requirements:\n{supplement}",
   "prompt.fineTuneSupplementPlaceholder": "Add requirements for this video, e.g. 9:16 portrait, emphasize keywords, larger captions, more restrained style",
 
-  "form.eyebrow": "REMOTION VIDEO / NEW",
+  "form.eyebrow": "REMOTION / NEW",
   "form.title": "Create a programmatic video",
   "form.subtitle": "Start from a complete template: the template already defines visuals, rhythm, and component composition. Then give a topic and add materials as needed — AI writes it straight into a finished video.",
   "form.templateTitle": "Choose template",

@@ -1,19 +1,19 @@
 {
   "manifestVersion": 1,
   "id": "recut.remotion-studio",
-  "name": "Remotion 视频",
+  "name": "Remotion",
   "author": "6174",
-  "description": "把选题、文案和素材编排成 Remotion 程序化视频：AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。",
+  "description": "用 Remotion 与 React 把选题、文案和素材编排成程序化视频：AI 直接改写项目 composition 代码，内嵌 Player 实时预览（进度控制），本地渲染导出。",
   "localized": {
     "en": {
-      "name": "Remotion Video",
-      "description": "Turn topics, copy, and materials into Remotion programmatic videos: AI rewrites the project's composition code directly, with an embedded Player for live preview (scrubbing) and local render export.",
+      "name": "Remotion",
+      "description": "Turn topics, copy and materials into programmatic videos with Remotion and React: AI rewrites the project's composition code directly, with an embedded Player for live preview (scrubbing) and local render export.",
       "onboarding": [
         {
           "id": "start-video",
           "title": "Start from a design",
           "description": "Pick a template, submit a topic and materials, and let AI write it into the project's Remotion code with live preview.",
-          "prompt": "I want to make a programmatic video with Remotion Video; the topic is [fill in the topic here]. First help me complete the Brief in the project (project.create), then read the remotion-studio skill via recut.skills.read and its references (effects/captions/directing), let me confirm the expression effects and caption theme choices, then start rewriting the composition code in the workspace. Design is code: first read workflow.context for absolute paths (workspacePath/appKitPath), read/edit {paths.workspacePath}/src/compositions/ProjectVideo.tsx and src/Root.tsx with native file tools, reference real materials with resolveMediaUrl(assetId) and register them with composition.assets; after saving, the Vite preview hot-reloads automatically; then stop and wait for preview confirmation — do not render or export early."
+          "prompt": "I want to make a programmatic video with Remotion; the topic is [fill in the topic here]. First help me complete the Brief in the project (project.create), then read the remotion-studio skill via recut.skills.read and its references (effects/captions/directing), let me confirm the expression effects and caption theme choices, then start rewriting the composition code in the workspace. Design is code: first read workflow.context for absolute paths (workspacePath/appKitPath), read/edit {paths.workspacePath}/src/compositions/ProjectVideo.tsx and src/Root.tsx with native file tools, reference real materials with resolveMediaUrl(assetId) and register them with composition.assets; after saving, the Vite preview hot-reloads automatically; then stop and wait for preview confirmation — do not render or export early."
         },
         {
           "id": "design-video",
@@ -34,7 +34,7 @@
       "id": "start-video",
       "title": "从一次设计开始",
       "description": "选择模板、提交选题与素材，让 AI 把它写进项目的 Remotion 工程代码并实时预览。",
-      "prompt": "我想用 Remotion 视频做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：先读 workflow.context 拿绝对路径 paths（workspacePath/appKitPath），用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认，不要提前渲染或导出。"
+      "prompt": "我想用 Remotion 做一支程序化视频，主题是【请在这里填写选题】。请先帮我在项目中完成 Brief（project.create），然后读 recut.skills.read 的 remotion-studio skill 及其 references（effects/captions/directing），让我确认表达特效与字幕主题，再开始改写 workspace 里的 composition 代码。设计是写代码：先读 workflow.context 拿绝对路径 paths（workspacePath/appKitPath），用原生文件工具读/改 {paths.workspacePath}/src/compositions/ProjectVideo.tsx 与 src/Root.tsx，媒体用 resolveMediaUrl(assetId) 引用真实素材并用 composition.assets 登记；改完保存后 Vite 预览会自动热更新；保存后停下等待预览确认，不要提前渲染或导出。"
     },
     {
       "id": "design-video",

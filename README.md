@@ -2,7 +2,7 @@
 
 <img src="./assets/logo.jpg" alt="Recut logo" width="112" />
 
-# Remotion 视频 · Remotion Studio
+# Remotion · Remotion Studio
 
 **把选题、文案与素材写成 Remotion 程序化视频 — 代码即设计，预览即热更新**
 
@@ -12,11 +12,11 @@
 
 </div>
 
-![Remotion 视频](./assets/remotion.jpg)
+![Remotion](./assets/remotion.jpg)
 
 ## 这是什么
 
-Remotion 视频是 Recut 的**程序化视频 App**（`project` 类型）。每个项目拥有 `remotion-skeleton` 的独立副本：AI 用原生文件工具直接改写 `workspace/src/compositions/ProjectVideo.tsx` 等 composition 代码，Vite dev server 热更新预览，本地 `@remotion/renderer` 确定性导出为 MP4。
+Remotion 是 Recut 的**程序化视频 App**（`project` 类型）。每个项目拥有 `remotion-skeleton` 的独立副本：AI 用原生文件工具直接改写 `workspace/src/compositions/ProjectVideo.tsx` 等 composition 代码，Vite dev server 热更新预览，本地 `@remotion/renderer` 确定性导出为 MP4。
 
 - **模板是单一真相源**：`faceless-explainer` / `product-launch` / `doodle-explainer` 三选一，视觉与叙事由 `@recut/remotion-kit` 提供。
 - **设计就是写代码**：复用内置表达特效与字幕主题，媒体用 `resolveMediaUrl(assetId)` 引用真实素材并 `composition.assets` 登记。
@@ -64,7 +64,7 @@ Remotion 视频是 Recut 的**程序化视频 App**（`project` 类型）。每�
 ### 在 Recut 中打开
 
 1. 安装并启动 Recut（见主仓库 [README](../../README.md#安装-recut)）。
-2. 新建项目时选择 **Remotion 视频**，完成 Brief（模板为唯一视觉与叙事选择）。
+2. 新建项目时选择 **Remotion**，完成 Brief（模板为唯一视觉与叙事选择）。
 3. 启动预览，改写 composition 后热更新预览，确认后导出。
 
 ### 让 Agent 帮你做
