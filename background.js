@@ -633,7 +633,9 @@ function renderExport(input, ctx) {
   const media = {};
   assetIds.forEach((assetId) => {
     if (media[assetId]) return;
-    const materialized = ctx.media.materialize(assetId);
+    // 渲染导出要按素材原分辨交给 Remotion：显式 { raw: true } 退出平台的参考图归一
+    // （平台默认把图片缩到参考图单边上限，那是给「参考」用的，不是给渲染用的）。
+    const materialized = ctx.media.materialize(assetId, { raw: true });
     media[assetId] = { kind: materialized.kind, mimeType: materialized.mimeType, path: materialized.path };
   });
 
